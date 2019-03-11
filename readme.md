@@ -6,7 +6,7 @@ Interpreter Version: **Python 2.7**
 *Follow steps below to run the project*:
 
 1. Open terminal and Enter the demo directory of this project
-2. Run Command：``python test.py``
+2. Run Command：``python test.****.py``
 
 # API Usage:
 ------
@@ -14,12 +14,12 @@ Interpreter Version: **Python 2.7**
 ```python
 
 import spartan as st
+   
+# set the computing engine
+st.config(st.engine.SINGLEMACHINE)
 
-# set the computing engine    
-st.config(st.engine.POWERGRAPH)
-
- # load graph data    
-data = st.readData("./inputData/mockInput.spt")
+# load graph data
+data = st.SFrame("yelp")
 ```
 ## count triangles:
 
@@ -37,7 +37,7 @@ trimodel.showResults(plot=True)
 ## anomaly detection
 ```python
  # create a anomaly detection model
-admodel = st.anomaly_detection.create("anomaly detection")
+admodel = st.anomaly_detection.create(data, "anomaly detection")
 
  # run the model
 admodel.run(st.ad_policy.HOLOSCOPE, k=3)
@@ -48,15 +48,12 @@ model.showResults()
 
 ## eigen decomposition
 ```python
- # create a eigen decomposition model
-edmodel = st.eigen_decompose.create("eigen decomposition")
+# create a eigen decomposition model
+edmodel = st.eigen_decompose.create(data, "eigen decomposition")
 
- # run the model
+# run the model
 edmodel.run(st.ed_policy.SVDS, k=10)
 
- # show the result
+# show the result
 edmodel.showResults()
-
 ```
-
-
