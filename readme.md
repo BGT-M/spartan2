@@ -18,8 +18,9 @@ import spartan as st
 # set the computing engine
 st.config(st.engine.SINGLEMACHINE)
 
-# load graph data
+# load graph data, data stores as edgelist in database, e.g.~pandas, sqlite, postgress, hive
 data = st.loadTensor(name="yelp", path="~/Data/", schema=("uid":str, "oid":str, "ts":int, "rating":float))
+
 ```
 ## count triangles:
 
@@ -27,7 +28,7 @@ data = st.loadTensor(name="yelp", path="~/Data/", schema=("uid":str, "oid":str, 
  # create triangle count model
 trimodel = st.triangle_count.create(data, "triangle count")
 
- # run the model 
+ # run the model by default set undirected for graphs
 trimodel.run(st.tc_policy.DOULION, p=0.8)
 
  # show the results
