@@ -19,7 +19,7 @@ import spartan as st
 st.config(st.engine.SINGLEMACHINE)
 
 # load graph data
-data = st.SFrame("yelp")
+data = st.loadTensor(name="yelp", path="~/Data/", schema=("uid":str, "oid":str, "ts":int, "rating":float))
 ```
 ## count triangles:
 
