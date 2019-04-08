@@ -19,7 +19,7 @@ import spartan as st
 st.config(st.engine.SINGLEMACHINE)
 
 # load graph data, data stores as edgelist in database, e.g.~pandas, sqlite, postgress, hive
-data = st.loadTensor(name="yelp", path="~/Data/", schema=("uid":str, "oid":str, "ts":int, "rating":float))
+data = st.loadTensor(name="yelp", path="~/Data/", col_ids = ["uid", "oid", "rating"], col_types = [int, int, int])
 
 ```
 ## count triangles:
