@@ -26,10 +26,10 @@ data = st.loadTensor(name="yelp", path="~/Data/", col_ids = ["uid", "oid", "rati
 
 ```python
  # create triangle count model
-trimodel = st.triangle_count.create(data, "triangle count")
+trimodel = st.triangle_count.create(data, st.tc_policy.DOULION)
 
  # run the model by default set undirected for graphs
-trimodel.run(st.tc_policy.DOULION, p=0.8)
+trimodel.run(p=0.8)
 
  # show the results
 trimodel.showResults(plot=True)
@@ -38,23 +38,49 @@ trimodel.showResults(plot=True)
 ## anomaly detection
 ```python
  # create a anomaly detection model
-admodel = st.anomaly_detection.create(data, "anomaly detection")
+hsmodel = st.anomaly_detection.create(data, st.ad_policy.HOLOSCOPE)
 
  # run the model
-admodel.run(st.ad_policy.HOLOSCOPE, k=3)
+hsmodel.run(k=3)
 
  # show the results
-model.showResults()
+hsmodel.showResults()
 ```
 
 ## eigen decomposition
 ```python
 # create a eigen decomposition model
-edmodel = st.eigen_decompose.create(data, "eigen decomposition")
+edmodel = st.eigen_decompose.create(data, st.ed_policy.SVDS)
 
 # run the model
-edmodel.run(st.ed_policy.SVDS, k=10)
+edmodel.run(k=10)
 
 # show the result
 edmodel.showResults()
+```
+
+## degree
+```python
+# count degree
+Du, Dv = st.bidegree(data)
+# D = st.degree(data)
+```
+
+## EagleMine
+```python
+ # create a anomaly detection model
+emmodel = st.anomaly_detection.create(data, st.ad_policy.EAGLEMINE)
+emmodel.setbipartite(True)
+ # run the eaglemine model
+emmodel.run(edmodel.U, Du)
+
+emmodel.run(edmodel.V, Dv)
+
+A, B = emmodel.nodes(n=0)
+
+```
+## subgraph
+```python
+g = st.subgraph(data, A, B)
+# g = st.subgraph(data, A)
 ```
