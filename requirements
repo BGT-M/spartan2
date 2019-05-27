@@ -1,0 +1,9 @@
+numpy
+scipy
+networkx
+matplotlib
+statsmodels
+pomegranate
+scikit-learn
+scikit-image
+sqlite3
