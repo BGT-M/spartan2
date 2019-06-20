@@ -50,7 +50,7 @@ hsmodel.showResults()
 ## eigen decomposition
 ```python
 # create a eigen decomposition model
-edmodel = st.eigen_decompose.create(data, st.ed_policy.SVDS, "my_eigen_decomposition_model")
+edmodel = st.eigen_decompose.create(data, st.ed_policy.SVDS, "my_svds_model")
 
 # run the model
 edmodel.run(k=10)
