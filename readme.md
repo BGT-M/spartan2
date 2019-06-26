@@ -26,7 +26,7 @@ data = st.loadTensor(name="yelp", path="~/Data/", col_ids = ["uid", "oid", "rati
 
 ```python
  # create triangle count model
-trimodel = st.triangle_count.create(data, st.tc_policy.DOULION)
+trimodel = st.triangle_count.create(data, st.tc_policy.DOULION, "my_doulion_model")
 
  # run the model by default set undirected for graphs
 trimodel.run(p=0.8)
@@ -38,7 +38,7 @@ trimodel.showResults(plot=True)
 ## anomaly detection
 ```python
  # create a anomaly detection model
-hsmodel = st.anomaly_detection.create(data, st.ad_policy.HOLOSCOPE)
+hsmodel = st.anomaly_detection.create(data, st.ad_policy.HOLOSCOPE, "my_holoscope_model")
 
  # run the model
 hsmodel.run(k=3)
@@ -50,7 +50,7 @@ hsmodel.showResults()
 ## eigen decomposition
 ```python
 # create a eigen decomposition model
-edmodel = st.eigen_decompose.create(data, st.ed_policy.SVDS)
+edmodel = st.eigen_decompose.create(data, st.ed_policy.SVDS, "my_svds_model")
 
 # run the model
 edmodel.run(k=10)
@@ -69,7 +69,7 @@ Du, Dv = st.bidegree(data)
 ## EagleMine
 ```python
  # create a anomaly detection model
-emmodel = st.anomaly_detection.create(data, st.ad_policy.EAGLEMINE)
+emmodel = st.anomaly_detection.create(data, st.ad_policy.EAGLEMINE, "my_eaglemine_model")
 emmodel.setbipartite(True)
  # run the eaglemine model
 emmodel.run(edmodel.U, Du)
