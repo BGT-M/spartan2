@@ -1,7 +1,9 @@
-# PocForSpartan
-This is a POC for our future Spartan
+# spartan2: backend for SparTan
+This is a developping version for our future SparTan.
+SparTan: Sparse Tensor Analytics
+Everthing here is viewed as a tensor (sparse).
 
-Interpreter Version: **Python 2.7**
+Interpreter Version: **Python 2.7** ( move to **Python 3.6** soon )
 
 *Follow steps below to run the project*:
 
@@ -14,7 +16,7 @@ Interpreter Version: **Python 2.7**
 ```python
 
 import spartan as st
-   
+
 # set the computing engine
 st.config(st.engine.SINGLEMACHINE)
 
