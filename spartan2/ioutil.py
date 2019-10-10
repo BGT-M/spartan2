@@ -5,10 +5,10 @@ def myreadfile(fnm, mode):
     if '.gz' == fnm[-3:]:
         fnm = fnm[:-3]
     if os.path.isfile(fnm):
-        f = open(fnm, mode)
+        f = open(fnm, 'r')
     elif os.path.isfile(fnm+'.gz'):
         import gzip
-        f = gzip.open(fnm+'.gz', mode)
+        f = gzip.open(fnm+'.gz', 'rb')
     else:
         print 'file: {} or its zip file does NOT exist'.format(fnm)
         sys.exit(1)

@@ -80,14 +80,14 @@ class LevelTree(object):
         self.mode = 0
 
     #TODO optimize the search process with [scipy.ndimage.label]
-    def _search_components_(self, min_level=1.0, morphology=True, sqrprobe_size=2):
+    def _search_components_(self, min_level=1.0, morphology=False, sqrprobe_size=2):
         coord2val_dict = dict()
         if morphology:
             hypr_canvas = np.zeros(self.bound)
             for k in range(self._Nnnz):
                 hypr_canvas[tuple(self._earth[k])] += self._value[k]
             probe = np.ones(tuple([sqrprobe_size] * hypr_canvas.ndim))
-            coords = np.nonzero(snm.binary_opening(hypr_canvas, structure=probe) * 1)
+            coords = np.nonzero(snm.binary_opening(hypr_canvas, structure=probe).astype(int))
             for pos in zip(*coords):
                 coord2val_dict[pos] = hypr_canvas[pos]
         else:
@@ -140,10 +140,10 @@ class LevelTree(object):
         if node_id in self.comp_tree.keys():
             node = self.comp_tree.get(node_id)
         return node
-    
+
     def get_nodes(self):
         return self.comp_tree.keys()
-    
+
     def get_leaves(self):
         leaves = []
         for id, node in self.comp_tree.items():
@@ -230,13 +230,14 @@ class LevelTree(object):
                 break
 
         if outfn is not None:
-            blob2cnt = dict()
-            for blob in tiny_blobs:
-                blob2cnt[blob] = int(2**pos2val[blob]) - 1
-            blob_pos2cnt = np.zeros((len(blob2cnt), self.mode + 1),int)
-            blob_pos2cnt[:, :self.mode] = np.asarray(blob2cnt.keys(), int)
-            blob_pos2cnt[:, self.mode] = np.asarray(blob2cnt.values(), int)
-            np.savetxt(outfn, blob_pos2cnt, '%d', ',')
+            if len(tiny_blobs) > 0:
+                blob2cnt = dict()
+                for blob in tiny_blobs:
+                    blob2cnt[blob] = int(2**pos2val[blob]) - 1
+                blob_pos2cnt = np.zeros((len(blob2cnt), self.mode + 1),int)
+                blob_pos2cnt[:, :self.mode] = np.asarray(blob2cnt.keys(), int)
+                blob_pos2cnt[:, self.mode] = np.asarray(blob2cnt.values(), int)
+                np.savetxt(outfn, blob_pos2cnt, '%d', ',')
 
         if verbose is True:
             print("Info: Level-Tree build done!")

@@ -19,7 +19,7 @@ anomaly_detection = system.AnomalyDetection()
 eigen_decompose = system.EigenDecompose()
 traingle_count = system.TraingleCount()
 
-'''Input graph format: 
+'''Input graph format:
     src1 dst1 value1
     src2 dst2 value2
     ...
@@ -51,7 +51,7 @@ def config(frame_name):
     ed_policy = frame.EigenDecompose()
 
 def bidegree(edgelist):
-    sm = _get_sparse_matrix(edgelist)
+    sm = _get_sparse_matrix(edgelist, squared=True)
 
     sm_csr = sm.tocsr(copy = False)
     sm_csc = sm.tocsc(copy = False)
@@ -148,7 +148,7 @@ def subgraph(edgelist, uid_array, oid_array = None):
 
     if squared == True:
         sql_str += ''', UID
-                      WHERE EDGE.{} = UID.uid 
+                      WHERE EDGE.{} = UID.uid
                       AND EDGE.{} = UID.uid;'''.format(edgelist[0][0], edgelist[0][1])
         cur.execute(sql_str)
         subgraph = cur.fetchall()
@@ -169,7 +169,7 @@ def subgraph(edgelist, uid_array, oid_array = None):
         cur.execute(temp_sql_str)
 
         sql_str += ''', UID, OID
-                      WHERE EDGE.{} = UID.uid 
+                      WHERE EDGE.{} = UID.uid
                       AND EDGE.{} = OID.oid;'''.format(edgelist[0][0], edgelist[0][1])
         cur.execute(sql_str)
         subgraph = cur.fetchall()
