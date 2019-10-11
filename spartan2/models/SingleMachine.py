@@ -2,6 +2,8 @@
 # -*- coding:utf-8 -*-
 # Author:Viki Zhao
 
+import os
+
 from .holoscope.holoscopeFraudDect import Ptype, HoloScope
 from .fraudar.greedy import logWeightedAveDegree, np
 from .ioutil import saveSimpleListData, loadedgelist2sm
@@ -39,6 +41,8 @@ class AnomalyDetection:
 
     def EAGLEMINE(self, x_feature_array, y_feature_array):
         tempdir = "temp/"
+        if not os.path.exists(tempdir):
+            os.mkdir(tempdir)
         tempfile = {
             "feature": "outd2hub_feature",
             "histogram": "histogram.out",
@@ -47,6 +51,8 @@ class AnomalyDetection:
         }
 
         outdir = "outputData/"
+        if not os.path.exists(outdir):
+            os.mkdir(outdir)
         output = {
             "hcel2label": "hcel2label.out",
             "viz_clsv": "viz_cluster.png",

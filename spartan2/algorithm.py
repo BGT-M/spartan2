@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 # Author:Viki Zhao
 
+import os
 import scipy.sparse.linalg as slin
 import numpy as np
 from scipy.sparse import csc_matrix, coo_matrix, csr_matrix, lil_matrix
@@ -12,6 +13,8 @@ class Algorithm():
         self.edgelist = edgelist
         self.name = model_name
         self.out_path = "./outputData/"
+        if not os.path.exists(self.out_path):
+            os.mkdir(self.out_path)
 
     def showResults(self, plot=False):
         #TODO
