@@ -58,8 +58,8 @@ def _get_sparse_matrix(edgelist, notSquared = False):
     edge_num = len(edges)
 
     # construct the sparse matrix
-    xs = [edges[i][0] for i in xrange(edge_num)]
-    ys = [edges[i][1] for i in xrange(edge_num)]
+    xs = [edges[i][0] for i in range(edge_num)]
+    ys = [edges[i][1] for i in range(edge_num)]
     data = [1.0] * edge_num
 
     row_num = max(xs) + 1

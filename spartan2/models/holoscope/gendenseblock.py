@@ -3,12 +3,13 @@ import numpy as np
 import random
 import numpy.random as nr
 import scipy.linalg as sla
-from mytools.ioutil import *
+# from .mytools.ioutil import *
+from .mytools.ioutil import loadedge2sm, loadDictListData, loadDictListData, saveDictListData, savesm2edgelist, saveSimpleListData
 from scipy.sparse import coo_matrix
 
 def genEvenDenseBlock(A, B, p):
     m = []
-    for i in xrange(A):
+    for i in range(A):
         a = np.random.binomial(1, p, B)
         m.append(a)
     return np.array(m)
@@ -16,8 +17,8 @@ def genEvenDenseBlock(A, B, p):
 def genHyperbolaDenseBlock(A, B, alpha, tau):
     'this is from hyperbolic paper: i^\alpha * j^\alpha > \tau'
     m = np.empty([A, B], dtype=int)
-    for i in xrange(A):
-        for j in xrange(B):
+    for i in range(A):
+        for j in range(B):
             if (i+1)**alpha * (j+1)**alpha > tau:
                 m[i,j] = 1
             else:
@@ -34,7 +35,7 @@ def genDiHyperRectBlocks(A1, B1, A2, B2, alpha=-0.5, tau=None, p=1):
 
 def addnosie(M, A, B, p, black=True, A0=0, B0=0):
     v = 1 if black else 0
-    for i in xrange(A-A0):
+    for i in range(A-A0):
         a = np.random.binomial(1, p, B-B0)
         for j in a.nonzero()[0]:
             M[A0+i,B0+j]=v
@@ -67,7 +68,7 @@ def injectCliqueCamo(M, m0, n0, p, testIdx):
             for j in range(n0, n):
                 if random.random() < thres:
                     M2[i,j] = 1
-        # biased camo           
+        # biased camo
         if testIdx == 3:
             colRplmt = random.sample(population, int(n0 * p))
             M2[i,colRplmt] = 1
@@ -97,11 +98,12 @@ def injectFraud2PropGraph(freqfile, ratefile, tsfile, acnt, bcnt, goal, popbd,
                           testIdx = 3, idstartzero=True, re=True, suffix=None,
                          weighted=True, output=True):
     if not idstartzero:
-        print 'we do not handle id start 1 yet for ts and rate'
+        print('we do not handle id start 1 yet for ts and rate')
         ratefile, tsfile = None, None
 
-    M = loadedge2sm(freqfile, coo_matrix, weighted=weighted,
-                     idstartzero=idstartzero)
+    # M = loadedge2sm(freqfile, coo_matrix, weighted=weighted, idstartzero=idstartzero)
+    # remove unexpected parameter 'weighted'
+    M = loadedge2sm(freqfile, coo_matrix, idstartzero=idstartzero)
     'smax: the max # of multiedge'
     smax = M.data.max() #max freqency
     if acnt == 0 and re:
@@ -114,10 +116,10 @@ def injectFraud2PropGraph(freqfile, ratefile, tsfile, acnt, bcnt, goal, popbd,
         rates = loadDictListData(ratefile, ktype=str, vtype=float)
     if tsfile is not None:
         times = loadDictListData(tsfile, ktype=str, vtype=int)
-        tsmin, tsmax = sys.maxint,0
+        tsmin, tsmax = sys.maxsize, 0
         tsdiffs = np.array([])
-        prodts={i:[] for i in xrange(n)}
-        for k,v in times.iteritems():
+        prodts={i:[] for i in range(n)}
+        for k,v in times.items():
             k = k.split('-')
             pid = int(k[1])
             prodts[pid] += v
@@ -135,11 +137,11 @@ def injectFraud2PropGraph(freqfile, ratefile, tsfile, acnt, bcnt, goal, popbd,
             tsdiffs = np.concatenate((tsdiffs, vdiff[vdiff>0]))
         tsdiffs.sort()
         tsdiffs = tsdiffs.astype(int)
-	tsdiffcands = np.unique(tsdiffs)[:20] #another choice is bincount
-	tsp = np.arange(20,dtype=float)+1
-	tsp = 1.0/tsp
-	tsp = tsp/tsp.sum()
-    t0 = np.random.randint(tsmin, tsmax,dtype=int)
+        tsdiffcands = np.unique(tsdiffs)[:20] #another choice is bincount
+        tsp = np.arange(20,dtype=float)+1
+        tsp = 1.0/tsp
+        tsp = tsp/tsp.sum()
+        t0 = np.random.randint(tsmin, tsmax,dtype=int)
 
     colSum = M2.sum(0).getA1()
     colids = np.arange(n, dtype=int)
@@ -192,7 +194,7 @@ def injectFraud2PropGraph(freqfile, ratefile, tsfile, acnt, bcnt, goal, popbd,
                     M2[i,j] += s
                     k = '{}-{}'.format(i,j)
                     generateProps(rates, times, k, s, t0, tsdiffcands, tsp)
-        # biased camo           
+        # biased camo
         if testIdx == 3:
             colRplmt = np.random.choice(camocands, size=int(bcnt*p),
                                         p=camoprobs)

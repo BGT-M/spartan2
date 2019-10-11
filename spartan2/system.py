@@ -3,7 +3,7 @@
 # Author:Viki Zhao
 
 import os, sys
-from algorithm import *
+from .algorithm import Holoscope, Eaglemine, Fraudar, SVDS
 
 alg_list = {
     "AnomalyDetection":{

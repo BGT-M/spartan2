@@ -15,7 +15,7 @@
 #        For commercial purposes, please contact the author.
 #
 #      Created by @wenchieh  on <12/5/2017>
-# 
+#
 
 __author__ = 'wenchieh'
 
@@ -26,7 +26,7 @@ from sklearn.preprocessing import scale
 from scipy.stats import anderson
 
 # project
-from norm_extras import norm_anderson
+from .norm_extras import norm_anderson
 
 
 class StatisticHypothesisTest(object):

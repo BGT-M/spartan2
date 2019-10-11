@@ -109,7 +109,7 @@ class Loader(object):
         with open(infn_adjlist, 'r') as fp:
             for line in fp:
                 arr = line.split(sep)
-                adj_list[int(arr[0])] = map(int, arr[1].split(sep))
+                adj_list[int(arr[0])] = list(map(int, arr[1].split(sep)))
             fp.close()
 
         return adj_list
@@ -130,6 +130,8 @@ class Loader(object):
 
         with open(infn, 'r') as fp:
             line = fp.readline()
+            splited_line = line[1:].strip().split(sep)
+            m, n, mod = int()
             m, n, mod = map(int, line[1:].strip().split(sep))
             usecols = np.unique(usecols)
             degs = []   # np.zeros(m + n, int)
@@ -155,25 +157,25 @@ class Loader(object):
             fp.close()
 
         return m, n, degs, vals
-    
+
     def load_histogram(self, infn):
         return self.load_multi_histogram(infn)
-    
+
     def load_multi_histogram(self, infn):
         shape, ticks_vec = [], []
         hist_arr = []
 
         sep = self._get_sep_of_file_(infn)
         with open(infn, 'r') as ofp:
-            shape = map(int, ofp.readline().strip()[1:].split(sep))
+            shape = list(map(int, ofp.readline().strip()[1:].split(sep)))
 
             for mod in range(len(shape)):
-                ticks = map(float, ofp.readline()[1:].strip().split(sep))
+                ticks = list(map(float, ofp.readline()[1:].strip().split(sep)))
                 ticks_vec.append(ticks)
 
             for line in ofp.readlines():
                 toks = line.strip().split(sep)
-                hist_arr.append((map(int, toks)))
+                hist_arr.append((list(map(int, toks))))
             ofp.close()
 
         return np.array(shape, int), ticks_vec, np.array(hist_arr, int)
@@ -201,7 +203,7 @@ class Loader(object):
             for line in ifp:
                 if line.startswith(comment):
                     continue
-                toks = map(int, line.strip().split(sep))
+                toks = list(map(int, line.strip().split(sep)))
                 ptidx_pos.append(toks)
             ifp.close()
         return np.asarray(ptidx_pos)

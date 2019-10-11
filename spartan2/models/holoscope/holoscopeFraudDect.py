@@ -3,12 +3,10 @@ import numpy as np
 import scipy as sci
 import scipy.sparse.linalg as slin
 import copy
-from mytools.MinTree import MinTree
+from .mytools.MinTree import MinTree
 from scipy.sparse import coo_matrix, csr_matrix, lil_matrix
-from mytools.ioutil import loadedge2sm
-from gendenseblock import *
-from matricizationSVD import *
-from edgepropertyAnalysis import *
+from .mytools.ioutil import loadedge2sm
+from .edgepropertyAnalysis import MultiEedgePropBiGraph
 import math
 
 class Ptype(object):
@@ -55,9 +53,9 @@ class HoloScopeOpt:
         self.matricizetenor=None
         self.nU, self.nV=graphmat.shape
         self.indegrees = graphmat.sum(0).getA1()
-        self.e0 = math.log(graphmat.sum(), self.nU) #logrithm of edges 
-        print 'matrix size: {} x {}\t#edges: {}'.format(self.nU, self.nV,
-                                                          self.indegrees.sum())
+        self.e0 = math.log(graphmat.sum(), self.nU) #logrithm of edges
+        print('matrix size: {} x {}\t#edges: {}'.format(self.nU, self.nV,
+                                                          self.indegrees.sum()))
 
         self.tsfile, self.ratefile, self.tunit = tsfile, ratefile, tunit
         self.tspim, self.ratepim = None, None
@@ -125,7 +123,7 @@ class HoloScopeOpt:
         elif scale == 'log1p':
             colWeights = np.log1p(colWeights) + 1
         else:
-            print '[Warning] no scale for the prior weight'
+            print('[Warning] no scale for the prior weight')
 
         n = self.nV
         colDiag = lil_matrix((n, n))
@@ -133,10 +131,10 @@ class HoloScopeOpt:
         self.graphr = self.graphr * colDiag.tocsr()
         self.graph = self.graphr.tocoo(copy=False)
         self.graphc = self.graph.tocsc(copy=False)
-        print "finished computing weight matrix"
+        print("finished computing weight matrix")
 
     def weightWithIDFprior(self):
-        print 'weightd with IDF prior'
+        print('weightd with IDF prior')
         colWeights = 1.0/np.log(self.indegrees + 5)
         n = self.nV
         colDiag = lil_matrix((n, n))
@@ -166,8 +164,9 @@ class HoloScopeOpt:
             from scipy.stats import rankdata
         rankmethod = 'average'
         k=60 #for rank fusion
+        values = list(mbs.values())
         if len(mbs) == 1:
-            val = mbs.values()[0]
+            val = values[0]
             if method == 'rank':
                 rb = rankdata(-np.array(val), method=rankmethod)
                 return np.reciprocal(rb+k) * k
@@ -175,18 +174,18 @@ class HoloScopeOpt:
                 return val
         if method == 'sum':
             'this is the joint probability of exp form of prob'
-            bsusps = mbs.values()[0]
-            for v in mbs.values()[1:]:
+            bsusps = values[0]
+            for v in values[1:]:
                 bsusps += v
         elif method == 'rank':
             'rank fusion'
             arrbsusps = []
-            for val in mbs.values():
+            for val in values:
                 rb = rankdata(-np.array(val), method=rankmethod)
                 arrbsusps.append(np.reciprocal(rb+k))
             bsusps = np.array(arrbsusps).sum(0) * k
         else:
-            print '[Error] Invalid method {}\n'.format(method)
+            print('[Error] Invalid method {}\n'.format(method))
         return bsusps
 
     #@profile
@@ -205,9 +204,10 @@ class HoloScopeOpt:
             nsusprates = susprates/self.ratepim.maxratediv
         elif scale=='minmax':
             #need a copy, and do not change susprates' value for delta
+            from sklearn import preprocessing
             nsusprates = preprocessing.minmax_scale(susprates, copy=True)
         else:
-            #no scale 
+            #no scale
             nsusprates = susprates
         return nsusprates
 
@@ -275,7 +275,7 @@ class HoloScopeOpt:
         delcands = self.A.nonzero()[0]
         deluserCredit = self.graphr[delcands,:].dot(self.bsusps)
         delscores[delcands] = deluserCredit
-        print 'set up the greedy min tree'
+        print('set up the greedy min tree')
         MT = MinTree(delscores)
         i=0
         sizeA = np.sum(self.A)
@@ -321,7 +321,7 @@ class HoloScopeOpt:
                 sys.stdout.write('.')
                 sys.stdout.flush()
             i+=1
-        print ''
+        print()
         return np.sum(self.A)
 
     def initfastgreedy(self, ptype, numSing, rbd='avg'):
@@ -365,7 +365,7 @@ class HoloScopeOpt:
             w = np.ones(self.nV)
         xs, ys, data, colWeights = [],[],[],[] # for matricized tenor
         matcols, rindexcols={},{}
-        for i in xrange(dl):
+        for i in range(dl):
             if tscm is not None and rtcm is not None:
                 assert(tscm.row[i] == rtcm.row[i] and tscm.col[i] == rtcm.col[i])
                 u = tscm.row[i]
@@ -409,17 +409,17 @@ class HoloScopeOpt:
                     ys.append(matcols[strcol])
                     data.append(1.0)
             else:
-                print 'Warning: no ts and rate for matricization'
+                print('Warning: no ts and rate for matricization')
                 return self.graph, range(self.nV)
 
         nrow, ncol = max(xs)+1, max(ys)+1
         sm = mtype( (data, (xs, ys)), shape=(nrow, ncol), dtype=np.float64 )
         if logdegree:
-            print 'using log degree'
+            print('using log degree')
             sm.data[0:] = np.log1p(sm.data)
         if dropweight:
             m1, n1 = sm.shape
-            for i in xrange(n1):
+            for i in range(n1):
                 pos = rindexcols[i].find(' ')
                 v = int(rindexcols[i][:pos])
                 colWeights.append(w[v])
@@ -438,8 +438,8 @@ class HoloScopeOpt:
         'edgepropertyAnalysis has already digitized the ratings'
         rbins = lambda x: int(x) #lambda x: 0 if x<2.5 else 1 if x<=3.5 else 2
         tunit = self.tunit
-        print 'generate tensorfile with tunit:{}, tbins:{}'.format(tunit,
-                                                                   tbindic[tunit])
+        print('generate tensorfile with tunit:{}, tbins:{}'.format(tunit,
+                                                                   tbindic[tunit]))
         if self.matricizetenor is None:
             matricize_start = time.clock()
             sm, rindexcol = self.tenormatricization(self.tspim, self.ratepim,
@@ -447,15 +447,15 @@ class HoloScopeOpt:
                     dropweight=self.priordropslop,
                     logdegree=False)
             self.matricizetenor = sm
-            print '::::matricize time cost: ', time.clock() - matricize_start
+            print('::::matricize time cost: ', time.clock() - matricize_start)
         sm = self.matricizetenor
-        print "matricize {}x{} and svd dense... ..."\
-                .format(sm.shape[0], sm.shape[1])
+        print("matricize {}x{} and svd dense... ..."\
+                .format(sm.shape[0], sm.shape[1]))
         u, s, vt = slin.svds(sm, k=numSing, which='LM')
         u = np.fliplr(u)
         s = s[::-1]
         CU, CV = [],[]
-        for i in xrange(self.numSing):
+        for i in range(self.numSing):
             ui = u[:, i]
             si = s[i]
             if abs(max(ui)) < abs(min(ui)):
@@ -467,9 +467,9 @@ class HoloScopeOpt:
             elif rbd == 'avg':
                 rbdrow = 1.0/math.sqrt(self.nU)
             else:
-                print 'unkown rbd {}'.format(rbd)
+                print('unkown rbd {}'.format(rbd))
             rows = np.argsort(-ui, axis=None, kind='quicksort')
-            for jr in xrange(len(rows)):
+            for jr in range(len(rows)):
                 r = rows[jr]
                 if ui[r] <= rbdrow:
                     break
@@ -502,7 +502,7 @@ class HoloScopeOpt:
         self.V = []
         self.CU = []
         self.CV = []
-        for i in xrange(self.numSing):
+        for i in range(self.numSing):
             ui = u[:, i]
             vi = vt[i, :]
             si = s[i]
@@ -519,10 +519,10 @@ class HoloScopeOpt:
                 rbdrow = 1.0/math.sqrt(self.nU)
                 rbdcol = 1.0/math.sqrt(self.nV)
             else:
-                print 'unkown rbd {}'.format(rbd)
+                print('unkown rbd {}'.format(rbd))
             rows = np.argsort(-ui, axis=None, kind='quicksort')
             cols = np.argsort(-vi, axis=None, kind='quicksort')
-            for jr in xrange(len(rows)):
+            for jr in range(len(rows)):
                 r = rows[jr]
                 if ui[r] <= rbdrow:
                     break
@@ -535,7 +535,7 @@ class HoloScopeOpt:
                 cutrows = rows[:min(jr,nlimit)]
             else:
                 cutrows = rows[:jr]
-            for jc in xrange(len(cols)):
+            for jc in range(len(cols)):
                 c = cols[jc]
                 if vi[c] <= rbdcol:
                     break
@@ -571,7 +571,7 @@ class HoloScopeOpt:
         elif scale == 'lin':
             ratios[greatbdidx] = np.fmax(self.b*(ratios[greatbdidx]-1)+1, 0)
         else:
-            print 'unrecognized scale: ' + scale
+            print('unrecognized scale: ' + scale)
             sys.exit(1)
         return ratios
 
@@ -586,7 +586,7 @@ class HoloScopeOpt:
         '''it is for find second block, remove rows from
            self.graph, self.matricizetenor
         '''
-        print 'removing {} rows from graph'.format(len(rows))
+        print('removing {} rows from graph'.format(len(rows)))
         lilm = self.graph.tolil()
         lilm[rows,:]=0
         self.graph=lilm.tocoo()
@@ -594,7 +594,7 @@ class HoloScopeOpt:
         self.graphr = self.graph.tocsr()
 
         if self.matricizetenor is not None:
-            print 'removing {} rows from tensor'.format(len(rows))
+            print('removing {} rows from tensor'.format(len(rows)))
             lilmm = self.matricizetenor.tolil()
             lilmm[rows,:] = 0
             self.matricizetenor = lilmm.tocoo()
@@ -608,25 +608,25 @@ class HoloScopeOpt:
         self.fastbestvx = 0
         self.fastbestA, self.fastbestfbs, self.fastbestbsusps = \
                 np.zeros(self.nU), np.zeros(self.nV), np.zeros(self.nV)
-        for k in xrange(self.numSing):
-            print 'process {}-th singular vector'.format(k+1)
+        for k in range(self.numSing):
+            print('process {}-th singular vector'.format(k+1))
             lenCU = len(self.CU[k])
             if lenCU == 0:
                 continue
-            print '*** *** shaving ...'
+            print('*** *** shaving ...')
             A0 = np.zeros(self.nU, dtype=int)
             A0[self.CU[k]]=1 #shaving from sub singluar space
             self.start(A0, ptype=self.ptype)
             self.greedyshaving()
-            print '*** *** shaving opt size: {}'.format(sum(self.bestA))
-            print '*** *** shaving opt value: {}'.format(self.bestvx)
+            print('*** *** shaving opt size: {}'.format(sum(self.bestA)))
+            print('*** *** shaving opt value: {}'.format(self.bestvx))
             if self.fastbestvx < self.bestvx:
                 self.fastbestvx = self.bestvx
                 self.fastbestA = np.array(self.bestA)
                 self.fastbestfbs = np.array(self.bestfbs)
                 self.fastbestbsusps = np.array(self.bestbsusps)
-                print '=== === improved opt size: {}'.format(sum(self.fastbestA))
-                print '=== === improved opt value: {}'.format(self.fastbestvx)
+                print('=== === improved opt size: {}'.format(sum(self.fastbestA)))
+                print('=== === improved opt value: {}'.format(self.fastbestvx))
 
             brankscores = np.multiply(self.bestbsusps, self.bestfbs)
             A = self.bestA.nonzero()[0]
@@ -689,7 +689,7 @@ def HoloScope(wmat, alg, ptype, qfun, b, ratefile=None, tsfile=None,
     Return
     ---------
     (gbestvx, (gsrows, gbscores)), opt
-        Block (gsrows, gbscores) has the best objective values 'gbestvx' among 
+        Block (gsrows, gbscores) has the best objective values 'gbestvx' among
 	*nblock* blocks.
 	gbestvx: float
             the best objective value of the *nblock* blocks.
@@ -705,9 +705,11 @@ def HoloScope(wmat, alg, ptype, qfun, b, ratefile=None, tsfile=None,
                 This is the list contains *nblock* solutions in the form of
                 tuple, i.e., (opt.bestvx, (srows, bscores))
     '''
-    print 'initial...'
+    print('initial...')
     if sci.sparse.issparse(wmat) is False and os.path.isfile(wmat):
-        sm = loadedge2sm(wmat, coo_matrix, weighted=True, idstartzero=True)
+        # sm = loadedge2sm(wmat, coo_matrix, weighted=True, idstartzero=True)
+        # remove unexpected parameter 'weighted'
+        sm = loadedge2sm(wmat, coo_matrix, idstartzero=True)
     else:
         sm = wmat.tocoo()
     inprop = 'Considering '
@@ -725,37 +727,37 @@ def HoloScope(wmat, alg, ptype, qfun, b, ratefile=None, tsfile=None,
         inprop += '+[rating i.e. # of stars] '
     else:
         ratefile = None
-    print inprop
+    print(inprop)
 
     opt = HoloScopeOpt(sm, qfun=qfun, b=b, tsfile=tsfile, tunit=tunit, ratefile=ratefile)
     opt.nbests=[]
     opt.nlocalbests=[] #mainly used for fastgreedy
     gsrows,gbscores,gbestvx = 0,0,0
-    for k in xrange(nblock):
+    for k in range(nblock):
         start_time = time.clock()
         if alg == 'greedy':
             n1, n2 = sm.shape
             if n1 + n2 > 1e4:
-                print '[Warning] alg {} is slow for size {}x{}'\
-                        .format(alg, n1, n2)
+                print('[Warning] alg {} is slow for size {}x{}'\
+                        .format(alg, n1, n2))
             A = np.ones(opt.nU,dtype=int)
-            print 'initial start'
+            print('initial start')
             opt.start(A, ptype=ptype)
-            print 'greedy shaving algorithm ...'
+            print('greedy shaving algorithm ...')
             opt.greedyshaving()
         elif alg == 'fastgreedy':
-            print """alg: {}\n\t+ # of singlular vectors: {}\n""".format(alg, numSing)
-            print 'initial start'
+            print("""alg: {}\n\t+ # of singlular vectors: {}\n""".format(alg, numSing))
+            print('initial start')
             opt.initfastgreedy(ptype, numSing)
-            print "::::Finish Init @ ", time.clock() - start_time
-            print 'fast greedy algorithm ...'
+            print("::::Finish Init @ ", time.clock() - start_time)
+            print('fast greedy algorithm ...')
             opt.fastgreedy()
             opt.nlocalbests.append(opt.fastlocalbest)
         else:
-            print 'No such algorithm: '+alg
+            print('No such algorithm: '+alg)
             sys.exit(1)
 
-        print "::::Finish Algorithm @ ", time.clock() - start_time
+        print("::::Finish Algorithm @ ", time.clock() - start_time)
 
         srows = opt.bestA.nonzero()[0]
         bscores = np.multiply(opt.bestfbs, opt.bestbsusps)
@@ -765,7 +767,7 @@ def HoloScope(wmat, alg, ptype, qfun, b, ratefile=None, tsfile=None,
         if k < nblock-1:
             opt.removecurrentblock(srows)
 
-    print 'global best size ', len(gsrows)
-    print 'global best value ', gbestvx
+    print('global best size ', len(gsrows))
+    print('global best value ', gbestvx)
     return (gbestvx, (gsrows, gbscores)), opt
 

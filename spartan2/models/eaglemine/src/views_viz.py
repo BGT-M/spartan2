@@ -17,12 +17,12 @@ import numpy as np
 from scipy.sparse import csr_matrix
 
 # project
-from desc.gaussian_describe import GaussianDescribe
-from desc.dtmnorm_describe import DTMNormDescribe
+from .desc.gaussian_describe import GaussianDescribe
+from .desc.dtmnorm_describe import DTMNormDescribe
 
-from utils.loader import Loader
-from utils.ploter import plot_clusters, plot_heatmap
-from utils.ploter_aux import plot_heatmap_ellipse_covs
+from .utils.loader import Loader
+from .utils.ploter import plot_clusters, plot_heatmap
+from .utils.ploter_aux import plot_heatmap_ellipse_covs
 
 VALID_DESCVOCS = ['dtmnorm', 'dmgauss']
 

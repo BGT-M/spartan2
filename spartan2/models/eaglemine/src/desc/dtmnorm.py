@@ -16,7 +16,7 @@
 #        For commercial purposes, please contact the author.
 #
 #      Created by @wenchieh  on <12/01/2017>
-# 
+#
 __author__ = 'wenchieh'
 
 # sys
@@ -29,10 +29,10 @@ from numpy.linalg import det
 import scipy.optimize as opt
 from statsmodels.stats.weightstats import DescrStatsW
 from sklearn import cluster
-from pomegranate import *
+from pomegranate import GeneralMixtureModel, MultivariateGaussianDistribution
 
 # project
-from norm_extras import mvnormcdf
+from .norm_extras import mvnormcdf
 
 
 class DTMNorm(object):
@@ -69,7 +69,7 @@ class DTMNorm(object):
         if ws is not None:
             paras.extend(ws[:-1])
         return np.array(paras)
-    
+
     def _paras_decompose_(self, paras, n_components):
         mus, covs, ws = list(), list(), list()
         mus = list(np.array(paras[: self.ndim * n_components]).reshape((n_components, self.ndim)))
@@ -91,7 +91,7 @@ class DTMNorm(object):
         else:
             ws = [1.0 / n_components] * n_components
         return mus, covs, np.asarray(ws)
-    
+
     #TODO: non-positive covariance matrix process [refinement]
     def _cov_process_(self, cov, reg_covar=1e-4):
         '''
@@ -102,7 +102,7 @@ class DTMNorm(object):
                    Not Positive Definite Matrices--Causes and Cures
                    [http://www2.gsu.edu/~mkteer/npdmatri.html]
         '''
-        ## Non-negative regularization added to the diagonal of covariance. 
+        ## Non-negative regularization added to the diagonal of covariance.
         ## Allows to assure that the covariance matrices are all positive.
         if det(cov) <= 0.0:
             diags = np.diag(cov)
@@ -134,7 +134,7 @@ class DTMNorm(object):
         if debug_info is not None:
             debug_info.append(-res)
             if len(debug_info) % 200  == 0:
-                print len(debug_info), -res
+                print(len(debug_info), -res)
 
         return -1 * res
 
@@ -144,7 +144,7 @@ class DTMNorm(object):
         centers = (left + right) / 2.0
         statsW = DescrStatsW(centers, weights=np.array(weights))
         init_paras = self._paras_compose_([statsW.mean], [statsW.cov], [1.0])
-        
+
         method = 'Nelder-Mead'
         res = opt.minimize(self._single_optpara, init_paras, args=(left, right, weights, debugs),
                            method = method, tol = tol, options={'maxiter': maxiter, 'disp': verbose})
@@ -182,7 +182,7 @@ class DTMNorm(object):
         if debug_info is not None:
             debug_info.append(-res)
             if len(debug_info) % 200  == 0:
-                print len(debug_info), -res
+                print(len(debug_info), -res)
 
         return -1 * res
 
@@ -194,7 +194,7 @@ class DTMNorm(object):
         init_gmm = GeneralMixtureModel.from_samples(MultivariateGaussianDistribution,
                                                    n_components=n_components, X=centers, weights=weights,
                                                    stop_threshold=0.01, n_jobs=2)
-        
+
         init_mus, init_covs = list(), list()
         init_comp_ws = np.array(init_gmm.weights)
         init_comp_ws /= np.sum(init_comp_ws)

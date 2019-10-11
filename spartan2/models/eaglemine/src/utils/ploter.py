@@ -17,6 +17,7 @@ import collections as clct
 # third-party lib
 import numpy as np
 import matplotlib
+import matplotlib.cm as cm
 import matplotlib.pylab as plt
 from matplotlib.colors import LogNorm
 
@@ -57,7 +58,8 @@ def plot_clusters(data, center_pts, data_labels, outliers=list([]),
                   core_samples=None, grid=False, ticks=True, outfn=None):
     fig = plt.figure(figsize=(6.5, 6), dpi=96)
     lab2cnt = clct.Counter(data_labels)
-    colors = plt.cm.Spectral(np.linspace(0, 1, len(lab2cnt)))
+    cmap = cm.get_cmap('Spectral')
+    colors = cmap(np.linspace(0, 1, len(lab2cnt)))
     if core_samples is not None:
         core_samples_mask = np.zeros_like(data_labels, dtype=bool)
         core_samples_mask[core_samples] = True
@@ -65,7 +67,8 @@ def plot_clusters(data, center_pts, data_labels, outliers=list([]),
         core_samples_mask = np.ones_like(data_labels, dtype=bool)
 
     N_clusters = 0
-    srt_lab = np.asarray(lab2cnt.keys())[np.argsort(lab2cnt.values())][::-1]
+    keys, values = np.array(list(lab2cnt.keys())), np.array(list(lab2cnt.values()))
+    srt_lab = keys[np.argsort(values)][::-1]
     for k, col in zip(srt_lab, colors):
         if k == -1:
             # Black used for noise.
@@ -77,12 +80,12 @@ def plot_clusters(data, center_pts, data_labels, outliers=list([]),
         xy = data[class_member_mask & core_samples_mask]
         if len(xy) > 0:
             plt.plot(xy[:, 1], xy[:, 0], 's', color=col, markersize=6) #markerfacecolor=col, markeredgecolor=col
-	
-	mn_xy = np.mean(xy, 0)
+
+        mn_xy = np.mean(xy, 0)
         plt.text(mn_xy[1], mn_xy[0], str(k),
                  {'color': 'k', 'fontsize': 18, 'ha': 'center', 'va': 'center',
                   'bbox': dict(boxstyle="circle", fc="w", ec="k", pad=0.2, alpha=0.3)} )
-        xy = data[class_member_mask & (~core_samples_mask)]
+        xy = data[class_member_mask & (np.invert(core_samples_mask))]
         if len(xy) > 0:
             plt.plot(xy[:, 1], xy[:, 0], 's', color=col, markersize=6) #markerfacecolor=col, markeredgecolor=col
         if len(center_pts) > 0:
@@ -133,12 +136,12 @@ def plot_hexbin_heatmap(xs, ys, xlabel, ylabel, xscale='log',
 
     if colorscale:
         plt.hexbin(xs, ys, bins='log', gridsize=gridsize, xscale=xscale,
-                   yscale=yscale, mincnt=1, cmap=plt.cm.jet)
+                   yscale=yscale, mincnt=1, cmap=cm.get_cmap('jet'))
         cb = plt.colorbar()
         cb.set_label(r'$log_{10}(N)$', fontsize=16)
     else:
         plt.hexbin(xs, ys, gridsize=gridsize, xscale=xscale, yscale=yscale,
-                   mincnt=1, cmap=plt.cm.jet)
+                   mincnt=1, cmap=cm.get_cmap('jet'))
         cb = plt.colorbar()
         cb.set_label('counts')
     plt.xlabel(xlabel, linespacing=12, fontsize=18)

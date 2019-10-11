@@ -2,12 +2,12 @@
 # -*- coding:utf-8 -*-
 # Author:Viki Zhao
 
-from holoscope.holoscopeFraudDect import Ptype, HoloScope
-from fraudar.greedy import logWeightedAveDegree, np
-from ioutil import saveSimpleListData, loadedgelist2sm
-from eaglemine.src.eaglemine_main import eaglemine
-from eaglemine.src.graph2histogram import histogram_construct
-from eaglemine.src.views_viz import cluster_view
+from .holoscope.holoscopeFraudDect import Ptype, HoloScope
+from .fraudar.greedy import logWeightedAveDegree, np
+from .ioutil import saveSimpleListData, loadedgelist2sm
+from .eaglemine.src.eaglemine_main import eaglemine
+from .eaglemine.src.graph2histogram import histogram_construct
+from .eaglemine.src.views_viz import cluster_view
 import scipy.sparse.linalg as slin
 
 
@@ -21,21 +21,21 @@ class AnomalyDetection:
         tunit = 'd'
         bdres = HoloScope(sparse_matrix, alg, ptype, qfun=qfun, b=b, tunit=tunit, nblock=k)
         opt = bdres[-1]
-        for nb in xrange(k):
+        for nb in range(k):
             res = opt.nbests[nb]
-            print 'block{}: \n\tobjective value {}'.format(nb + 1, res[0])
+            print('block{}: \n\tobjective value {}'.format(nb + 1, res[0]))
             export_file = out_path + file_name + '.blk{}'.format(nb + 1)
             saveSimpleListData(res[1][0], export_file + '.rows')
             saveSimpleListData(res[1][1], export_file + '.colscores')
-    
+
     def FRAUDAR(self, edgelist, out_path, file_name):
         sparse_matrix = loadedgelist2sm(edgelist[2])
         sparse_matrix = sparse_matrix.asfptype()
         res = logWeightedAveDegree(sparse_matrix)
-        print res
+        print(res)
         np.savetxt("%s.rows" % (out_path + file_name, ), np.array(list(res[0][0])), fmt='%d')
         np.savetxt("%s.cols" % (out_path + file_name, ), np.array(list(res[0][1])), fmt='%d')
-        print "score obtained is ", res[1]
+        print("score obtained is ", res[1])
 
     def EAGLEMINE(self, x_feature_array, y_feature_array):
         tempdir = "temp/"
@@ -53,7 +53,7 @@ class AnomalyDetection:
             "node2lab": "nodelabel.out"
         }
         array_length = len(x_feature_array)
-        mix_array = [[y_feature_array[i], x_feature_array[i]] for i in xrange(array_length)]
+        mix_array = [[y_feature_array[i], x_feature_array[i]] for i in range(array_length)]
         graph_ndft = np.array(mix_array, dtype=np.float64)
         histogram_construct(graph_ndft, int(1), tempdir + tempfile["histogram"], tempdir + tempfile["node2hcel"], tempdir + tempfile["hcel2avgfeat"])
         eaglemine(tempdir + tempfile["histogram"], tempdir + tempfile["node2hcel"], tempdir + tempfile["hcel2avgfeat"], outdir, int(4))
@@ -71,7 +71,7 @@ class AnomalyDetection:
                     if cluster_id not in node_cluster:
                         node_cluster[cluster_id] = []
                     node_cluster[cluster_id].append(node_id)
-        
+
         return node_cluster
 
 class EigenDecompose:

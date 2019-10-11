@@ -4,11 +4,11 @@
 
 import sys
 import os
-import system
+from . import system
 import importlib
 import sqlite3
 import scipy.sparse.linalg as slin
-from ioutil import checkfilegz, loadedgelist
+from .ioutil import checkfilegz, loadedgelist
 from scipy.sparse import csc_matrix, coo_matrix, csr_matrix, lil_matrix
 
 #engine
@@ -80,8 +80,8 @@ def _get_sparse_matrix(edgelist, squared = False):
     edge_num = len(edges)
 
     # construct the sparse matrix
-    xs = [edges[i][0] for i in xrange(edge_num)]
-    ys = [edges[i][1] for i in xrange(edge_num)]
+    xs = [edges[i][0] for i in range(edge_num)]
+    ys = [edges[i][1] for i in range(edge_num)]
     data = [1] * edge_num
 
     row_num = max(xs) + 1
@@ -108,7 +108,7 @@ def subgraph(edgelist, uid_array, oid_array = None):
     # create edge table
     sql_str = '''CREATE TABLE EDGE
                     (id INTEGER PRIMARY KEY AUTOINCREMENT'''
-    for i in xrange(len(edgelist[0])):
+    for i in range(len(edgelist[0])):
         sql_str += ", " + edgelist[0][i] + " " + edgelist[1][i]
     sql_str += ");"
     cur.execute(sql_str)
@@ -142,7 +142,7 @@ def subgraph(edgelist, uid_array, oid_array = None):
 
     # get subgraph edges
     sql_str = "SELECT EDGE." + edgelist[0][0]
-    for i in xrange(1, len(edgelist[0])):
+    for i in range(1, len(edgelist[0])):
         sql_str += ", EDGE.{}".format(edgelist[0][i])
     sql_str += " FROM EDGE"
 

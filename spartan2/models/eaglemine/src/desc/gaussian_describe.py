@@ -15,7 +15,7 @@
 #        For commercial purposes, please contact the author.
 #
 #      Created by @wenchieh  on <12/12/2017>
-# 
+#
 
 __author__ = 'wenchieh'
 
@@ -23,7 +23,7 @@ __author__ = 'wenchieh'
 import numpy as np
 
 # project
-from discrete_gaussian import DiscreteGaussian
+from .discrete_gaussian import DiscreteGaussian
 
 
 class GaussianDescribe(object):
@@ -56,7 +56,7 @@ class GaussianDescribe(object):
         """
         self.set_data(hypercubes, values)
         self.ndim = np.ndim(self.data)
-        
+
         left, right = self.data, self.data + 1
         if type == 'center':
             left, right = self.data - 0.5, self.data + 0.5

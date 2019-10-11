@@ -2,8 +2,8 @@ import sys
 import numpy as np
 import scipy as sci
 from scipy.sparse import coo_matrix, csc_matrix
-from gendenseblock import *
-from mytools.ioutil import myreadfile
+# from gendenseblock import *
+from .mytools.ioutil import myreadfile
 import math
 
 class MultiEedgePropBiGraph:
@@ -59,11 +59,11 @@ class MultiEedgePropBiGraph:
         self.propvals = np.array(sorted(list(propvals)))
         'assume score is [1,5], and  arounding real scores into 3 catagories, '
         if not (max(propvals)==5 and min(propvals)>=1):
-            print 'Warning: rating scores are not in [1,5]. They are [{}]'.\
-                    format(', '.join(map(str, propvals)))
+            print('Warning: rating scores are not in [1,5]. They are [{}]'.\
+                    format(', '.join(map(str, propvals))))
 
         '(1, 1.5, 2), (2.5, 3, 3.5), (4, 4.5, 5)'
-        for i in xrange(len(self.eprop)):
+        for i in range(len(self.eprop)):
             if min(propvals)<1:
                 self.eprop[i] = np.digitize(self.eprop[i], bins=[0,2.5,4,5.01])-1
             else:
@@ -206,7 +206,7 @@ class MultiEedgePropBiGraph:
         '''calculate the diverse of ratings betwee A and U\A
            scaling=False
         '''
-        if delta:
+        if delta and hasattr(self, 'ratediv'):
             cols, delcols = self.deltacols, self.delcols
             ratediv = self.ratediv
             if len(self.spv) < 1:
@@ -248,7 +248,7 @@ class MultiEedgePropBiGraph:
         '''calc how many points allocated in awake and burst period, over total
            number of U who involv in the burst
         '''
-        if delta:
+        if delta and hasattr(self, 'incurstcnt') and hasattr(self, 'inburstratio'):
             cols, delcols = self.deltacols, self.delcols
             inburstcnt, inburstratio = self.inburstcnt, self.inburstratio
         else:
@@ -269,7 +269,7 @@ class MultiEedgePropBiGraph:
             abpts, slops, bvs, ainburst = abpts[burstids], slops[burstids],\
                     bvs[burstids], ainburst[burstids]
             scnt, wscnt, wallcnt =0, 0, 0
-            for i in xrange(len(abpts)):
+            for i in range(len(abpts)):
                 (left, right), sp, bv, acnt = abpts[i],slops[i], bvs[i], ainburst[i]
                 '#susp users in burst'
                 cnt1 = ((st >= left) & (st <= right)).sum()
@@ -324,14 +324,14 @@ def sort_extendLeftbd(abptidxs, xs, ys):
     slops = np.array(slops)
     #diffs = np.array(slops)
     'extend left, if overlep keep that of higher burst val'
-    for i in xrange(len(abptsrt)):
+    for i in range(len(abptsrt)):
         nl, nr = max(abptsrt[i][0]-1,0), abptsrt[i][1]
-        for j in xrange(i):
+        for j in range(i):
             pl, pr = abptsrt[j][0], abptsrt[j][1]
             if nr >= pr and nl < pr:
                 nl = pr
             if nl <= pl and nr > pl:
-                print '[Warning] extended a impossible bound'
+                print('[Warning] extended a impossible bound')
                 nr = pl #impossible case, recurFindAwakePt guarantees that
         abptsrt[i][0], abptsrt[i][1]=nl,nr #extend
     return abptsrt, bvsrt, slops
@@ -414,7 +414,7 @@ def recurFindMaxFallDying(xs, ys, maxdying):
 
 def pim2tensorformat(tsfile, ratefile, tensorfile, tunit='s', tbins='h'):
     'convert the pim files: tsfile, ratefile into tensor file, i.e. tuples'
-    rbins = lambda x: 0 if x<2.5 else 1 if x<=3.5 else 2 #lambda x: x 
+    rbins = lambda x: 0 if x<2.5 else 1 if x<=3.5 else 2 #lambda x: x
     propdict = {}
     with myreadfile(tsfile, 'rb') as fts, myreadfile(ratefile, 'rb') as frt,\
             open(tensorfile, 'wb') as fte:
@@ -424,10 +424,10 @@ def pim2tensorformat(tsfile, ratefile, tensorfile, tunit='s', tbins='h'):
         for line in frt:
             k,v=line.strip().split(':')
             propdict[k].append(v)
-        for k, vs in propdict.iteritems():
+        for k, vs in propdict.items():
             u, b = k.strip().split('-')
             tss = vs[0].strip().split(' ')
-            tss = map(int, tss)
+            tss = list(map(int, tss))
             if tunit == 's':
                 'time unit is second'
                 if tbins == 'h':
@@ -439,17 +439,17 @@ def pim2tensorformat(tsfile, ratefile, tensorfile, tunit='s', tbins='h'):
             'no matter what the tunit is'
             if type(tbins) is int:
                 tss = np.array(tss, dtype=int)/tbins
-            tss = map(str, tss)
+            tss = list(map(str, tss))
             'process ts'
             rts = vs[1].strip().split(' ')
-            rts = map(float, rts)
+            rts = list(map(float, rts))
             digrs = []
             for r1 in rts:
                 r = rbins(r1)
                 digrs.append(r)
-            digrs = map(int, digrs)
-            digrs = map(str, digrs)
-            for i in xrange(len(tss)):
+            digrs = list(map(int, digrs))
+            digrs = list(map(str, digrs))
+            for i in range(len(tss)):
                 fte.write(','.join((u, b, tss[i], digrs[i], '1')))
                 fte.write('\n')
         fts.close()
@@ -465,13 +465,13 @@ def tspim2tensorformat(tsfile, tensorfile, tunit='s', tbins='h',
         for line in fts:
             k,v = line.strip().split(':')
             propdict[k]=[v]
-        for k, vs in propdict.iteritems():
+        for k, vs in propdict.items():
             u, b = k.strip().split('-')
             if idstartzero is False:
                 u = str(int(u)+offset)
                 b = str(int(b)+offset)
             tss = vs[0].strip().split(' ')
-            tss = map(int, tss)
+            tss = list(map(int, tss))
             if tunit == 's':
                 'time unit is second'
                 if tbins == 'h':
@@ -482,8 +482,8 @@ def tspim2tensorformat(tsfile, tensorfile, tunit='s', tbins='h',
                     tss = np.array(tss, dtype=int)/(3600*24)
             if type(tbins) is int:
                 tss = np.array(tss, dtype=int)/tbins
-            tss = map(str, tss)
-            for i in xrange(len(tss)):
+            tss = list(map(str, tss))
+            for i in range(len(tss)):
                 fte.write(','.join((u, b, tss[i], '1')))
                 fte.write('\n')
         fts.close()

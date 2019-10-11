@@ -19,7 +19,7 @@ def myreadfile(fnm, mode):
         import gzip
         f = gzip.open(fnm+'.gz', mode)
     else:
-        print 'file: {} or its zip file does NOT exist'.format(fnm)
+        print('file: {} or its zip file does NOT exist'.format(fnm))
         sys.exit(1)
     return f
 
@@ -43,7 +43,7 @@ def saveDictListData(dictls, outdata):
     with open(outdata, 'w') as fw:
         for k, l in dictls.iteritems():
             if type(l) != list:
-                print "This is not a dict of value list.\n"
+                print("This is not a dict of value list.\n")
                 break
             fw.write("{}:".format(k))
             for i in range(len(l)-1):

@@ -64,7 +64,7 @@ class LevelTree(object):
                 return None
             tokens = node_str.strip().split(LevelTree.Node._DELIMITER_)
             node_id, level, prnt_id = int(tokens[0]), float(tokens[1]), int(tokens[2])
-            child = None if tokens[3] == "0" else map(int, tokens[3].split(','))
+            child = None if tokens[3] == "0" else list(map(int, tokens[3].split(',')))
             hcubes = [eval(tokens[i]) for i in range(4, len(tokens))]
 
             node = LevelTree.Node(node_id, level, hcubes, prnt_id, child)
@@ -94,7 +94,7 @@ class LevelTree(object):
             coord2val_dict = dict(zip(map(tuple, self._earth), self._value))
 
         connect_comps = list()
-        coords = coord2val_dict.keys()
+        coords = list(coord2val_dict.keys())
         while len(coords) > 0:
             pos = coords.pop()
             if coord2val_dict[pos] < min_level: continue
@@ -154,7 +154,7 @@ class LevelTree(object):
     def build_level_tree(self, nnz_indices, nnz_elems, min_level, max_level=None, step=1.0,
                          min_hcubes=4, morphology=True, verbose=False, outfn=None):
         self.levels = list()
-        self.bound = map(int, np.max(nnz_indices, axis=0) + 1)
+        self.bound = list(map(int, np.max(nnz_indices, axis=0) + 1))
         self._earth = np.asarray(nnz_indices, int)
         self._value = np.asarray(nnz_elems)
         self._Nnnz = len(nnz_indices)
@@ -235,8 +235,8 @@ class LevelTree(object):
                 for blob in tiny_blobs:
                     blob2cnt[blob] = int(2**pos2val[blob]) - 1
                 blob_pos2cnt = np.zeros((len(blob2cnt), self.mode + 1),int)
-                blob_pos2cnt[:, :self.mode] = np.asarray(blob2cnt.keys(), int)
-                blob_pos2cnt[:, self.mode] = np.asarray(blob2cnt.values(), int)
+                blob_pos2cnt[:, :self.mode] = np.asarray(list(blob2cnt.keys()), int)
+                blob_pos2cnt[:, self.mode] = np.asarray(list(blob2cnt.values()), int)
                 np.savetxt(outfn, blob_pos2cnt, '%d', ',')
 
         if verbose is True:
@@ -512,8 +512,8 @@ class LevelTree(object):
         with open(infn, 'r') as ifp:
             ifp.readline()     # header line
             self.mode = int(ifp.readline().strip())
-            self.bound = map(int, ifp.readline().strip().split(sep))
-            self.levels = map(float, ifp.readline().strip().split(sep))
+            self.bound = list(map(int, ifp.readline().strip().split(sep)))
+            self.levels = list(map(float, ifp.readline().strip().split(sep)))
             self._Nnnz = int(ifp.readline().strip())
             Nnodes = int(ifp.readline().strip())
             self.mode = len(self.bound)
@@ -521,7 +521,7 @@ class LevelTree(object):
             self._value = np.zeros(self._Nnnz, float)
             for k in range(self._Nnnz):
                 tokens = ifp.readline().strip().split(sep)
-                self._earth[k] = np.array(map(int, tokens[:self.mode]), int)
+                self._earth[k] = np.array(list(map(int, tokens[:self.mode])), int)
                 self._value[k] = float(tokens[self.mode])
 
             self.comp_tree = dict()

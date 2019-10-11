@@ -54,7 +54,7 @@ if __name__=="__main__":
     dataname='example.txt'
     data=testdatapath+dataname
     #coom = readedge2coom(data, weighted=False, idstartzero=True)
-    print 'loading data ... ...'
+    print('loading data ... ...')
 
     '''
     M = genTriDenseBlock(1000, 1000, 1000, 500, 1000,1000, p1=0.8, alpha2=3,
@@ -80,6 +80,6 @@ if __name__=="__main__":
     m = addnosie(m, A1+A2, B1+B2, 0.4, black=False, A0=0, B0=0)
     sm=csr_matrix(m, dtype=np.float64)
     drows, dcols = svddenseblock(sm)
-    print "dense block size: {}x{}".format(len(drows.nonzero()[0]),
-                                           len(dcols.nonzero()[0]))
+    print("dense block size: {}x{}".format(len(drows.nonzero()[0]),
+                                           len(dcols.nonzero()[0])))
 

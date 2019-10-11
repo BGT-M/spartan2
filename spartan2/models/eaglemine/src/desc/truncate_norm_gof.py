@@ -15,13 +15,14 @@
 #        For commercial purposes, please contact the author.
 #
 #      Created by @wenchieh  on <12/21/2017>
-# 
+#
 
 __author__ = 'wenchieh'
 
 
 # sys
 import errno
+import multiprocessing
 from collections import Counter
 from multiprocessing import Process
 from multiprocessing.queues import Queue
@@ -136,14 +137,17 @@ def retry_on_eintr(function, *args, **kw):
     while True:
         try:
             return function(*args, **kw)
-        except IOError, e:
-            if e.errno == e.errno.EINTR:
+        except IOError as e:
+            if e.errno == errno.EINTR:
                 continue
             else:
                 raise
 
 
 class RetryQueue(Queue):
+    def __init__(self):
+        super(RetryQueue, self).__init__(ctx=multiprocessing.get_context())
+
     def get(self, block=True, timeout=None):
         return retry_on_eintr(Queue.get, self, block, timeout)
 

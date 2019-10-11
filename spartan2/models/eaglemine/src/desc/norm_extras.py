@@ -120,7 +120,7 @@ def norm_anderson(x, weights=None):
         expand_lgsf.extend([logsf[i]]*weights[i])
         x_expand.extend([x[i]] * weights[i])
 
-    print len(x_expand)
+    print(len(x_expand))
     expand_lgcdf, expand_lgsf = np.array(expand_lgcdf), np.array(expand_lgsf)
     N_w = int(np.sum(weights))
     i = np.arange(1, N_w + 1)
@@ -177,7 +177,7 @@ def _mvstdnormcdf(lower, upper, corrcoef, **kwds):
     n = len(lower)
     lower = np.array(lower)
     upper = np.array(upper)
-    correl = np.zeros(n * (n - 1) / 2)
+    correl = np.zeros(n * (n - 1) // 2)
     corrcoef = np.array(corrcoef)
 
     if (lower.ndim != 1) or (upper.ndim != 1):
@@ -186,12 +186,12 @@ def _mvstdnormcdf(lower, upper, corrcoef, **kwds):
         raise ValueError("Error: bounds have different lengths")
     if n == 2 and corrcoef.size == 1:
         correl = corrcoef
-        # print 'case scalar rho', n
+        # print('case scalar rho', n)
     elif corrcoef.ndim == 1 and len(corrcoef) == n * (n - 1) / 2.0:
-        # print 'case flat corr', corrcoeff.shape
+        # print('case flat corr', corrcoeff.shape)
         correl = corrcoef
     elif corrcoef.shape == (n, n):
-        # print 'case square corr',  correl.shape
+        # print('case square corr',  correl.shape)
         correl = corrcoef[np.tril_indices(n, -1)]
     else:
         raise ValueError("Error: corrcoef has incorrect dimension")

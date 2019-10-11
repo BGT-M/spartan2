@@ -15,7 +15,7 @@
 #        For commercial purposes, please contact the author.
 #
 #      Created by @wenchieh  on <12/5/2017>
-# 
+#
 
 __author__ = 'wenchieh'
 
@@ -24,7 +24,7 @@ import numpy as np
 from scipy.stats import multivariate_normal
 
 # project
-from norm_extras import mvnormcdf
+from .norm_extras import mvnormcdf
 
 
 class NormalGaussian(object):

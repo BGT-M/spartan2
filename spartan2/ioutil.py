@@ -10,7 +10,7 @@ def myreadfile(fnm, mode):
         import gzip
         f = gzip.open(fnm+'.gz', 'rb')
     else:
-        print 'file: {} or its zip file does NOT exist'.format(fnm)
+        print('file: {} or its zip file does NOT exist'.format(fnm))
         sys.exit(1)
     return f
 
@@ -59,7 +59,7 @@ def loadedgelist(tensor_file, col_ids, col_types):
     '''
 
     if len(col_ids) != len(col_types):
-        print "The col_ids' length doesn't match the col_types"
+        print("The col_ids' length doesn't match the col_types")
         sys.exit(1)
 
     sep = get_sep_of_file(tensor_file)
@@ -75,7 +75,7 @@ def loadedgelist(tensor_file, col_ids, col_types):
                 for i in range(0, len(coords)):
                     coords[i] = col_types[i](coords[i])
             except Exception:
-                print "This file content doesn't match the given schema"
+                print("This file content doesn't match the given schema")
                 sys.exit(1)
             edgelist.append(tuple(coords))
 

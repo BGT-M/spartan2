@@ -20,8 +20,8 @@ import argparse
 import numpy as np
 
 # project
-from utils.loader import Loader
-from eaglemine_model import EagleMineModel
+from .utils.loader import Loader
+from .eaglemine_model import EagleMineModel
 
 
 VERBOSE=True

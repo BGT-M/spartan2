@@ -23,14 +23,14 @@ __author__ = 'wenchieh'
 import numpy as np
 
 # project
-from dtmnorm import DTMNorm
+from .dtmnorm import DTMNorm
 
 
 class DTMNormDescribe(object):
     _SERIALIZE_DELIMITER_ = ';'
     ZERO_BOUND = 0
     INF_BOUND = np.inf
-    
+
     def __init__(self, ndim=2, is_mix=False, n_components=2):
         self.is_mix = is_mix
         self.ndim = ndim
@@ -64,7 +64,7 @@ class DTMNormDescribe(object):
         :param values: #point in each cell
         :param type: indicate the cells position,  "center" | "left" | "right"
                      The coordinate given in cell is at ["center" | "left" | "right"] of affiliated cell
-        :return: 
+        :return:
         """
         n = np.ndim(cells)
         if n != self.ndim:
@@ -73,7 +73,7 @@ class DTMNormDescribe(object):
                 raise ValueError("Error: input data dimension ({}) exceed initial dimension ({})".format(n, self.ndim))
 
         self.set_data(cells, values)
-        
+
         left, right = self.data, self.data + 1
         if type == 'center':
             left, right = self.data - 0.5, self.data + 0.5
@@ -81,14 +81,14 @@ class DTMNormDescribe(object):
             left, right = self.data - 1, self.data
         else:
             pass
-        
+
         if self.is_mix:
             mus, covs, ws, loss = self.descriptor.fit_mixture(left, right, self.values, self.n_components)
         else:
             mus, covs, ws, loss = self.descriptor.fit_single(left, right, self.values)
-        
+
         self.paras = {'mus': mus, 'covs':covs, 'weights':ws, 'loss':loss}
-    
+
     def apply(self, cells, values, type='left', loss_update=False):
         # values = np.asarray(values, int)
         values = np.asarray(values)
@@ -113,7 +113,7 @@ class DTMNormDescribe(object):
                 return loss
         else:
             raise RuntimeError("No derived fitting parameters!")
-    
+
     def dump(self):
         if self.paras is not None:
             print("descriptor information:")

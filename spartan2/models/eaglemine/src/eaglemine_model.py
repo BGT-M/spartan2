@@ -32,15 +32,15 @@ from collections import deque
 import numpy as np
 
 # project
-from core.leveltree import LevelTree
-from utils.loader import Loader
-from utils.mdlbase import MDLBase
-from desc.dtmnorm_describe import DTMNormDescribe
-from desc.truncated_gaussian import TruncatedGaussian
-from desc.gaussian_describe import GaussianDescribe
-from desc.normal_gaussian import NormalGaussian
-from desc.statistic_hypothesis_test import StatisticHypothesisTest
-from desc.statistic_hypothesis_test_truncate import StatisticHypothesisTestTruncate
+from .core.leveltree import LevelTree
+from .utils.loader import Loader
+from .utils.mdlbase import MDLBase
+from .desc.dtmnorm_describe import DTMNormDescribe
+from .desc.truncated_gaussian import TruncatedGaussian
+from .desc.gaussian_describe import GaussianDescribe
+from .desc.normal_gaussian import NormalGaussian
+from .desc.statistic_hypothesis_test import StatisticHypothesisTest
+from .desc.statistic_hypothesis_test_truncate import StatisticHypothesisTestTruncate
 
 tiny_blobs = 'tiny_blob2cnt.out'
 contracttree = 'level_tree_contract.out'
@@ -229,7 +229,7 @@ class EagleMineModel(object):
             mix_dists = list()
             for i in range(nmix):
                 if self.descvoc["name"] == "dtmnorm":
-                    desc = self.describes.values()[0]
+                    desc = list(self.describes.values())[0]
                     lower_bnd, upper_bnd = desc.get_bounds()
                     idist = self.descvoc["dist"](lower_bnd, upper_bnd)
                 else:
@@ -244,7 +244,7 @@ class EagleMineModel(object):
             probs = np.array(comp_probs)
         else:
             if self.descvoc["name"] == "dtmnorm":
-                desc = self.describes.values()[0]
+                desc = list(self.describes.values())[0]
                 lower_bnd, upper_bnd = desc.get_bounds()
                 dist = self.descvoc["dist"](lower_bnd, upper_bnd)
             else:
@@ -368,7 +368,7 @@ class EagleMineModel(object):
                 score /= 1.0 * cs.get("npts")            # average score over points
                 # log-likelihood will decrease (need to select the one keep best model.)
                 cands_score.append((cand, score))
-        sorted_score = sorted(cands_score, cmp=lambda x, y: cmp(x[1], y[1]), reverse=False)
+        sorted_score = sorted(cands_score, cmp=lambda x, y: x[1]-y[1], reverse=False)
         return sorted_score[0][0]
 
     def post_stitch(self, strictness=4, verbose=True):
@@ -498,7 +498,7 @@ class EagleMineModel(object):
         counts = np.asarray(counts)
         hcels_label = np.asarray(hcels_label)
 
-        descs = self.describes.values()
+        descs = list(self.describes.values())
         N_cls = len(descs)
 
         mdl = MDLBase()
@@ -561,7 +561,7 @@ class EagleMineModel(object):
         hcel_clsprob = list()
         hcel_labs = list()
 
-        descs = self.describes.values()
+        descs = list(self.describes.values())
         mixId = -1
         for k in range(len(descs)):
             desc = descs[k]

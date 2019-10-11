@@ -37,7 +37,7 @@ def large_graph_features(users_sf, rels_sf, outfn, nodename, verbose=False):
     outputStr = '#rows: {}'.format(len(rels_sf))
 
     ## PageRank Feature
-    print "PageRank ..."
+    print("PageRank ...")
     timePoint = time.time()
     data_m = gl.pagerank.create(tol_sg, verbose=False)
     outputStr += "Pagerank, "+str(time.time()-timePoint)+"\n"
@@ -47,7 +47,7 @@ def large_graph_features(users_sf, rels_sf, outfn, nodename, verbose=False):
     total_gfeat.remove_column('delta')
 
     ## Triangle Count Feature
-    print "Triangle Count ..."
+    print("Triangle Count ...")
     timePoint = time.time()
     data_m = gl.triangle_counting.create(tol_sg, verbose=False)
     outputStr += "Triangle_Count, "+str(time.time()-timePoint)+"\n"
@@ -56,7 +56,7 @@ def large_graph_features(users_sf, rels_sf, outfn, nodename, verbose=False):
     total_gfeat = total_gfeat.join(tempfeat_sf, on=nodename, how='left')
 
     ## K-core Feature
-    print "k-core ..."
+    print("k-core ...")
     timePoint = time.time()
     data_m = gl.kcore.create(tol_sg, verbose=False)
     outputStr += "k-core, "+str(time.time()-timePoint)+"\n"
@@ -65,7 +65,7 @@ def large_graph_features(users_sf, rels_sf, outfn, nodename, verbose=False):
     total_gfeat = total_gfeat.join(tempfeat_sf, on=nodename, how='left')
 
     ## Out-degree Feature
-    print "Out-degree ..."
+    print("Out-degree ...")
     timePoint = time.time()
     tempfeat_sf = rels_sf.groupby("src", {'out_degree':gl.aggregate.COUNT()})
     outputStr += "out_degree, "+str(time.time()-timePoint)+"\n"
@@ -73,7 +73,7 @@ def large_graph_features(users_sf, rels_sf, outfn, nodename, verbose=False):
     total_gfeat = total_gfeat.join(tempfeat_sf, on=nodename, how='left')
 
     ## In-degree Feature
-    print "In-degree ..."
+    print("In-degree ...")
     timePoint = time.time()
     tempfeat_sf = rels_sf.groupby("dst", {'in_degree':gl.aggregate.COUNT()})
     outputStr += "in_degree, "+str(time.time()-timePoint)+"\n"

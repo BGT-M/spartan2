@@ -15,7 +15,7 @@
 #        For commercial purposes, please contact the author.
 #
 #      Created by @wenchieh  on <12/1/2017>
-# 
+#
 
 __author__ = 'wenchieh'
 
@@ -23,7 +23,7 @@ __author__ = 'wenchieh'
 import numpy as np
 
 # project
-from truncate_norm_gof import TruncatedNormalGoF
+from .truncate_norm_gof import TruncatedNormalGoF
 
 
 class StatisticHypothesisTestTruncate(object):

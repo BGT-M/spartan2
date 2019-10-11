@@ -1,5 +1,5 @@
-# contains functions that run the greedy detector for dense regions in a sparse matrix. 
-# use aveDegree or sqrtWeightedAveDegree or logWeightedAveDegree on a sparse matrix, 
+# contains functions that run the greedy detector for dense regions in a sparse matrix.
+# use aveDegree or sqrtWeightedAveDegree or logWeightedAveDegree on a sparse matrix,
 # which returns ((rowSet, colSet), score) for the most suspicious block.
 
 from __future__ import division
@@ -16,8 +16,8 @@ from operator import itemgetter
 # from sklearn.decomposition import TruncatedSVD
 from scipy import sparse
 from sklearn.utils import shuffle
-from MinTree import MinTree
-import cPickle as pickle
+from .MinTree import MinTree
+import pickle as pickle
 # np.set_printoptions(threshold=numpy.nan)
 np.set_printoptions(linewidth=160)
 
@@ -36,8 +36,8 @@ def shuffleMatrix(M):
     return shuffle(M.transpose()).transpose()
 
 
-# reads matrix from file and returns sparse matrix. first 2 columns should be row and column indices 
-# of ones. 
+# reads matrix from file and returns sparse matrix. first 2 columns should be row and column indices
+# of ones.
 # @profile
 def readData(filename):
     # dat = np.genfromtxt(filename, delimiter='\t', dtype=int)
@@ -49,7 +49,7 @@ def readData(filename):
             edgesSource.append(int(toks[0]))
             edgesDest.append(int(toks[1]))
     return listToSparseMatrix(edgesSource, edgesDest)
-    
+
 
 def detectMultiple(M, detectFunc, numToDetect):
     Mcur = M.copy().tolil()
@@ -60,19 +60,19 @@ def detectMultiple(M, detectFunc, numToDetect):
         (rs, cs) = Mcur.nonzero()
         for i in range(len(rs)):
             if rs[i] in rowSet and cs[i] in colSet:
-                Mcur[rs[i], cs[i]] = 0 
+                Mcur[rs[i], cs[i]] = 0
     return res
 
 def injectCliqueCamo(M, m0, n0, p, testIdx):
     (m,n) = M.shape
     M2 = M.copy().tolil()
-    
+
     colSum = np.squeeze(M2.sum(axis = 0).A)
     colSumPart = colSum[n0:n]
     colSumPartPro = np.int_(colSumPart)
     colIdx = np.arange(n0, n, 1)
     population = np.repeat(colIdx, colSumPartPro, axis = 0)
-    
+
     for i in range(m0):
         # inject clique
         for j in range(n0):
@@ -89,11 +89,11 @@ def injectCliqueCamo(M, m0, n0, p, testIdx):
             for j in range(n0, n):
                 if random.random() < thres:
                     M2[i,j] = 1
-        # biased camo           
+        # biased camo
         if testIdx == 3:
             colRplmt = random.sample(population, int(n0 * p))
             M2[i,colRplmt] = 1
-                    
+
     return M2.tocsc()
 
 # compute score as sum of 1- and 2- term interactions (currently just sum of matrix entries)
@@ -133,6 +133,7 @@ def getRowFMeasure(pred, actual, idx):
     return 0 if (prec + rec == 0) else (2 * prec * rec / (prec + rec))
 
 def sqrtWeightedAveDegree(M):
+    m, n = M.shape
     colSums = M.sum(axis=0)
     colWeights = 1.0 / np.sqrt(np.squeeze(colSums.A) + 5)
     colDiag = sparse.lil_matrix((n, n))
@@ -147,10 +148,11 @@ def logWeightedAveDegree(M):
     colDiag = sparse.lil_matrix((n, n))
     colDiag.setdiag(colWeights)
     W = M * colDiag
-    print "finished computing weight matrix"
+    print("finished computing weight matrix")
     return fastGreedyDecreasing(W, colWeights)
 
 def aveDegree(M):
+    m, n = M.shape
     return fastGreedyDecreasing(M, [1] * n)
 
 def subsetAboveDegree(M, col_thres, row_thres):
@@ -178,13 +180,13 @@ def fastGreedyDecreasing(M, colWeights):
     curScore = c2Score(M, rowSet, colSet)
     bestAveScore = curScore / (len(rowSet) + len(colSet))
     bestSets = (rowSet, colSet)
-    print "finished setting up greedy"
+    print("finished setting up greedy")
     rowDeltas = np.squeeze(M.sum(axis=1).A) # *decrease* in total weight when *removing* this row
     colDeltas = np.squeeze(M.sum(axis=0).A)
-    print "finished setting deltas"
+    print("finished setting deltas")
     rowTree = MinTree(rowDeltas)
     colTree = MinTree(colDeltas)
-    print "finished building min trees"
+    print("finished building min trees")
 
     numDeleted = 0
     deleted = []
@@ -192,7 +194,7 @@ def fastGreedyDecreasing(M, colWeights):
 
     while rowSet and colSet:
         if (len(colSet) + len(rowSet)) % 100000 == 0:
-            print "current set size = ", len(colSet) + len(rowSet)
+            print("current set size = ", len(colSet) + len(rowSet))
         (nextRow, rowDelt) = rowTree.getMin()
         (nextCol, colDelt) = colTree.getMin()
         if rowDelt <= colDelt:
@@ -223,7 +225,7 @@ def fastGreedyDecreasing(M, colWeights):
     finalRowSet = set(range(m))
     finalColSet = set(range(n))
     for i in range(bestNumDeleted):
-        if deleted[i][0] == 0: 
+        if deleted[i][0] == 0:
             finalRowSet.remove(deleted[i][1])
         else:
             finalColSet.remove(deleted[i][1])

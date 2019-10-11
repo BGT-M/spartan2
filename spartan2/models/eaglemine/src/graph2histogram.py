@@ -14,9 +14,9 @@ __author__ = 'wenchieh'
 import numpy as np
 from scipy.sparse import csr_matrix
 
-from utils.loader import Loader
-from tools.histogram_heuristic_generator import HistogramHeuristicGenerator
-from utils.ploter import plot_heatmap, plot_heatmap_graphlab_pgrk, plot_heatmap_2discretes
+from .utils.loader import Loader
+from .tools.histogram_heuristic_generator import HistogramHeuristicGenerator
+from spartan2.models.eaglemine.src.utils.ploter import plot_heatmap, plot_heatmap_graphlab_pgrk, plot_heatmap_2discretes
 
 
 VERBOSE = True

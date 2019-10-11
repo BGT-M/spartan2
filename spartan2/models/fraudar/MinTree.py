@@ -1,6 +1,6 @@
 # A tree data structure which stores a list of degrees and can quickly retrieve the min degree element,
-# or modify any of the degrees, each in logarithmic time. It works by creating a binary tree with the 
-# given elements in the leaves, where each internal node stores the min of its two children. 
+# or modify any of the degrees, each in logarithmic time. It works by creating a binary tree with the
+# given elements in the leaves, where each internal node stores the min of its two children.
 import math
 class MinTree:
     def __init__(self, degrees):
@@ -19,7 +19,7 @@ class MinTree:
         cur = 0
         for i in range(self.height):
             cur = (2 * cur + 1) if self.nodes[2 * cur + 1] <= self.nodes[2 * cur + 2] else (2 * cur + 2)
-        # print "found min at %d: %d" % (cur, self.nodes[cur])
+        # print("found min at %d: %d" % (cur, self.nodes[cur]))
         return (cur - self.numBranches, self.nodes[cur])
 
     # @profile
@@ -34,10 +34,10 @@ class MinTree:
             self.nodes[cur] = nextParent
 
     def dump(self):
-        print "numLeaves: %d, numBranches: %d, n: %d, nodes: " % (self.numLeaves, self.numBranches, self.n)
+        print("numLeaves: %d, numBranches: %d, n: %d, nodes: " % (self.numLeaves, self.numBranches, self.n))
         cur = 0
         for i in range(self.height + 1):
             for j in range(2 ** i):
-                print self.nodes[cur],
+                print(self.nodes[cur])
                 cur += 1
-            print ''
+            print()
