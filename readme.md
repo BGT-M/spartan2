@@ -3,12 +3,16 @@ This is a developping version for our future SparTan.
 SparTan: Sparse Tensor Analytics
 Everthing here is viewed as a tensor (sparse).
 
-Interpreter Version: **Python 2.7** ( move to **Python 3.6** soon )
+Interpreter Version: **Python 3.6**
 
 *Follow steps below to run the project*:
 
 1. Open terminal and Enter the demo directory of this project
 2. Run Command：``python test.****.py``
+
+# install requires
+------
+pip3 install -r requirements
 
 # API Usage:
 ------
