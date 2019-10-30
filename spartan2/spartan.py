@@ -8,7 +8,7 @@ from . import system
 import importlib
 import sqlite3
 import scipy.sparse.linalg as slin
-from .ioutil import checkfilegz, loadedgelist
+from .ioutil import checkfilegz, get_sep_of_file, myreadfile
 from scipy.sparse import csc_matrix, coo_matrix, csr_matrix, lil_matrix
 
 #engine
@@ -19,27 +19,81 @@ anomaly_detection = system.AnomalyDetection()
 eigen_decompose = system.EigenDecompose()
 traingle_count = system.TraingleCount()
 
-'''Input graph format:
-    src1 dst1 value1
-    src2 dst2 value2
-    ...
+'''Input tensor format:
+    format: att1, att2, ..., value1, value2, ...
+    comment line started with #
+    e.g.
+    user obj 1
+    ... ...
+    if multivariate time series, hasvalue equals to the number of
+    time series
+    return: tensorlist
 '''
+def loadTensor( name, path, col_types = [int, int, int],
+        hasvalue=1, col_idx=[]):
 
-
-def loadTensor(name, path, col_ids = ["uid", "oid", "ts", "rating"], col_types = [int, int, int, float]):
     if path == None:
         path = "inputData/"
-    full_path = path + name
+    full_path = os.path.join(path, name)
     tensor_file = checkfilegz(full_path + '.tensor')
 
     if tensor_file is None:
-        print("Can not find this file, please check the file path!\n")
-        sys.exit()
+        print("Error: Can not find file {}[.gz], \
+                please check the file path!\n".format(tensor_file))
+        sys.exit(1)
 
-    edgelist = loadedgelist(tensor_file, col_ids, col_types)
+    'note: zip and range are different in py3'
+    col_idx = [i for i in range(len(col_types))] if len(col_idx)==0 else col_idx
 
-    return edgelist
+    if len(col_idx)==len(col_types):
+        idxtypes = [(col_idx[i], col_types[i]) for i in range(len(col_idx))]
+    else:
+        print("Error: input same size of col_types and col_idx")
+        sys.exit(1)
 
+    #import ipdb;ipdb.set_trace()
+    sep = get_sep_of_file(tensor_file)
+    tensorlist = []
+    with myreadfile(tensor_file, 'r') as fin:
+        for line in fin:
+            line = line.strip()
+            if line.startswith("#"):
+                continue
+            coords = line.split(sep)
+            tline=[]
+            try:
+                for i, tp in idxtypes:
+                    tline.append(tp(coords[i]))
+            except Exception:
+                print("The {}-th col does not match the given type {} in line:\n\
+                        {}".format(i, tp, line))
+                sys.exit(1)
+            tensorlist.append(tline)
+    printTensorInfo(tensorlist, hasvalue)
+
+    return tensorlist
+
+#    for i in range(len(col_types)):
+#        col_types[i] = convert_to_db_type(col_types[i])
+#
+
+def printTensorInfo(tensorlist, hasvalue):
+    m = len(tensorlist[0]) - hasvalue
+    print("Info: Tensor is loaded\n\
+           ----------------------\n\
+             mode     |\t{}\n\
+             nonzeros |\t{}\n".format(m, len(tensorlist)))
+    return
+
+def tensorAsGraph(tensorlist, homo=False, weighted=False):
+    '''construct coo sparse matrix of graph from tensorlist
+       attributes tuples or matrix are also returned
+    '''
+
+def tensorAsTimeseries(tensorlist ):
+    ''' construct dense matrix for multivariate ts
+        time ticks are also returned from first col of tensorlist
+    '''
 
 def config(frame_name):
     global ad_policy, tc_policy, ed_policy
@@ -192,3 +246,6 @@ def _construct_sql_value_placeholder(val_amount):
         value_placeholder += ")"
         return value_placeholder
 
+
+if __name__=='__main__':
+     tl = st.loadTensor('example', path='../inputData', col_types=[int,int])
