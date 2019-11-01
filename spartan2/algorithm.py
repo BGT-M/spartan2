@@ -8,9 +8,9 @@ import numpy as np
 from scipy.sparse import csc_matrix, coo_matrix, csr_matrix, lil_matrix
 
 class Algorithm():
-    def __init__(self, edgelist, alg_obj, model_name):
+    def __init__(self, data, alg_obj, model_name):
         self.alg_func = alg_obj
-        self.edgelist = edgelist
+        self.data = data
         self.name = model_name
         self.out_path = "./outputData/"
         if not os.path.exists(self.out_path):
@@ -22,15 +22,15 @@ class Algorithm():
 
 class Holoscope(Algorithm):
     def run(self, k):
-        self.alg_func(self.edgelist, self.out_path, self.name, k)
+        self.alg_func(self.data, self.out_path, self.name, k)
 
 class Fraudar(Algorithm):
     def run(self):
-        self.alg_func(self.edgelist, self.out_path, self.name)
+        self.alg_func(self.data, self.out_path, self.name)
 
 class Eaglemine(Algorithm):
-    def __init__(self, edgelist, alg_obj, model_name):
-        Algorithm.__init__(self, edgelist, alg_obj, model_name)
+    def __init__(self, data, alg_obj, model_name):
+        Algorithm.__init__(self, data, alg_obj, model_name)
         self.node_clusters = []
 
     def run(self, x_feature_array, y_feature_array):
@@ -38,7 +38,7 @@ class Eaglemine(Algorithm):
         self.node_clusters.append(node_cluster)
 
     def setbipartite(self, notSquared):
-        sm = _get_sparse_matrix(self.edgelist, notSquared)
+        sm = _get_sparse_matrix(self.data, notSquared)
         hub, s, auth = slin.svds(sm, 1)
         hub = np.squeeze(np.array(hub))
         auth = np.squeeze(np.array(auth))
@@ -54,7 +54,8 @@ class Eaglemine(Algorithm):
 
 class SVDS(Algorithm):
     def run(self, k):
-        self.alg_func(self.edgelist, self.out_path, self.name, k)
+        U, S, V = self.alg_func(self.data, self.out_path, self.name, k)
+        return U, S, V
 
 def _get_sparse_matrix(edgelist, notSquared = False):
     edges = edgelist[2]

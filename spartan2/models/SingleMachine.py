@@ -14,8 +14,8 @@ import scipy.sparse.linalg as slin
 
 
 class AnomalyDetection:
-    def HOLOSCOPE(self, edgelist, out_path, file_name, k):
-        sparse_matrix = loadedgelist2sm(edgelist)
+    def HOLOSCOPE(self, graph, out_path, file_name, k):
+        sparse_matrix = graph.sm
         sparse_matrix = sparse_matrix.asfptype()
         ptype = [Ptype.freq]
         alg = 'fastgreedy'
@@ -30,8 +30,8 @@ class AnomalyDetection:
             saveSimpleListData(res[1][0], export_file + '.rows')
             saveSimpleListData(res[1][1], export_file + '.colscores')
 
-    def FRAUDAR(self, edgelist, out_path, file_name):
-        sparse_matrix = loadedgelist2sm(edgelist)
+    def FRAUDAR(self, graph, out_path, file_name):
+        sparse_matrix = graph.sm
         sparse_matrix = sparse_matrix.asfptype()
         res = logWeightedAveDegree(sparse_matrix)
         print(res)
@@ -80,15 +80,17 @@ class AnomalyDetection:
 
         return node_cluster
 
-class EigenDecompose:
-    def SVDS(self, edgelist, out_path, file_name, k):
-        sparse_matrix = loadedgelist2sm(edgelist)
+class Decomposition:
+    def SVDS(self, mat, out_path, file_name, k):
+        sparse_matrix = mat
         sparse_matrix = sparse_matrix.asfptype()
-        res = slin.svds(sparse_matrix, k)
+        U, S, Vt = slin.svds(sparse_matrix, k)
         export_file =out_path + file_name
-        saveSimpleListData(res[0], export_file + '.leftSV')
-        saveSimpleListData(res[1], export_file + '.singularValue')
-        saveSimpleListData(res[2], export_file + '.rightSV')
+        #saveSimpleListData(res[0], export_file + '.leftSV')
+        #saveSimpleListData(res[1], export_file + '.singularValue')
+        #saveSimpleListData(res[2], export_file + '.rightSV')
+        V = np.transpose(Vt)
+        return U, S, V
 
 class TriangleCount:
     #arg mode: batch or incremental

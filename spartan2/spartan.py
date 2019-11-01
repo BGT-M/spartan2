@@ -9,6 +9,7 @@ import importlib
 import sqlite3
 import scipy.sparse.linalg as slin
 from .ioutil import checkfilegz, get_sep_of_file, myreadfile
+from .sttensor import STTensor
 from scipy.sparse import csc_matrix, coo_matrix, csr_matrix, lil_matrix
 
 #engine
@@ -16,7 +17,7 @@ engine = system.Engine()
 
 #model
 anomaly_detection = system.AnomalyDetection()
-eigen_decompose = system.EigenDecompose()
+decomposition = system.Decomposition()
 traingle_count = system.TraingleCount()
 
 '''Input tensor format:
@@ -71,7 +72,7 @@ def loadTensor( name, path, col_types = [int, int, int],
             tensorlist.append(tline)
     printTensorInfo(tensorlist, hasvalue)
 
-    return tensorlist
+    return STTensor(tensorlist, hasvalue)
 
 #    for i in range(len(col_types)):
 #        col_types[i] = convert_to_db_type(col_types[i])
@@ -81,19 +82,10 @@ def printTensorInfo(tensorlist, hasvalue):
     m = len(tensorlist[0]) - hasvalue
     print("Info: Tensor is loaded\n\
            ----------------------\n\
-             mode     |\t{}\n\
-             nonzeros |\t{}\n".format(m, len(tensorlist)))
+             attr     |\t{}\n\
+             values   |\t{}\n\
+             nonzeros |\t{}\n".format(m, hasvalue, len(tensorlist)))
     return
-
-def tensorAsGraph(tensorlist, homo=False, weighted=False):
-    '''construct coo sparse matrix of graph from tensorlist
-       attributes tuples or matrix are also returned
-    '''
-
-def tensorAsTimeseries(tensorlist ):
-    ''' construct dense matrix for multivariate ts
-        time ticks are also returned from first col of tensorlist
-    '''
 
 def config(frame_name):
     global ad_policy, tc_policy, ed_policy
@@ -102,7 +94,7 @@ def config(frame_name):
     # algorithm list
     ad_policy = frame.AnomalyDetection()
     tc_policy = frame.TriangleCount()
-    ed_policy = frame.EigenDecompose()
+    ed_policy = frame.Decomposition()
 
 def bidegree(edgelist):
     sm = _get_sparse_matrix(edgelist, squared=True)
