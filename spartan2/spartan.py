@@ -108,6 +108,7 @@ def bidegree(edgelist):
 
     return Du, Dv
 
+'''
 def degree(edgelist):
     sm = _get_sparse_matrix(edgelist, True)
 
@@ -115,11 +116,12 @@ def degree(edgelist):
     sm_csc = sm.tocsc(copy = False)
 
     # calculate degree
-    Du = sm_csr.sum(axis = 0).getA1()
-    Dv = sm_csc.sum(axis = 1).getA1()
+    Du = sm_csr.sum(axis = 1).getA1()
+    Dv = sm_csc.sum(axis = 0).getA1()
     D = Du + Dv
 
     return D
+'''
 
 def _get_sparse_matrix(edgelist, squared = False):
     edges = edgelist[2]

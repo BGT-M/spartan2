@@ -84,12 +84,13 @@ class Decomposition:
     def SVDS(self, mat, out_path, file_name, k):
         sparse_matrix = mat
         sparse_matrix = sparse_matrix.asfptype()
-        U, S, Vt = slin.svds(sparse_matrix, k)
+        RU, RS, RVt = slin.svds(sparse_matrix, k)
         export_file =out_path + file_name
         #saveSimpleListData(res[0], export_file + '.leftSV')
         #saveSimpleListData(res[1], export_file + '.singularValue')
         #saveSimpleListData(res[2], export_file + '.rightSV')
-        V = np.transpose(Vt)
+        RV = np.transpose(RVt)
+        U,S,V = np.flip(RU, axis=1), np.flip(RS), np.flip(RV,axis=1)
         return U, S, V
 
 class TriangleCount:
