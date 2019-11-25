@@ -650,6 +650,15 @@ class HoloScopeOpt:
             fig.savefig(outfig)
         return fig
 
+def scoreLevelObjects( objscores ):
+    sortscores = sorted(objscores, reverse=True)
+    sortobjs = np.argsort(objscores)[::-1]
+    diffscores = - np.diff(sortscores)
+    levelid = np.argmax(diffscores)
+    levelobjs = sortobjs[ : levelid+1]
+    return levelobjs
+
+
 def HoloScope(wmat, alg, ptype, qfun, b, ratefile=None, tsfile=None,
               tunit='s', numSing=10, nblock=1):
     '''
@@ -718,7 +727,8 @@ def HoloScope(wmat, alg, ptype, qfun, b, ratefile=None, tsfile=None,
     if Ptype.ts in ptype:
         assert(os.path.isfile(tsfile))
         inprop += '+[timestamps] '
-    elif tsfile is not None: #consider sdrop by default
+    #elif tsfile is not None:
+        #consider sdrop by default when Ptype.ts
         inprop += '+[sudden drop]'
     else:
         tsfile=None

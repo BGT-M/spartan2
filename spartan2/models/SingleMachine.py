@@ -4,7 +4,7 @@
 
 import os
 
-from .holoscope.holoscopeFraudDect import Ptype, HoloScope
+from .holoscope.holoscopeFraudDect import Ptype, HoloScope, scoreLevelObjects
 from .fraudar.greedy import logWeightedAveDegree, np
 from .ioutil import saveSimpleListData, loadedgelist2sm
 from .eaglemine.src.eaglemine_main import eaglemine
@@ -19,7 +19,7 @@ class AnomalyDetection:
         sparse_matrix = sparse_matrix.asfptype()
         ptype = [Ptype.freq]
         alg = 'fastgreedy'
-        qfun, b = 'exp', 8  # 10 #4 #8 # 32
+        qfun, b = 'exp', 32  # 10 #4 #8 # 32
         tunit = 'd'
         bdres = HoloScope(sparse_matrix, alg, ptype, qfun=qfun, b=b, tunit=tunit, nblock=k)
         opt = bdres[-1]
@@ -29,6 +29,8 @@ class AnomalyDetection:
             export_file = out_path + file_name + '.blk{}'.format(nb + 1)
             saveSimpleListData(res[1][0], export_file + '.rows')
             saveSimpleListData(res[1][1], export_file + '.colscores')
+            levelcols = scoreLevelObjects(res[1][1])
+            saveSimpleListData(levelcols, export_file + '.levelcols')
 
     def FRAUDAR(self, graph, out_path, file_name):
         sparse_matrix = graph.sm
@@ -97,3 +99,4 @@ class TriangleCount:
     #arg mode: batch or incremental
     def THINKD(self, in_path, out_path, sampling_ratio, number_of_trials, mode):
         pass
+
