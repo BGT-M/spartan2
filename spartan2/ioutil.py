@@ -1,4 +1,5 @@
-import os,sys
+import os
+import sys
 
 
 def myreadfile(fnm, mode):
@@ -14,6 +15,7 @@ def myreadfile(fnm, mode):
         sys.exit(1)
     return f
 
+
 def checkfilegz(name):
     if os.path.isfile(name):
         return name
@@ -21,6 +23,7 @@ def checkfilegz(name):
         return name+'.gz'
     else:
         return None
+
 
 def get_sep_of_file(infn):
     '''
@@ -30,23 +33,28 @@ def get_sep_of_file(infn):
     sep = None
     with open(infn, 'r') as fp:
         for line in fp:
-            if (line.startswith("%") or line.startswith("#")): continue;
+            if (line.startswith("%") or line.startswith("#")):
+                continue
             line = line.strip()
-            if (" " in line): sep = " "
-            if ("," in line): sep = ","
-            if (";" in line): sep = ';'
-            if ("\t" in line): sep = "\t"
+            if (" " in line):
+                sep = " "
+            if ("," in line):
+                sep = ","
+            if (";" in line):
+                sep = ';'
+            if ("\t" in line):
+                sep = "\t"
             break
-        fp.close()
     return sep
 
+
 def convert_to_db_type(basic_type):
-    if basic_type == int:
-        return "INT"
-    elif basic_type == str:
-        return "TEXT"
-    elif basic_type == float:
-        return "REAL"
+    basic_type_dict = {
+        int: "INT",
+        str: "TEXT",
+        float: "REAL"
+    }
+    if basic_type in basic_type_dict.keys():
+        return basic_type_dict[basic_type]
     else:
         return "TEXT"
-

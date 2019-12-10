@@ -7,6 +7,7 @@ import scipy.sparse.linalg as slin
 import numpy as np
 from scipy.sparse import csc_matrix, coo_matrix, csr_matrix, lil_matrix
 
+
 class Algorithm():
     def __init__(self, data, alg_obj, model_name):
         self.alg_func = alg_obj
@@ -17,16 +18,19 @@ class Algorithm():
             os.mkdir(self.out_path)
 
     def showResults(self, plot=False):
-        #TODO
+        # TODO
         pass
+
 
 class Holoscope(Algorithm):
     def run(self, k):
         self.alg_func(self.data, self.out_path, self.name, k)
 
+
 class Fraudar(Algorithm):
     def run(self):
         self.alg_func(self.data, self.out_path, self.name)
+
 
 class Eaglemine(Algorithm):
     def __init__(self, data, alg_obj, model_name):
@@ -52,12 +56,14 @@ class Eaglemine(Algorithm):
                 res.append(node_cluster[n])
         return tuple(res)
 
+
 class SVDS(Algorithm):
     def run(self, k):
         U, S, V = self.alg_func(self.data, self.out_path, self.name, k)
         return U, S, V
 
-def _get_sparse_matrix(edgelist, notSquared = False):
+
+def _get_sparse_matrix(edgelist, notSquared=False):
     edges = edgelist[2]
     edge_num = len(edges)
 
@@ -73,13 +79,13 @@ def _get_sparse_matrix(edgelist, notSquared = False):
         row_num = max(row_num, col_num)
         col_num = row_num
 
-    sm = coo_matrix((data, (xs, ys)), shape = (row_num, col_num), dtype=float)
+    sm = coo_matrix((data, (xs, ys)), shape=(row_num, col_num), dtype=float)
 
     return sm
+
 
 def _deal_negative_value(array):
     if abs(np.max(array)) < abs(np.min(array)):
         array *= -1
     array[array < 0] = 0
     return array
-

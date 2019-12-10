@@ -12,10 +12,10 @@ from .ioutil import checkfilegz, get_sep_of_file, myreadfile
 from .sttensor import STTensor
 from scipy.sparse import csc_matrix, coo_matrix, csr_matrix, lil_matrix
 
-#engine
+# engine
 engine = system.Engine()
 
-#model
+# model
 anomaly_detection = system.AnomalyDetection()
 decomposition = system.Decomposition()
 traingle_count = system.TraingleCount()
@@ -30,8 +30,10 @@ traingle_count = system.TraingleCount()
     time series
     return: tensorlist
 '''
-def loadTensor( name, path, col_types = [int, int, int],
-        hasvalue=1, col_idx=[]):
+
+
+def loadTensor(name, path, col_types=[int, int, int],
+               hasvalue=1, col_idx=[]):
 
     if path == None:
         path = "inputData/"
@@ -39,18 +41,15 @@ def loadTensor( name, path, col_types = [int, int, int],
     tensor_file = checkfilegz(full_path + '.tensor')
 
     if tensor_file is None:
-        print("Error: Can not find file {}[.gz], \
-                please check the file path!\n".format(tensor_file))
-        sys.exit(1)
+        raise Exception(f"Error: Can not find file {tensor_file}[.gz], please check the file path!\n")
 
-    'note: zip and range are different in py3'
-    col_idx = [i for i in range(len(col_types))] if len(col_idx)==0 else col_idx
+    # NOTE: zip and range are different in py3
+    col_idx = [i for i in range(len(col_types))] if len(col_idx) == 0 else col_idx
 
-    if len(col_idx)==len(col_types):
+    if len(col_idx) == len(col_types):
         idxtypes = [(col_idx[i], col_types[i]) for i in range(len(col_idx))]
     else:
-        print("Error: input same size of col_types and col_idx")
-        sys.exit(1)
+        raise Exception(f"Error: input same size of col_types and col_idx")
 
     #import ipdb;ipdb.set_trace()
     sep = get_sep_of_file(tensor_file)
@@ -61,31 +60,30 @@ def loadTensor( name, path, col_types = [int, int, int],
             if line.startswith("#"):
                 continue
             coords = line.split(sep)
-            tline=[]
+            tline = []
             try:
                 for i, tp in idxtypes:
                     tline.append(tp(coords[i]))
-            except Exception:
-                print("The {}-th col does not match the given type {} in line:\n\
-                        {}".format(i, tp, line))
-                sys.exit(1)
+            except Exception as e:
+                raise Exception(f"The {i}-th col does not match the given type {tp} in line:\n{line}")
             tensorlist.append(tline)
     printTensorInfo(tensorlist, hasvalue)
 
     return STTensor(tensorlist, hasvalue)
-
+    
 #    for i in range(len(col_types)):
 #        col_types[i] = convert_to_db_type(col_types[i])
 #
 
+
 def printTensorInfo(tensorlist, hasvalue):
     m = len(tensorlist[0]) - hasvalue
-    print("Info: Tensor is loaded\n\
+    print(f"Info: Tensor is loaded\n\
            ----------------------\n\
-             attr     |\t{}\n\
-             values   |\t{}\n\
-             nonzeros |\t{}\n".format(m, hasvalue, len(tensorlist)))
-    return
+             attr     |\t{m}\n\
+             values   |\t{hasvalue}\n\
+             nonzeros |\t{len(tensorlist)}\n")
+
 
 def config(frame_name):
     global ad_policy, tc_policy, ed_policy
@@ -96,17 +94,19 @@ def config(frame_name):
     tc_policy = frame.TriangleCount()
     ed_policy = frame.Decomposition()
 
+
 def bidegree(edgelist):
     sm = _get_sparse_matrix(edgelist, squared=True)
 
-    sm_csr = sm.tocsr(copy = False)
-    sm_csc = sm.tocsc(copy = False)
+    sm_csr = sm.tocsr(copy=False)
+    sm_csc = sm.tocsc(copy=False)
 
     # calculate degree
-    Du = sm_csr.sum(axis = 1).getA1()
-    Dv = sm_csc.sum(axis = 0).getA1()
+    Du = sm_csr.sum(axis=1).getA1()
+    Dv = sm_csc.sum(axis=0).getA1()
 
     return Du, Dv
+
 
 '''
 def degree(edgelist):
@@ -123,7 +123,8 @@ def degree(edgelist):
     return D
 '''
 
-def _get_sparse_matrix(edgelist, squared = False):
+
+def _get_sparse_matrix(edgelist, squared=False):
     edges = edgelist[2]
     edge_num = len(edges)
 
@@ -139,11 +140,12 @@ def _get_sparse_matrix(edgelist, squared = False):
         row_num = max(row_num, col_num)
         col_num = row_num
 
-    sm = coo_matrix((data, (xs, ys)), shape = (row_num, col_num))
+    sm = coo_matrix((data, (xs, ys)), shape=(row_num, col_num))
 
     return sm
 
-def subgraph(edgelist, uid_array, oid_array = None):
+
+def subgraph(edgelist, uid_array, oid_array=None):
     if oid_array == None:
         squared = True
     else:
@@ -222,14 +224,15 @@ def subgraph(edgelist, uid_array, oid_array = None):
         cur.execute(sql_str)
         subgraph = cur.fetchall()
 
-    #construct return value
+    # construct return value
     sub_edgelist = [edgelist[0], edgelist[1]]
     sub_edgelist.append(tuple(subgraph))
 
-    #close db connection
+    # close db connection
     con.close()
 
     return sub_edgelist
+
 
 def _construct_sql_value_placeholder(val_amount):
     if val_amount < 1:
@@ -241,5 +244,5 @@ def _construct_sql_value_placeholder(val_amount):
         return value_placeholder
 
 
-if __name__=='__main__':
-     tl = st.loadTensor('example', path='../inputData', col_types=[int,int])
+if __name__ == '__main__':
+    tl = loadTensor('example', path='../inputData', col_types=[int, int])
