@@ -2,9 +2,11 @@
 # -*- coding:utf-8 -*-
 # Authors: Shenghua Liu
 
-import os, sys
+import os
+import sys
 import numpy as np
 from scipy.sparse import csc_matrix, coo_matrix, csr_matrix, lil_matrix
+
 
 class STTensor:
     def __init__(self, tensorlist, hasvalue):
@@ -25,14 +27,14 @@ class STTensor:
                  symmetric
         '''
         tl = np.array(self.tensorlist)
-        xs = tl[:,0]
-        ys = tl[:,1]
+        xs = tl[:, 0]
+        ys = tl[:, 1]
         edge_num = tl.shape[0]
 
         if self.hasvalue == 0:
             data = [1] * edge_num
         elif self.hasvalue == 1:
-            data = tl[:,-1]
+            data = tl[:, -1]
         else:
             print('Error: list of more than one values is used for graph')
             sys.exit(1)
@@ -52,8 +54,7 @@ class STTensor:
 
         dtype = int if weighted == False else float
 
-        sm = coo_matrix((data, (xs, ys)), shape = (row_num, col_num),
-                dtype=dtype)
+        sm = coo_matrix((data, (xs, ys)), shape=(row_num, col_num), dtype=dtype)
 
         if bipartite == False and directed == False:
             'symmetrization sm'
@@ -61,11 +62,9 @@ class STTensor:
             sm = sm.maximum(smt)
 
         attlist = tensorlist[:, :self.m - hasvalue] if rich is True \
-                else None
+            else None
 
-
-        return STGraph(sm, weighted, bipartite, rich, attlist, relabel, labelmaps )
-
+        return STGraph(sm, weighted, bipartite, rich, attlist, relabel, labelmaps)
 
     def toTimeseries(self, freq, numsensors=1, startts=0):
         ''' construct dense matrix for multivariate ts
@@ -74,8 +73,7 @@ class STTensor:
 
 
 class STGraph:
-    def __init__(self, sm, weighted, bipartite, rich = False, attlist = None, relabel=False,
-            labelmaps=(None, None) ):
+    def __init__(self, sm, weighted, bipartite, rich=False, attlist=None, relabel=False, labelmaps=(None, None)):
         '''
             sm: sparse adj matrix of (weighted) graph
             weighted: graph is weighte or not
@@ -95,4 +93,3 @@ class STGraph:
     def degrees(self):
         rowdegs, coldegs = self.sm.sum(axis=1), self.sm.sum(axis=0)
         return rowdegs, coldegs.T
-
