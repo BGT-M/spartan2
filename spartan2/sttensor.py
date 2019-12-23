@@ -75,10 +75,10 @@ class STTensor:
     def toTimeseries(self, freq, attrlabels, numsensors=None, startts=0):
         ''' construct dense matrix for multivariate ts
             # TODO time ticks are also returned from first col of tensorlist
-            freq: frequency of the signal
-            numsensors: number of signal dimension
-            startts: timestamp of the start time
-            attrlabels: labels for each dimension
+            @params freq: frequency of the signal
+            @params numsensors: number of signal dimension
+            @params startts: timestamp of start time
+            @params attrlabels: labels for each dimension
         '''
         print(self.m)
         if numsensors is None:
@@ -116,11 +116,22 @@ class STGraph:
 
 class STTimeseries:
     def __init__(self, freq, attrlist, attrlabel):
+        '''
+        @param freq: frequency of attrs
+        @param attrlist: data
+        @param attrlabel: labels of data, positions corresponding to data
+        '''
         self.freq = freq
         self.attrlist = attrlist
         self.attrlabel = attrlabel
     
     def show(self, chosen_labels=None):
+        '''draw series data with using matplotlib.pyplot
+        @type chosen_labels: [[]]
+        @param chosen_labels:
+            if None, draw all the attrs in subgraph;
+            or treat all 1-dimen array as subgraphs and entries in each array as lines in each subgraph
+        '''
         if chosen_labels is None:
             sub_dimension = len(self.attrlist)
             actual_dimension = 1
@@ -145,6 +156,11 @@ class STTimeseries:
         plt.show()
 
     def resample(self, resampled_freq, show=False, inplace=False):
+        '''resample series data with a new frequency, acomplish on the basis of scipy.signal.sample
+        @param resampled_freq: resampled frequency
+        @param show: if True, show the resampled signal with using matplotlib.pyplot
+        @param inplace: if True, update origin object's variable; or return a new STTimeseries object
+        '''
         origin_list = self.attrlist
         origin_length = len(self.attrlist)
         attr_length = len(self.attrlist[0])
