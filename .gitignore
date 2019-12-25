@@ -1,3 +1,10 @@
+# test data
+inputData/example_time.tensor
+inputData/example_time_ecg.tensor
+inputData/example_time_ecg_filtered.tensor
+inputData/example_time_ecg_resampled.tensor
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
