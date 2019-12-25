@@ -193,5 +193,20 @@ class STTimeseries:
         else:
             return STTimeseries(resampled_freq, resampled_list, self.attrlabel)
     
+    def combine(self, combined_series, inplace=True):
+        '''combine series data with the same frequency
+        @param combined_series: combined series
+        @param inplace: if True, update origin object's variable; or return a new STTimeseries object
+        '''
+        if not self.freq == combined_series.freq:
+            raise Exception(f'Frequency not matched, with {self.freq} and {combined_series.freq}')
+        if inplace:
+            self.attrlabel.extend(combined_series.attrlabel)
+            self.attrlist = np.concatenate([self.attrlist, combined_series.attrlist])
+        else:
+            label = self.attrlabel[:] + combined_series.attrlabel[:]
+            attrlist = np.concatenate([self.attrlist, combined_series.attrlist])
+            return STTimeseries(self.freq, attrlist, label)
+    
     def smooth(self, window_size, show=False, inplace=False):
         pass
