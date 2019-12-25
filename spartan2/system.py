@@ -4,21 +4,9 @@
 
 import os
 import sys
-from .algorithm import Holoscope, Eaglemine, Fraudar, SVDS
-
-alg_list = {
-    "AnomalyDetection": {
-        "HOLOSCOPE": "HOLOSCOPE",
-        "FRAUDAR": "FRAUDAR",
-        "EAGLEMINE": "EAGLEMINE"
-    },
-    "Decomposition": {
-        "SVDS": "SVDS"
-    },
-    "TriangleCount": {
-        "THINKD": "THINKD"
-    }
-}
+from abc import abstractmethod, ABCMeta
+from .algorithm.graph import Holoscope, Eaglemine, Fraudar, SVDS
+from .algorithm.time_series import Beatlex
 
 
 class Engine:
@@ -26,9 +14,15 @@ class Engine:
 
 
 class Model():
+    __metaclass__ = ABCMeta
+
     def __init__(self):
         self.name = None
         self.tensorlist = None
+
+    @abstractmethod
+    def create(self, data, alg_obj, model_name):
+        pass
 
 
 class TraingleCount(Model):
@@ -37,18 +31,29 @@ class TraingleCount(Model):
 
 
 class AnomalyDetection(Model):
-    def create(self, graph, alg_obj, model_name):
-        alg_name = str(alg_obj)
-        if alg_name.find(alg_list["AnomalyDetection"]["HOLOSCOPE"]) != -1:
-            return Holoscope(graph, alg_obj, model_name)
-        elif alg_name.find(alg_list["AnomalyDetection"]["EAGLEMINE"]) != -1:
-            return Eaglemine(graph, alg_obj, model_name)
-        elif alg_name.find(alg_list["AnomalyDetection"]["FRAUDAR"]) != -1:
-            return Fraudar(graph, alg_obj, model_name)
+    def create(self, data: list, alg_obj: "function", model_name: str) -> "result of algorithm":
+        alg_name = alg_obj.__name__
+        alg_list = {
+            'HOLOSCOPE': Holoscope,
+            'EAGLEMINE': Eaglemine,
+            'FRAUDAR': Fraudar,
+        }
+        return alg_list[alg_name](data, alg_obj, model_name)
 
 
 class Decomposition(Model):
-    def create(self, mat, alg_obj, model_name):
-        alg_name = str(alg_obj)
-        if alg_name.find(alg_list["Decomposition"]["SVDS"]) != -1:
-            return SVDS(mat, alg_obj, model_name)
+    def create(self, data: list, alg_obj: "function", model_name: str) -> "result of algorithm":
+        alg_name = alg_obj.__name__
+        alg_list = {
+            'SVDS': SVDS,
+        }
+        return alg_list[alg_name](data, alg_obj, model_name)
+
+
+class Timeseries(Model):
+    def create(self, data: list, alg_obj: "function", model_name: str) -> "result of algorithm":
+        alg_name = alg_obj.__name__
+        alg_list = {
+            'BEATLEX': Beatlex,
+        }
+        return alg_list[alg_name](data, alg_obj, model_name)

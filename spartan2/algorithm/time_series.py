@@ -1,5 +1,6 @@
 import os
 
+
 class Algorithm():
     def __init__(self, data, alg_obj, model_name):
         self.alg_func = alg_obj
@@ -12,6 +13,7 @@ class Algorithm():
     def showResults(self, plot=False):
         # TODO
         pass
+
 
 def Beatlex(Algorithm):
     def run(self):
