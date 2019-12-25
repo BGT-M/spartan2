@@ -14,11 +14,14 @@ from scipy.sparse import csc_matrix, coo_matrix, csr_matrix, lil_matrix
 
 # engine
 engine = system.Engine()
-
-# model
+ 
+# bridges for model and data
 anomaly_detection = system.AnomalyDetection()
 decomposition = system.Decomposition()
 traingle_count = system.TraingleCount()
+
+# model
+ad_policy, tc_policy, ed_policy = None, None, None
 
 '''Input tensor format:
     format: att1, att2, ..., value1, value2, ...
@@ -90,9 +93,9 @@ def config(frame_name):
     frame = importlib.import_module(frame_name)
 
     # algorithm list
-    ad_policy = frame.AnomalyDetection()
-    tc_policy = frame.TriangleCount()
-    ed_policy = frame.Decomposition()
+    ad_policy = frame.AnomalyDetection
+    tc_policy = frame.TriangleCount
+    ed_policy = frame.Decomposition
 
 
 def bidegree(edgelist):

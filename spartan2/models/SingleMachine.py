@@ -14,7 +14,8 @@ import scipy.sparse.linalg as slin
 
 
 class AnomalyDetection:
-    def HOLOSCOPE(self, graph, out_path, file_name, k):
+    @staticmethod
+    def HOLOSCOPE(graph, out_path, file_name, k):
         sparse_matrix = graph.sm
         sparse_matrix = sparse_matrix.asfptype()
         ptype = [Ptype.freq]
@@ -32,7 +33,8 @@ class AnomalyDetection:
             levelcols = scoreLevelObjects(res[1][1])
             saveSimpleListData(levelcols, export_file + '.levelcols')
 
-    def FRAUDAR(self, graph, out_path, file_name):
+    @staticmethod
+    def FRAUDAR(graph, out_path, file_name):
         sparse_matrix = graph.sm
         sparse_matrix = sparse_matrix.asfptype()
         res = logWeightedAveDegree(sparse_matrix)
@@ -41,7 +43,8 @@ class AnomalyDetection:
         np.savetxt("%s.cols" % (out_path + file_name, ), np.array(list(res[0][1])), fmt='%d')
         print("score obtained is ", res[1])
 
-    def EAGLEMINE(self, x_feature_array, y_feature_array):
+    @staticmethod
+    def EAGLEMINE(x_feature_array, y_feature_array):
         tempdir = "temp/"
         if not os.path.exists(tempdir):
             os.mkdir(tempdir)
@@ -82,21 +85,24 @@ class AnomalyDetection:
 
         return node_cluster
 
+
 class Decomposition:
-    def SVDS(self, mat, out_path, file_name, k):
+    @staticmethod
+    def SVDS(mat, out_path, file_name, k):
         sparse_matrix = mat
         sparse_matrix = sparse_matrix.asfptype()
         RU, RS, RVt = slin.svds(sparse_matrix, k)
-        export_file =out_path + file_name
+        export_file = out_path + file_name
         #saveSimpleListData(res[0], export_file + '.leftSV')
         #saveSimpleListData(res[1], export_file + '.singularValue')
         #saveSimpleListData(res[2], export_file + '.rightSV')
         RV = np.transpose(RVt)
-        U,S,V = np.flip(RU, axis=1), np.flip(RS), np.flip(RV,axis=1)
+        U, S, V = np.flip(RU, axis=1), np.flip(RS), np.flip(RV, axis=1)
         return U, S, V
 
-class TriangleCount:
-    #arg mode: batch or incremental
-    def THINKD(self, in_path, out_path, sampling_ratio, number_of_trials, mode):
-        pass
 
+class TriangleCount:
+    # arg mode: batch or incremental
+    @staticmethod
+    def THINKD(in_path, out_path, sampling_ratio, number_of_trials, mode):
+        pass
