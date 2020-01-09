@@ -16,4 +16,5 @@ class SeriesAlgorithm():
 
 class Beatlex(SeriesAlgorithm):
     def run(self, param):
-        self.alg_func(self.data, param, self.out_path, self.name)
+        result = self.alg_func(self.data, param, self.out_path, self.name)
+        return result
