@@ -114,6 +114,7 @@ class STGraph:
         rowdegs, coldegs = self.sm.sum(axis=1), self.sm.sum(axis=0)
         return rowdegs, coldegs.T
 
+
 class STTimeseries:
     def __init__(self, freq, attrlist, attrlabel):
         '''
@@ -124,7 +125,7 @@ class STTimeseries:
         self.freq = freq
         self.attrlist = attrlist
         self.attrlabel = attrlabel
-    
+
     def show(self, chosen_labels=None):
         '''draw series data with using matplotlib.pyplot
         @type chosen_labels: [[]]
@@ -192,7 +193,7 @@ class STTimeseries:
             self.attrlist = resampled_list
         else:
             return STTimeseries(resampled_freq, resampled_list, self.attrlabel)
-    
+
     def combine(self, combined_series, inplace=True):
         '''combine series data with the same frequency
         @param combined_series: combined series
@@ -207,6 +208,6 @@ class STTimeseries:
             label = self.attrlabel[:] + combined_series.attrlabel[:]
             attrlist = np.concatenate([self.attrlist, combined_series.attrlist])
             return STTimeseries(self.freq, attrlist, label)
-    
+
     def smooth(self, window_size, show=False, inplace=False):
         pass

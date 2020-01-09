@@ -1,7 +1,7 @@
 import os
 
 
-class Algorithm():
+class SeriesAlgorithm():
     def __init__(self, data, alg_obj, model_name):
         self.alg_func = alg_obj
         self.data = data
@@ -14,7 +14,6 @@ class Algorithm():
         # TODO
         pass
 
-
-def Beatlex(Algorithm):
-    def run(self):
-        self.alg_func(self.data, self.out_path, self.name)
+class Beatlex(SeriesAlgorithm):
+    def run(self, param):
+        self.alg_func(self.data, param, self.out_path, self.name)

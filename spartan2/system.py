@@ -50,8 +50,8 @@ class Decomposition(Model):
         return alg_list[alg_name](data, alg_obj, model_name)
 
 
-class Timeseries(Model):
-    def create(self, data: list, alg_obj: "function", model_name: str) -> "result of algorithm":
+class SeriesSummarization(Model):
+    def create(self, data: object, alg_obj: "function", model_name: str) -> "result of algorithm":
         alg_name = alg_obj.__name__
         alg_list = {
             'BEATLEX': Beatlex,
