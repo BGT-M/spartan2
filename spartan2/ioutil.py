@@ -3,16 +3,23 @@ import sys
 
 
 def myreadfile(fnm, mode):
-    if '.gz' == fnm[-3:]:
-        fnm = fnm[:-3]
-    if os.path.isfile(fnm):
-        f = open(fnm, 'r')
-    elif os.path.isfile(fnm+'.gz'):
-        import gzip
-        f = gzip.open(fnm+'.gz', 'rb')
-    else:
-        print('file: {} or its zip file does NOT exist'.format(fnm))
-        sys.exit(1)
+    if 'w' in mode:
+        if '.gz' == fnm[-3:]:
+            import gzip
+            f = gzip.open(fnm, mode)
+        else:
+            f = open(fnm, mode)
+    elif 'r' in mode:
+        if '.gz' == fnm[-3:]:
+            fnm = fnm[:-3]
+        if os.path.isfile(fnm):
+            f = open(fnm, mode)
+        elif os.path.isfile(fnm+'.gz'):
+            import gzip
+            f = gzip.open(fnm+'.gz', mode)
+        else:
+            print('file: {} or its zip file does NOT exist'.format(fnm))
+            sys.exit(1)
     return f
 
 
@@ -58,3 +65,34 @@ def convert_to_db_type(basic_type):
         return basic_type_dict[basic_type]
     else:
         return "TEXT"
+
+
+def renumberids(fnm, ofnm, path, respath, delimeter, nodetype=int):
+    users, msgs = {}, {}
+    with myreadfile(fnm, 'rb') as f, myreadfile(respath+ofnm, 'wb') as outf:
+        for line in f:
+            line = line.strip()
+            elems = line.split(delimeter)
+            uid = nodetype(elems[0])
+            bid = nodetype(elems[1])
+            if uid not in users:
+                users[uid] = len(users)
+            if bid not in msgs:
+                msgs[bid] = len(msgs)
+            #t = int(elems[2])
+            #label = int(elems[3])
+            pos = line.find(' ')
+            pos = line.find(' ', pos+1)
+            outf.write('{} {} {}\n'.format(
+                users[uid], msgs[bid], line[pos+1:]))
+        outf.close()
+        f.close()
+    with open(respath+'userid.dict', 'wb') as f1,\
+            open(respath+'msgid.dict', 'wb') as f2:
+        for u, val in users.items():
+            f1.write("{},{}\n".format(u, val))
+        for m, val in msgs.items():
+            f2.write("{},{}\n".format(m, val))
+        f1.close()
+        f2.close()
+    return len(users), len(msgs)
