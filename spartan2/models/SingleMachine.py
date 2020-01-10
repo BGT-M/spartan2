@@ -10,6 +10,7 @@ from .ioutil import saveSimpleListData, loadedgelist2sm
 from .eaglemine.src.eaglemine_main import eaglemine
 from .eaglemine.src.graph2histogram import histogram_construct
 from .eaglemine.src.views_viz import cluster_view
+from .beatlex.Beatlex import BeatLex
 import scipy.sparse.linalg as slin
 
 
@@ -106,3 +107,12 @@ class TriangleCount:
     @staticmethod
     def THINKD(in_path, out_path, sampling_ratio, number_of_trials, mode):
         pass
+
+
+class SeriesSummarization:
+    @staticmethod
+    def BEATLEX(data, param, out_path, name):
+        beatlex = BeatLex(data.attrlist, param)
+        result = beatlex.summarize_sequence()
+        print('done')
+        return result
