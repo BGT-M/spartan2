@@ -6,6 +6,8 @@ def myreadfile(fnm, mode):
     if 'w' in mode:
         if '.gz' == fnm[-3:]:
             import gzip
+            if 'b' not in mode:
+                mode += 'b'
             f = gzip.open(fnm, mode)
         else:
             f = open(fnm, mode)
@@ -16,6 +18,8 @@ def myreadfile(fnm, mode):
             f = open(fnm, mode)
         elif os.path.isfile(fnm+'.gz'):
             import gzip
+            if 'b' not in mode:
+                mode += 'b'
             f = gzip.open(fnm+'.gz', mode)
         else:
             print('file: {} or its zip file does NOT exist'.format(fnm))
@@ -67,11 +71,17 @@ def convert_to_db_type(basic_type):
         return "TEXT"
 
 
-def renumberids(fnm, ofnm, path, respath, delimeter, nodetype=int):
+def renumberids(indir, outdir, fnm, ofnm, delimeter=' ', comments='#', nodetype=str):
     users, msgs = {}, {}
-    with myreadfile(fnm, 'rb') as f, myreadfile(respath+ofnm, 'wb') as outf:
+    if not os.path.exists(outdir):
+        os.makedirs(outdir, exist_ok=True)
+    filepath = os.path.join(indir, fnm)
+    ofilepath = os.path.join(outdir, ofnm)
+    with myreadfile(filepath, 'r') as f, myreadfile(ofilepath, 'w') as outf:
         for line in f:
             line = line.strip()
+            if line.startswith(comments):
+                continue
             elems = line.split(delimeter)
             uid = nodetype(elems[0])
             bid = nodetype(elems[1])
@@ -81,14 +91,15 @@ def renumberids(fnm, ofnm, path, respath, delimeter, nodetype=int):
                 msgs[bid] = len(msgs)
             #t = int(elems[2])
             #label = int(elems[3])
-            pos = line.find(' ')
-            pos = line.find(' ', pos+1)
+            pos = line.find(delimeter)
+            pos = line.find(delimeter, pos+1)
             outf.write('{} {} {}\n'.format(
                 users[uid], msgs[bid], line[pos+1:]))
         outf.close()
         f.close()
-    with open(respath+'userid.dict', 'wb') as f1,\
-            open(respath+'msgid.dict', 'wb') as f2:
+
+    with open(os.path.join(outdir, 'userid.dict'), 'w') as f1,\
+            open(os.path.join(outdir, 'msgid.dict'), 'w') as f2:
         for u, val in users.items():
             f1.write("{},{}\n".format(u, val))
         for m, val in msgs.items():
