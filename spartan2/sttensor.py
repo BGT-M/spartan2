@@ -142,7 +142,7 @@ class STTimeseries:
                 raise Exception('Parameter startts not provided')
             self.freq = freq
             self.startts = startts
-            self.timelist = np.arange(startts, freq*len(attrlists[0]), 1 / freq)
+            self.timelist = np.arange(startts, 1/freq*self.length, 1 / freq)
         else:
             self.timelist = time
             self.freq = int(len(time) / (time[-1] - time[0]))
