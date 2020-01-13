@@ -142,7 +142,7 @@ class STTimeseries:
                 raise Exception('Parameter startts not provided')
             self.freq = freq
             self.startts = startts
-            self.timelist = np.arange(startts, 1/freq*self.length, 1 / freq)
+            self.timelist = np.arange(startts, freq*len(attrlists[0]), 1 / freq)
         else:
             self.timelist = time
             self.freq = int(len(time) / (time[-1] - time[0]))
@@ -253,6 +253,62 @@ class STTimeseries:
                     attrlabels.extend([label])
             attrlists = np.concatenate([self.attrlists, combined_series.attrlists])
             return STTimeseries(self.timelist.copy(), attrlists, attrlabels, self.freq, self.startts)
+
+    def cut(self, attrs=None, start=None, end=None, form='point', inplace=False):
+        ''' cut columns in time dimension
+            @type attrs: array
+            @param attrs: default is None, columns to be cut
+                if not None, attr sprcified in attrs will be cut AND param inplace will be invalid
+            @param start: default is None, start position
+                if start is None, cut from the very front position
+            @param end: default is None, end position
+                if end is None, cut to the very last position
+            @param form: default is point, type of start and end
+                if "point", start and end would mean absolute positions of columns
+                if "time", start and end would mean timestamp and need to multiply frequenct to get the absolute positions
+            @param inplace: default if False, IF attrs is not None, this param will be invalid
+                if False, function will return a new STTimeseiries object
+                if True, function will make changes in current STTimeseries object
+        '''
+        if attrs is None:
+            templabels = self.attrlabels
+            templists = self.attrlists
+        else:
+            templabels = []
+            templists = []
+            for attr in attrs:
+                if not attr in self.attrlabels:
+                    raise Exception(f'Attr {attr} is not found')
+                templabels.append(attr)
+                index = self.attrlabels.index(attr)
+                templists.append(self.attrlists[index])
+        if form == 'point':
+            start = start
+            end = end
+        elif form == 'time':
+            if not start is None:
+                start = start * self.freq
+            if not end is None:
+                end = end * self.freq
+        else:
+            raise Exception('Value of parameter form is not defined!')
+        if start is None:
+            start = 0
+        if end is None:
+            end = self.length
+        timelist = self.timelist.copy()
+        timelist = timelist[start:end]
+        templists = [attr[start:end] for attr in templists]
+        templists = np.array(templists)
+        if attrs is None and inplace:
+            self.attrlists = templists
+            self.timelist = timelist
+            self.startts = timelist[0]
+            self.length = len(templists[0])
+        else:
+            return STTimeseries(timelist, templists, templabels)
+
+
 
     def smooth(self, window_size, show=False, inplace=False):
         pass
