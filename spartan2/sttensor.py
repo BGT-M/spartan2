@@ -81,20 +81,18 @@ class STTensor:
             @param startts: start timestamp, default is None
                 if time is not provided, this parameter is needed to initiate time dimension
                 if time dimension is provided, startts will not work and will be calculated by the time sequence
-            
+
         '''
         time = []
+        start = 0
+        attrlists = np.array(self.tensorlist).T
         if self.hasvalue == True:
-            for i in range(len(self.tensorlist)):
-                time.append(self.tensorlist[i][0])
-                self.tensorlist[i] = self.tensorlist[i][1:]
+            time = attrlists[0]
+            start = 1
         if numsensors is None:
-            tensors = [[] for i in range(self.m-self.hasvalue)]
+            tensors = attrlists[start:]
         else:
-            tensors = [[] for i in range(numsensors)]
-        for tensor in self.tensorlist:
-            for i in range(len(tensor)):
-                tensors[i].append(tensor[i])
+            tensors = attrlists[start:numsensors+start]
         attrlists = np.array(tensors)
         time = np.array(time)
         return STTimeseries(time, attrlists, attrlabels, freq=freq, startts=startts)
@@ -144,7 +142,7 @@ class STTimeseries:
                 raise Exception('Parameter startts not provided')
             self.freq = freq
             self.startts = startts
-            self.timelist = np.arange(startts, freq*len(attrlists[0]), 1 / freq)
+            self.timelist = np.arange(startts, 1/freq*self.length, 1 / freq)
         else:
             self.timelist = time
             self.freq = int(len(time) / (time[-1] - time[0]))
@@ -258,3 +256,36 @@ class STTimeseries:
 
     def smooth(self, window_size, show=False, inplace=False):
         pass
+
+    def savefile(self, name, path=None, attrs=None, annotation=None):
+        ''' save current time series object as a tensor file, time column [if exists] shall always be stored as the first column
+            @param name: name of the file to be saved
+            @param path: default is None, parent directory
+            @param attr: default is None
+                if assigned, only save required columns
+            @param annotation: annotations which will be saved at the first line of the file
+        '''
+        if path is None:
+            path = f'./{name}.tensor'
+        else:
+            path = f'{path}{name}.tensor'
+        if attrs is None:
+            templists = self.attrlists
+            templabels = self.attrlabels
+        else:
+            templists = []
+            templabels = attrs
+            for attr in attrs:
+                if not attr in self.attrlabels:
+                    raise Exception(f'Attr {attr} not found!')
+                index = self.attrlabels.index(attr)
+                templists.append(self.attrlists[index])
+            templists = np.array(templists)
+        templists = templists.T
+        templists = [','.join(map(lambda x:str(x), t)) for t in templists]
+        with open(path, 'w') as writer:
+            if not annotation is None:
+                writer.write(f'# {annotation} \n')
+            writer.write(f'# time {" ".join(templabels)} \n')
+            for i in range(self.length):
+                writer.write(f'{self.timelist[i]},{templists[i]}\n')
