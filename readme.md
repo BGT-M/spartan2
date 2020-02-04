@@ -11,8 +11,9 @@ Interpreter Version: **Python 3.6**
 2. Run Command：``python test.****.py``
 
 # install requires
-------
+```bash
 pip3 install -r requirements
+```
 
 # API Usage:
 ------
@@ -90,3 +91,21 @@ A, B = emmodel.nodes(n=0)
 g = st.subgraph(data, A, B)
 # g = st.subgraph(data, A)
 ```
+
+
+
+## Table of Contents
+
+**Part 1: Basic usage**
+
+* [ioutil](https://github.com/shenghua-liu/spartan2/blob/master/ioutil_demo.ipynb)
+* [Time series data](https://github.com/shenghua-liu/spartan2/blob/master/TimeseriesData_demo.ipynb)
+
+**Part 2: Demo**
+
+* [SVD](https://github.com/shenghua-liu/spartan2/blob/master/SVD_demo.ipynb)
+
+* [Beatlex](https://github.com/shenghua-liu/spartan2/blob/master/Beatlex_demo.ipynb)
+* [Eaglemine](https://github.com/shenghua-liu/spartan2/blob/master/Eaglemine_demo.ipynb)
+* [Fraudar](https://github.com/shenghua-liu/spartan2/blob/master/Fraudar_demo.ipynb)
+* [Holoscope](https://github.com/shenghua-liu/spartan2/blob/master/Holoscope_demo.ipynb)
