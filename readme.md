@@ -23,20 +23,20 @@ Everthing here is viewed as a tensor (sparse).
  This project is written in Python 3.6
  We suggest recreating the experimental environment using Anaconda through the following steps.
  
- 1、Clone the project
+1. Clone the project
 ```bash
 git clone https://github.com/shenghua-liu/spartan2.git
 ```
-2、Install the appropriate version for Anaconda from here - https://www.anaconda.com/distribution/
+2. Install the appropriate version for Anaconda from here - https://www.anaconda.com/distribution/
 
-3、Create a new conda environment named "eigenpulse" and install requirements.
+3. Create a new conda environment named "eigenpulse" and install requirements.
 ```bash
 conda create -n spartan python=3.6
 conda activate spartan
 pip install --user --requirement requirements
 ```
 
-4、install code in development mode
+4. install code in development mode
 ```bash
 pip install -e spartan2
 ```
