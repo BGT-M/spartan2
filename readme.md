@@ -18,15 +18,30 @@ we name the package of algorithms as
 spartan2 is backend of SparTAn.
 Everthing here is viewed as a tensor (sparse).
 
-Interpreter Version: **Python 3.6** and above.
-
 ## install requires
+
+ This project is written in Python 3.6
+ We suggest recreating the experimental environment using Anaconda through the following steps.
+ 
+ 1、Clone the project
 ```bash
-pip3 install -r requirements
+git clone https://github.com/shenghua-liu/spartan2.git
+```
+2、Install the appropriate version for Anaconda from here - https://www.anaconda.com/distribution/
+
+3、Create a new conda environment named "eigenpulse" and install requirements.
+```bash
+conda create -n spartan python=3.6
+conda activate spartan
+pip install --user --requirement requirements.txt
 ```
 
+4、install code in development mode
+```bash
+pip install -e spartan2
+```
 
-## Follow steps below to run the project demo:
+## run the project demos in jupyter notebook:
 
 1. start jupyter notebook
 2. click to see each jupyter notebook (xxx.ipynb) demo for each algorithm, or see the following guidline.
@@ -48,3 +63,5 @@ pip3 install -r requirements
 **Part 3: Time Series**
 * [Load time series](https://github.com/shenghua-liu/spartan2/blob/master/TimeseriesData_demo.ipynb)
 * [Beatlex](https://github.com/shenghua-liu/spartan2/blob/master/Beatlex_demo.ipynb)
+
+## References
