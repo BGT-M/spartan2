@@ -33,7 +33,7 @@ git clone https://github.com/shenghua-liu/spartan2.git
 ```bash
 conda create -n spartan python=3.6
 conda activate spartan
-pip install --user --requirement requirements.txt
+pip install --user --requirement requirements
 ```
 
 4、install code in development mode
