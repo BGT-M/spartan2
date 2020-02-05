@@ -20,13 +20,13 @@ Everthing here is viewed as a tensor (sparse).
 
 Interpreter Version: **Python 3.6** and above.
 
-# install requires
+## install requires
 ```bash
 pip3 install -r requirements
 ```
 
 
-# Follow steps below to run the project demo:
+## Follow steps below to run the project demo:
 
 1. start jupyter notebook
 2. click to see each jupyter notebook (xxx.ipynb) demo for each algorithm, or see the following guidline.
@@ -34,19 +34,17 @@ pip3 install -r requirements
 
 ## Table of Contents
 
-**Part 1: Basic usage**
-
-* [ioutil](https://github.com/shenghua-liu/spartan2/blob/master/ioutil_demo.ipynb)
+**Part 1: Basic**
 * [Quick start](https://github.com/shenghua-liu/spartan2/blob/master/quick_start.ipynb)
-* [Time series data](https://github.com/shenghua-liu/spartan2/blob/master/TimeseriesData_demo.ipynb)
+
 
 **Part 2: Big Graphs**
-
+* [Load graph](https://github.com/shenghua-liu/spartan2/blob/master/ioutil_demo.ipynb)
 * [SVD](https://github.com/shenghua-liu/spartan2/blob/master/SVD_demo.ipynb)
 * [Eaglemine](https://github.com/shenghua-liu/spartan2/blob/master/Eaglemine_demo.ipynb)
 * [Fraudar](https://github.com/shenghua-liu/spartan2/blob/master/Fraudar_demo.ipynb)
 * [Holoscope](https://github.com/shenghua-liu/spartan2/blob/master/Holoscope_demo.ipynb)
 
 **Part 3: Time Series**
-
+* [Load time series](https://github.com/shenghua-liu/spartan2/blob/master/TimeseriesData_demo.ipynb)
 * [Beatlex](https://github.com/shenghua-liu/spartan2/blob/master/Beatlex_demo.ipynb)
