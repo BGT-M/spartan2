@@ -13,10 +13,10 @@ on tensors (matrix is a 2-mode tensor). In real world, those tensors are sparse,
 are required to make use of the sparsity to develop efficient algorithms. That is why
 we name the package of algorithms as 
 
-**SparTan**: **Spar**se **T**ensor **An**alytics.
+**SparTAn**: **Spar**se **T**ensor **An**alytics.
 
 spartan2 is backend of SparTAn.
-Everthing here is viewed as a tensor (sparse).
+Everything here is viewed as a tensor (sparse).
 
 ## install requires
 
