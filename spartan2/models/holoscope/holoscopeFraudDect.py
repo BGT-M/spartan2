@@ -9,6 +9,14 @@ from .mytools.ioutil import loadedge2sm
 from .edgepropertyAnalysis import MultiEedgePropBiGraph
 import math
 
+def scoreLevelObjects( objscores ):
+    sortscores = sorted(objscores, reverse=True)
+    sortobjs = np.argsort(objscores)[::-1]
+    diffscores = - np.diff(sortscores)
+    levelid = np.argmax(diffscores)
+    levelobjs = sortobjs[ : levelid+1]
+    return levelobjs
+
 class Ptype(object):
     freq =0
     ts = 1
@@ -776,8 +784,10 @@ def HoloScope(wmat, alg, ptype, qfun, b, ratefile=None, tsfile=None,
                 if gbestvx < opt.bestvx  else (gsrows, gbscores, gbestvx)
         if k < nblock-1:
             opt.removecurrentblock(srows)
+    
+    levelcols = scoreLevelObjects( gbscores )
+    print('global best size ', len(gsrows), len(levelcols))
 
-    print('global best size ', len(gsrows))
     print('global best value ', gbestvx)
-    return (gbestvx, (gsrows, gbscores)), opt
 
+    return (gbestvx, (gsrows, levelcols)), gbscores, opt
