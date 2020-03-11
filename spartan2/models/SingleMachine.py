@@ -112,7 +112,7 @@ class TriangleCount:
 class SeriesSummarization:
     @staticmethod
     def BEATLEX(data, param, out_path, name):
-        beatlex = BeatLex(data.attrlist, param)
+        beatlex = BeatLex(data.attrlists, param)
         result = beatlex.summarize_sequence()
         print('done')
         return result

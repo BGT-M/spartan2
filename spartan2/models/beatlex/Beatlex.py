@@ -185,10 +185,17 @@ class BeatLex():
     def cal_distance(self, a, b):
         if a.shape[0] != b.shape[0]:
             raise Exception('A and B should be of same dimensionality')
-        aa = a ** 2
-        bb = b ** 2
-        ab = a.transpose() * b
-        plus1 = np.tile(aa.transpose(), (1, bb.shape[1]))
-        plus2 = np.tile(bb, (aa.shape[1], 1))
-        ans = np.abs(plus1 + plus2 - 2*ab)
+
+        ans = np.zeros(shape=(a.shape[1], b.shape[1]))
+
+        for i in range(a.shape[0]):
+            _a = np.matrix(a[i])
+            _b = np.matrix(b[i])
+            aa = np.power(_a, 2)
+            bb = np.power(_b, 2)
+            ab = np.dot(_a.transpose(), _b)
+
+            plus1 = np.tile(aa.transpose(), (1, bb.shape[1]))
+            plus2 = np.tile(bb, (aa.shape[1], 1))
+            ans += np.abs(plus1 + plus2 - 2*ab)
         return ans
