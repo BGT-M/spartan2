@@ -32,7 +32,6 @@ class STTimeseries:
             self.startts = time[0]
         self.attrlists = attrlists
         self.attrlabels = attrlabels
-
     def __len__(self):
         return self.length
 
