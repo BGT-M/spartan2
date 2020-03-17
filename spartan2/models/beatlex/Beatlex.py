@@ -1,4 +1,5 @@
 import numpy as np
+from .drawer import Drawer
 
 class BeatLex():
     def __init__(self, data_mat, para_dict):
@@ -15,17 +16,25 @@ class BeatLex():
         self.termination_threshold = para_dict['termination_threshold']
         self.new_cluster_threshold = para_dict['new_cluster_threshold']
 
-        self.models = []
+        if 'models' in para_dict.keys():
+            self.models = para_dict['models']
+        else:
+            self.models = []
 
     def summarize_sequence(self):
-        start_init_pos = 0
-        best_place = self.get_new_segement_size(0)
-        end_init_pos = best_place[0] - 1
-        print(f'init at {end_init_pos}')
-        start_pos_list = [start_init_pos]
-        end_pos_list = [end_init_pos]
-        self.models = [self.data_mat[:, start_pos_list[0]:end_pos_list[0]+1]]
-        idx = [0]
+        if len(self.models) == 0:
+            start_init_pos = 0
+            best_place = self.get_new_segement_size(0)
+            end_init_pos = best_place[0] - 1
+            print(f'init at {end_init_pos}')
+            start_pos_list = [start_init_pos]
+            end_pos_list = [end_init_pos]
+            self.models.append(self.data_mat[:, start_pos_list[0]:end_pos_list[0]+1])
+            idx = [0]
+        else:
+            start_pos_list = [-1]
+            end_pos_list = [-1]
+            idx = [-1]
         mean_dev = np.mean((self.data_mat[:] - np.mean(self.data_mat[:])) ** 2)
         best_prefix_length = np.nan
         tot_err = 0
@@ -37,8 +46,10 @@ class BeatLex():
             num_models = len(self.models)
             ave_costs = np.full((num_models, self.Smax), np.nan)
             cur_end = min(cur_pos + self.Smax - 1, self.data_mat.shape[1])
+            if cur_pos == cur_end:
+                break
             print('\n========segment {} at {} {}'.format(cur_idx, cur_pos, cur_end))
-            data_cur = self.data_mat[:, cur_pos:cur_end+1]
+            data_cur = self.data_mat[:, cur_pos:cur_end]
             for k in range(num_models):
                 dtw_dist, dtw_mat, dtw_k, dtw_ways = self.dynamic_time_warping(self.models[k], data_cur)
                 dtw_costs = dtw_mat[-1, :]
@@ -113,7 +124,8 @@ class BeatLex():
             'best_prefix_length': best_prefix_length,
             'models': self.models,
         }
-        return self, result
+        drawer = self.init_drawer(self.data_mat, result)
+        return drawer, result
 
     def get_new_segement_size(self, cur_pos):
         num_models = len(self.models)
@@ -199,3 +211,6 @@ class BeatLex():
             plus2 = np.tile(bb, (aa.shape[1], 1))
             ans += np.abs(plus1 + plus2 - 2*ab)
         return ans
+
+    def init_drawer(self, data_mat, result):
+        return Drawer(data_mat, result)

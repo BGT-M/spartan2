@@ -1,6 +1,8 @@
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from scipy import signal
+
 
 class STTimeseries:
     def __init__(self, time, attrlists, attrlabels, freq=None, startts=None):
@@ -30,7 +32,7 @@ class STTimeseries:
             self.startts = time[0]
         self.attrlists = attrlists
         self.attrlabels = attrlabels
-    
+
     def __len__(self):
         return self.length
 
@@ -79,10 +81,11 @@ class STTimeseries:
                 if True, update origin object's variable
                 if False, return a new STTimeseries object
         '''
-        origin_list = self.attrlists
-        origin_length = len(self.attrlists)
-        attr_length = self.length
-        origin_freq = self.freq
+        _self = self._handle_inplace(inplace)
+        origin_list = _self.attrlists
+        origin_length = len(_self.attrlists)
+        attr_length = _self.length
+        origin_freq = _self.freq
         resampled_list = []
         for index in range(origin_length):
             origin_attr = origin_list[index]
@@ -90,29 +93,28 @@ class STTimeseries:
             resampled_list.append(resampled_attr)
         resampled_list = np.array(resampled_list)
         resampled_length = len(resampled_list[0])
-        resampled_time = np.arange(self.startts, self.startts + 1 / resampled_freq * resampled_length, 1 / resampled_freq)
+        resampled_time = np.arange(_self.startts, _self.startts + 1 / resampled_freq * resampled_length, 1 / resampled_freq)
         if show == True:
             plt.figure()
             sub_dimension = len(resampled_list)
             actual_dimension = 1
-            for label in self.attrlabels:
+            for label in _self.attrlabels:
                 x_origin = np.arange(0, attr_length/origin_freq, 1/origin_freq)
                 x_resampled = np.arange(0, attr_length/origin_freq, 1/resampled_freq)
                 plt.subplot(sub_dimension, 1, actual_dimension)
-                index = self.attrlabels.index(label)
+                index = _self.attrlabels.index(label)
                 plt.title(label)
                 plt.plot(x_origin, origin_list[index], 'r-', label='origin')
                 plt.plot(x_resampled, resampled_list[index], 'g.', label='resample')
                 plt.legend(loc="best")
                 actual_dimension += 1
             plt.show()
-        if inplace == True:
-            self.timelist = resampled_time
-            self.attrlists = resampled_list
-            self.freq = resampled_freq
-            self.length = resampled_length
-        else:
-            return STTimeseries(resampled_time, resampled_list, self.attrlabels.copy(), resampled_freq, self.startts)
+        _self.timelist = resampled_time
+        _self.attrlists = resampled_list
+        _self.freq = resampled_freq
+        _self.length = resampled_length
+        if inplace:
+            return _self
 
     def combine(self, combined_series, inplace=True):
         ''' combine series data which have the same frequency, can be a single STTimeseries object or a list of STTImeseries objects
@@ -121,10 +123,7 @@ class STTimeseries:
                 if True, update origin object's variable
                 if False, return a new STTimeseries object
         '''
-        if inplace:
-            origin_series = self
-        else:
-            origin_series = self.copy()
+        _self = self._handle_inplace(inplace)
         if type(combined_series) == list:
             _combined_series = []
             for x in combined_series:
@@ -132,12 +131,30 @@ class STTimeseries:
                     _combined_series.append(x.copy())
                 else:
                     raise Exception(f'list contains non-STTimeseries object')
-            self._combine_several(_combined_series, origin_series)
+            self._combine_several(_combined_series, _self)
         elif type(combined_series) == STTimeseries:
-            self._combine_one(combined_series.copy(), origin_series)
+            self._combine_one(combined_series.copy(), _self)
         if not inplace:
-            return origin_series
-        
+            return _self
+
+    def extract(self, attrs=None, inplace=True):
+        ''' extract attrs from series data
+            @param attrs: default is None, return each dimension
+                if not None, return required dimensions
+            @param inplace:
+                if True, update origin object's variable
+                if False, return a new STTimeseries object
+        '''
+        _self = self._handle_inplace(inplace)
+        _attrlists = list(_self.attrlists)
+        for attr in _self.attrlabels.copy():
+            if attr not in attrs:
+                index = _self.attrlabels.index(attr)
+                del(_attrlists[index])
+                _self.attrlabels.remove(attr)
+        _self.attrlists = np.array(_attrlists)
+        if not inplace:
+            return _self
 
     def cut(self, attrs=None, start=None, end=None, form='point', inplace=False):
         ''' cut columns in time dimension
@@ -155,53 +172,52 @@ class STTimeseries:
                 if False, function will return a new STTimeseiries object
                 if True, function will make changes in current STTimeseries object
         '''
-        if attrs is None:
-            templabels = self.attrlabels
-            templists = self.attrlists
-        else:
-            templabels = []
-            templists = []
-            for attr in attrs:
-                if not attr in self.attrlabels:
-                    raise Exception(f'Attr {attr} is not found')
-                templabels.append(attr)
-                index = self.attrlabels.index(attr)
-                templists.append(self.attrlists[index])
+        _self = self._handle_inplace(inplace)
+        templabels, templists = self._handle_attrs(attrs)
         if form == 'point':
             start = start
             end = end
         elif form == 'time':
             if not start is None:
-                start = start * self.freq
+                start = int((start-_self.startts) * _self.freq)
             if not end is None:
-                end = end * self.freq
+                end = int((end-_self.startts) * _self.freq)
         else:
             raise Exception('Value of parameter form is not defined!')
         if start is None:
             start = 0
         if end is None:
-            end = self.length
-        timelist = self.timelist.copy()
-        timelist = timelist[start:end]
-        templists = [attr[start:end] for attr in templists]
-        templists = np.array(templists)
-        if attrs is None and inplace:
-            self.attrlists = templists
-            self.timelist = timelist
-            self.startts = timelist[0]
-            self.length = len(templists[0])
-        else:
-            return STTimeseries(timelist, templists, templabels)
-
+            end = _self.length
+        timelist = _self.timelist.copy()[start:end]
+        templists = np.array(attr[start:end] for attr in templists)
+        _self.attrlists = templists
+        _self.timelist = timelist
+        _self.startts = timelist[0]
+        _self.length = len(templists[0])
+        if not inplace:
+            return _self
 
     def filter(self, order, criterion, mode, show=False, inplace=False):
+        # TODO to be finished
         if type(criterion) == list and mode != 'bandpass' or type(criterion) == float and (mode != 'highpass' and mode != 'lowpass'):
             raise Exception('criterion not fit mode')
         b, a = signal.butter(order, criterion, mode)
         if show:
             plt.figure()
 
-    def savefile(self, name, path=None, attrs=None, annotation=None, time=True):
+    def normalize(self, attrs=None, inplace=False):
+        _self = self._handle_inplace(inplace)
+        if attrs is None:
+            attrs = _self.attrlabels
+        _attrlists = list(_self.attrlists)
+        for i, value in enumerate(_self.attrlabels):
+            if value in attrs:
+                _attrlists[i] = self._normalize(_attrlists[i])
+        _self.attrlists = np.array(_attrlists)
+        if not inplace:
+            return _self
+
+    def savefile(self, name, path=None, attrs=None, annotation=None, time=True, format='tensor'):
         ''' save current time series object as a tensor file, time column [if exists] shall always be stored as the first column
             @param name: name of the file to be saved
             @param path: default is None, parent directory
@@ -211,9 +227,9 @@ class STTimeseries:
             @param time: default is True, save time dimension
         '''
         if path is None:
-            path = f'./{name}.tensor'
+            path = f'./{name}.{format}'
         else:
-            path = f'{path}{name}.tensor'
+            path = f'{path}{name}.{format}'
         if time == False:
             time_flag = False
         elif time == True:
@@ -222,22 +238,40 @@ class STTimeseries:
         else:
             time_flag = True
             if time in self.attrlabels:
-                timelist = self.attrlists[self.attrlabels.index(time)]
-                np.delete(self.attrlists, self.attrlabels.index(time))
+                _pos = self.attrlabels.index(time)
+                timelist = self.attrlists[_pos]
+                _attrs = list(self.attrlists)
+                del(_attrs[_pos])
+                self.attrlists = np.array(_attrs)
+                self.attrlabels.remove(time)
             else:
                 raise Exception('time dimension assigned error')
-        if attrs is None:
-            templists = self.attrlists
-            templabels = self.attrlabels
+        templabels, templists = self._handle_attrs(attrs)
+        if format == 'tensor':
+            self._savefile_tensor(path, templists, templabels, annotation, time_flag)
+        elif format == 'csv':
+            self._savefile_csv(path, templists, templabels, time_flag)
         else:
-            templists = []
-            templabels = attrs
-            for attr in attrs:
-                if not attr in self.attrlabels:
-                    raise Exception(f'Attr {attr} not found!')
-                index = self.attrlabels.index(attr)
-                templists.append(self.attrlists[index])
-            templists = np.array(templists)
+            raise Exception(f'{format} not supported!')
+
+    def _combine_one(self, combined_series, _self):
+        if not _self.freq == combined_series.freq:
+            raise Exception(f'Frequency not matched, with {self.freq} and {combined_series.freq}')
+        for label in combined_series.attrlabels:
+            if label in _self.attrlabels:
+                for i in range(1, 10000):
+                    if not (label + '_' + str(i)) in _self.attrlabels:
+                        _self.attrlabels.extend([label + '_' + str(i)])
+                        break
+            else:
+                _self.attrlabels.extend([label])
+        _self.attrlists = np.concatenate([_self.attrlists, combined_series.attrlists])
+
+    def _combine_several(self, combined_series, _self):
+        for obj in combined_series:
+            _self._combine_one(obj, _self)
+
+    def _savefile_tensor(self, path, templists, templabels, annotation, time_flag):
         templists = templists.T
         templists = [','.join(map(lambda x:str(x), t)) for t in templists]
         with open(path, 'w') as writer:
@@ -250,20 +284,43 @@ class STTimeseries:
                 else:
                     writer.write(f'{templists[i]}\n')
 
+    def _savefile_csv(self, path, templists, templabels, time_flag):
+        if time_flag:
+            timelist = np.array(self.timelist)
+            templists = np.concatenate(([timelist], templists), axis=0)
+            _ = ['time']
+            _.extend(templabels)
+            templabels = _
+        templists = templists.T
+        data_frame = pd.DataFrame(templists, columns=templabels)
+        data_frame.to_csv(path, index=None)
 
-    def _combine_one(self, combined_series, origin_series):
-        if not origin_series.freq == combined_series.freq:
-            raise Exception(f'Frequency not matched, with {self.freq} and {combined_series.freq}')
-        for label in combined_series.attrlabels:
-            if label in origin_series.attrlabels:
-                for i in range(1, 10000):
-                    if not (label + '_' + str(i)) in origin_series.attrlabels:
-                        origin_series.attrlabels.extend([label + '_' + str(i)])
-                        break
-            else:
-                origin_series.attrlabels.extend([label])
-        origin_series.attrlists = np.concatenate([origin_series.attrlists, combined_series.attrlists])
+    def _normalize(self, attrlist):
+        _min = np.min(attrlist)
+        _max = np.max(attrlist)
+        _middle = (_min+_max) / 2
+        attrlist = (attrlist - _middle) / (_max - _min) * 2
+        return attrlist
 
-    def _combine_several(self, combined_series, origin_series):
-        for obj in combined_series:
-            origin_series._combine_one(obj, origin_series)
+    def _handle_inplace(self, inplace):
+        if inplace:
+            _self = self
+        else:
+            _self = self.copy()
+        return _self
+
+    def _handle_attrs(self, attrs):
+        if attrs is None:
+            templabels = self.attrlabels
+            templists = self.attrlists
+        else:
+            templabels = []
+            templists = []
+            for attr in attrs:
+                if not attr in self.attrlabels:
+                    raise Exception(f'Attr {attr} is not found')
+                templabels.append(attr)
+                index = self.attrlabels.index(attr)
+                templists.append(self.attrlists[index])
+            templists = np.array(templists)
+        return templabels, templists
