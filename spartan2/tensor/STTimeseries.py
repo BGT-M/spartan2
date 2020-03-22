@@ -18,6 +18,7 @@ class STTimeseries:
                 if time dimension is provided, startts will not work and will be calculated by the time sequence
         '''
         self.length = len(attrlists[0])
+        self.dimen_size = len(attrlists)
         if len(time) == 0:
             if freq is None:
                 raise Exception('Parameter freq not provided')
@@ -50,11 +51,10 @@ class STTimeseries:
         '''
         plt.figure()
         if chosen_labels is None:
-            sub_dimension = len(self.attrlists)
+            sub_dimension = self.dimen_size
             actual_dimension = 1
-            for label in self.attrlabels:
+            for index, label in enumerate(self.attrlabels):
                 plt.subplot(sub_dimension, 1, actual_dimension)
-                index = self.attrlabels.index(label)
                 plt.title(label)
                 plt.plot(self.timelist, self.attrlists[index], label=label)
                 plt.legend(loc="best")
@@ -112,10 +112,19 @@ class STTimeseries:
         _self.attrlists = resampled_list
         _self.freq = resampled_freq
         _self.length = resampled_length
-        if inplace:
+        if not inplace:
+            return _self
+        
+    def add_column(self, column_name, value, inplace=False):
+        _self = self._handle_inplace(inplace)
+        _self.attrlabels.extend([column_name])
+        _self.dimen_size += 1
+        attrlist = np.array([value] * _self.length)
+        _self.attrlists = np.concatenate((_self.attrlists, [attrlist]), axis=0)
+        if not inplace:
             return _self
 
-    def combine(self, combined_series, inplace=True):
+    def combine(self, series, inplace=False):
         ''' combine series data which have the same frequency, can be a single STTimeseries object or a list of STTImeseries objects
             @param combined_series: series to be combined
             @param inplace:
@@ -123,20 +132,35 @@ class STTimeseries:
                 if False, return a new STTimeseries object
         '''
         _self = self._handle_inplace(inplace)
-        if type(combined_series) == list:
-            _combined_series = []
-            for x in combined_series:
+        if type(series) == list:
+            _series = []
+            for x in series:
                 if type(x) == STTimeseries:
-                    _combined_series.append(x.copy())
+                    _series.append(x.copy())
                 else:
                     raise Exception(f'list contains non-STTimeseries object')
-            self._combine_several(_combined_series, _self)
-        elif type(combined_series) == STTimeseries:
-            self._combine_one(combined_series.copy(), _self)
+            self._combine_several(_series, _self)
+        elif type(series) == STTimeseries:
+            self._combine_one(series.copy(), _self)
         if not inplace:
             return _self
 
-    def extract(self, attrs=None, inplace=True):
+    def concat(self, series, inplace=False):
+        _self = self._handle_inplace(inplace)
+        if type(series) == list:
+            _series = []
+            for x in series:
+                if type(x) == STTimeseries:
+                    _series.append(x.copy())
+                else:
+                    raise Exception(f'list contains non-STTimeseries object')
+            self._concat_several(_series, _self)
+        elif type(series) == STTimeseries:
+            self._concat_one(series.copy(), _self)
+        if not inplace:
+            return _self
+
+    def extract(self, attrs=None, inplace=False):
         ''' extract attrs from series data
             @param attrs: default is None, return each dimension
                 if not None, return required dimensions
@@ -187,8 +211,10 @@ class STTimeseries:
             start = 0
         if end is None:
             end = _self.length
+        if start < 0 or end > _self.length:
+            raise Exception(f'start pos: {start} with 0 and end pos {end} with {_self.length}')
         timelist = _self.timelist.copy()[start:end]
-        templists = np.array(attr[start:end] for attr in templists)
+        templists = np.array([attr[start:end] for attr in templists])
         _self.attrlists = templists
         _self.timelist = timelist
         _self.startts = timelist[0]
@@ -233,12 +259,11 @@ class STTimeseries:
             time_flag = False
         elif time == True:
             time_flag = True
-            timelist = self.timelist
         else:
             time_flag = True
             if time in self.attrlabels:
                 _pos = self.attrlabels.index(time)
-                timelist = self.attrlists[_pos]
+                self.timelist = self.attrlists[_pos]
                 _attrs = list(self.attrlists)
                 del(_attrs[_pos])
                 self.attrlists = np.array(_attrs)
@@ -253,10 +278,10 @@ class STTimeseries:
         else:
             raise Exception(f'{format} not supported!')
 
-    def _combine_one(self, combined_series, _self):
-        if not _self.freq == combined_series.freq:
+    def _combine_one(self, obj, _self):
+        if not _self.freq == obj.freq:
             raise Exception(f'Frequency not matched, with {self.freq} and {combined_series.freq}')
-        for label in combined_series.attrlabels:
+        for label in obj.attrlabels:
             if label in _self.attrlabels:
                 for i in range(1, 10000):
                     if not (label + '_' + str(i)) in _self.attrlabels:
@@ -264,11 +289,25 @@ class STTimeseries:
                         break
             else:
                 _self.attrlabels.extend([label])
-        _self.attrlists = np.concatenate([_self.attrlists, combined_series.attrlists])
+        _self.attrlists = np.concatenate([_self.attrlists, obj.attrlists])
 
     def _combine_several(self, combined_series, _self):
         for obj in combined_series:
             _self._combine_one(obj, _self)
+    
+    def _concat_one(self, obj, _self):
+        if not _self.dimen_size == obj.dimen_size:
+            raise Exception(f'dimension sizes are not the same with self {_self.dimen_size} and obj {obj.dimen_size}')
+        for i in range(len(_self.attrlabels)):
+            if not _self.attrlabels[i] == obj.attrlabels[i]:
+                raise Exception (f'{i}th dimension is not corresponding with self {_self.attrlabels[i]} and obj {obj.attrlabels[i]}')
+        _self.attrlists = np.concatenate((_self.attrlists, obj.attrlists), axis=1)
+        _self.length = len(_self.attrlists[0])
+        _self.timelist = np.arange(_self.startts, 1/_self.freq*_self.length, 1 / _self.freq)
+    
+    def _concat_several(self, concated_series, _self):
+        for obj in concated_series:
+            _self._concat_one(obj, _self)
 
     def _savefile_tensor(self, path, templists, templabels, annotation, time_flag):
         templists = templists.T
@@ -279,7 +318,7 @@ class STTimeseries:
             writer.write(f'# time {" ".join(templabels)} \n')
             for i in range(self.length):
                 if time_flag:
-                    writer.write(f'{timelist[i]},{templists[i]}\n')
+                    writer.write(f'{self.timelist[i]},{templists[i]}\n')
                 else:
                     writer.write(f'{templists[i]}\n')
 
