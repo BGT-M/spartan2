@@ -2,7 +2,8 @@ import os
 import sys
 
 
-def myreadfile(fnm, mode):
+def myopenfile(fnm, mode):
+    f = None
     if 'w' in mode:
         if '.gz' == fnm[-3:]:
             import gzip
@@ -11,15 +12,21 @@ def myreadfile(fnm, mode):
             f = gzip.open(fnm, mode)
         else:
             f = open(fnm, mode)
-    elif 'r' in mode:
-        if '.gz' == fnm[-3:]:
-            fnm = fnm[:-3]
+    else:
+        if 'r' not in mode:
+            mode = 'r' + mode
         if os.path.isfile(fnm):
-            f = open(fnm, mode)
+            if '.gz' != fnm[-3:]:
+                f = open(fnm, mode)
+            else:
+                import gzip
+                f = gzip.open(fnm, mode)
         elif os.path.isfile(fnm+'.gz'):
+            'file @fnm does not exists, use fnm.gz instead'
+            print(
+                '==file {} does not exists, read {}.gz instead'.format(fnm,
+                                                                       fnm))
             import gzip
-            if 'b' not in mode:
-                mode += 'b'
             f = gzip.open(fnm+'.gz', mode)
         else:
             print('file: {} or its zip file does NOT exist'.format(fnm))
@@ -77,7 +84,7 @@ def renumberids(indir, outdir, fnm, ofnm, delimeter=' ', comments='#', nodetype=
         os.makedirs(outdir, exist_ok=True)
     filepath = os.path.join(indir, fnm)
     ofilepath = os.path.join(outdir, ofnm)
-    with myreadfile(filepath, 'r') as f, myreadfile(ofilepath, 'w') as outf:
+    with myopenfile(filepath, 'r') as f, myopenfile(ofilepath, 'w') as outf:
         for line in f:
             line = line.strip()
             if line.startswith(comments):
@@ -107,3 +114,66 @@ def renumberids(indir, outdir, fnm, ofnm, delimeter=' ', comments='#', nodetype=
         f1.close()
         f2.close()
     return len(users), len(msgs)
+
+
+'''
+  @nodetype is the assumed type of node id, which used for saving the space of
+  dict keys
+  hdfs default delimeter is b'\x01'
+'''
+def renumberids2(infiles, outdir, delimeter=' ', isbyte=False,
+                 comments='#', nodetype=int, colidx=[0, 1]):
+    mode = 'b' if isbyte else ''
+    users, msgs = {}, {}
+    if not os.path.exists(outdir):
+        os.makedirs(outdir, exist_ok=True)
+    import glob
+    files = glob.glob(infiles)
+    for filepath in files:
+        fnm = os.path.basename(filepath)
+        print('\tprocessing file {}'.format(fnm), flush=True)
+        j = fnm.find('.')
+        nfnm = fnm[:j]+'.reid'+fnm[j:] if j!=-1 else fnm+'.reid'
+        ofilepath = os.path.join(outdir, nfnm)
+        with myopenfile(filepath, 'r'+mode) as f, myopenfile(ofilepath,
+                                                             'w'+mode) as outf:
+            for line in f:
+                line = line.strip()
+                if line.startswith(comments):
+                    continue
+                elems = line.split(delimeter)
+                uid = nodetype(elems[colidx[0]])
+                bid = nodetype(elems[colidx[1]])
+                if uid not in users:
+                    users[uid] = len(users)
+                if bid not in msgs:
+                    msgs[bid] = len(msgs)
+                    #t = int(elems[2])
+                    #label = int(elems[3])
+                nelems = elems.copy()
+                nelems[colidx[0]] = str(users[uid]).encode() if isbyte else \
+                        str(users[uid])
+                nelems[colidx[1]] = str(msgs[bid]).encode() if isbyte else \
+                        str(msgs[bid])
+                #import ipdb
+                #ipdb.set_trace()
+                outf.write(delimeter.join(nelems) + b'\n')
+            outf.close()
+            f.close()
+
+    with open(os.path.join(outdir, 'userid.dict'), 'w'+mode) as f1,\
+            open(os.path.join(outdir, 'msgid.dict'), 'w'+mode) as f2:
+        for u, val in users.items():
+            u = u.decode() if type(u) is bytes else str(u)
+            outstr = "{},{}\n".format(u, val)
+            x = outstr.encode() if 'b' in mode else outstr
+            f1.write(x)
+        for m, val in msgs.items():
+            m = m.decode() if type(m) is bytes else str(m)
+            outstr = "{},{}\n".format(m, val)
+            x = outstr.encode() if 'b' in mode else outstr
+            f2.write(x)
+        f1.close()
+        f2.close()
+    return len(users), len(msgs)
+
