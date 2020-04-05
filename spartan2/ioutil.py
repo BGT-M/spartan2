@@ -66,6 +66,55 @@ def get_sep_of_file(infn):
     return sep
 
 
+def saveSimpleDictData(simdict, outdata, delim=':', mode=''):
+    delim = delim.decode() if type(delim) is bytes else str(delim)
+    with myopenfile(outdata, 'w'+mode) as fw:
+        for k, val in nodedict.items():
+            k = k.decode() if type(k) is bytes else str(u)
+            val = val.decode() if type(val) is bytes else str(val)
+            outstr = "{}{}{}\n".format(k, delim,  val)
+            x = outstr.encode() if 'b' in mode else outstr
+            fw.write(x)
+        fw.close()
+
+def loadSimpleDictData(indata, delim=':', mode='b', dtypes=[int, int]):
+    simdict={}
+    with myopenfile(indata, 'r'+mode) as fr:
+        lines=fr.readlines()
+        for line in lines:
+            line = line.decode() if type(line) is bytes else str(line)
+            line = line.strip().split(delim)
+            ktype, vtype = dtypes
+            simdict[ktype(line[0])] = vtype(line[1])
+        fr.close()
+    return simdict
+
+def saveDictListData(dictls, outdata, delim=':'):
+    with myopenfile(outdata, 'w') as fw:
+        for k, l in dictls.iteritems():
+            if type(l) != list:
+                print("This is not a dict of value list.")
+                break
+            fw.write("{}{}".format(k,delim))
+            for i in range(len(l)-1):
+                fw.write("{} ".format(l[i]))
+            fw.write("{}\n".format(l[-1]))
+        fw.close()
+
+
+def loadDictListData(indata, ktype=str, vtype=str):
+    dictls={}
+    with myopenfile(indata, 'rb') as fr:
+        lines = fr.readlines()
+        for line in lines:
+            line = line.strip().split(':')
+            lst=[]
+            for e in line[1].strip().split(' '):
+                lst.append(vtype(e))
+            dictls[ktype(line[0].strip())]=lst
+        fr.close()
+    return dictls
+
 def convert_to_db_type(basic_type):
     basic_type_dict = {
         int: "INT",
@@ -119,12 +168,34 @@ def renumberids(indir, outdir, fnm, ofnm, delimeter=' ', comments='#', nodetype=
 '''
   @nodetype is the assumed type of node id, which used for saving the space of
   dict keys
-  hdfs default delimeter is b'\x01'
+  hdfs default delimeter is '\x01'
+  If dicts exists , then reuse this dicts, and append new kyes when necessary.
 '''
-def renumberids2(infiles, outdir, delimeter=' ', isbyte=False,
-                 comments='#', nodetype=int, colidx=[0, 1]):
+def renumberids2(infiles, outdir, delimeter:str=' ', isbyte=False,
+        comments:str='#', nodetype=int, colidx:list =[0, 1], dicts:list=None):
     mode = 'b' if isbyte else ''
-    users, msgs = {}, {}
+    numids = len(colidx)
+    if dicts is  None:
+        nodes = [ {} for i in range(numids) ]
+    elif len(dicts)==numids:
+        for i in range(numids):
+            if type(dicts[i]) is str:
+                nodes[i] = loadSimpleDictData(dicts[i])
+            elif type(dicts[i]) is dict:
+                nodes[i] = dicts[i]
+            else:
+                print("Error: incorrect type of dicts element: str or dict.")
+                sys.exit(1)
+    else:
+        print("Error: incorrect input of dicts, {}".format(dicts))
+        sys.exit(1)
+
+    delimeter = delimeter.decode() if type(delimeter) is bytes else \
+            str(delimeter)
+    comments = comments.decode() if type(comments) is bytes else \
+            str(comments)
+
+    #=users, msgs = {}, {}
     if not os.path.exists(outdir):
         os.makedirs(outdir, exist_ok=True)
     import glob
@@ -138,42 +209,63 @@ def renumberids2(infiles, outdir, delimeter=' ', isbyte=False,
         with myopenfile(filepath, 'r'+mode) as f, myopenfile(ofilepath,
                                                              'w'+mode) as outf:
             for line in f:
+                line = line.decode() if 'b' in mode else line
                 line = line.strip()
                 if line.startswith(comments):
                     continue
                 elems = line.split(delimeter)
-                uid = nodetype(elems[colidx[0]])
-                bid = nodetype(elems[colidx[1]])
-                if uid not in users:
-                    users[uid] = len(users)
-                if bid not in msgs:
-                    msgs[bid] = len(msgs)
-                    #t = int(elems[2])
-                    #label = int(elems[3])
                 nelems = elems.copy()
-                nelems[colidx[0]] = str(users[uid]).encode() if isbyte else \
-                        str(users[uid])
-                nelems[colidx[1]] = str(msgs[bid]).encode() if isbyte else \
-                        str(msgs[bid])
+                for i in range(numids):
+                    nodedict = nodes[i] # e.g. users
+                    elemidx = colidx[i]
+                    orgid = nodetype(elems[elemidx])
+                    if orgid not in nodedict:
+                        nodedict[orgid] = len(nodedict)
+                    nelems[elemidx] = str(nodedict[orgid]).encode() if isbyte \
+                            else str(nodedict[orgid])
+                #=uid = nodetype(elems[colidx[0]])
+                #=bid = nodetype(elems[colidx[1]])
+                #=if uid not in users:
+                #=    users[uid] = len(users)
+                #=if bid not in msgs:
+                #=    msgs[bid] = len(msgs)
+                #=nelems[colidx[0]] = str(users[uid]).encode() if isbyte else \
+                #=        str(users[uid])
+                #=nelems[colidx[1]] = str(msgs[bid]).encode() if isbyte else \
+                #=        str(msgs[bid])
                 #import ipdb
                 #ipdb.set_trace()
                 outf.write(delimeter.join(nelems) + b'\n')
             outf.close()
             f.close()
 
-    with open(os.path.join(outdir, 'userid.dict'), 'w'+mode) as f1,\
-            open(os.path.join(outdir, 'msgid.dict'), 'w'+mode) as f2:
-        for u, val in users.items():
-            u = u.decode() if type(u) is bytes else str(u)
-            outstr = "{},{}\n".format(u, val)
-            x = outstr.encode() if 'b' in mode else outstr
-            f1.write(x)
-        for m, val in msgs.items():
-            m = m.decode() if type(m) is bytes else str(m)
-            outstr = "{},{}\n".format(m, val)
-            x = outstr.encode() if 'b' in mode else outstr
-            f2.write(x)
-        f1.close()
-        f2.close()
-    return len(users), len(msgs)
+    for i in range(numids):
+        nodedict = nodes[i]
+        elemidx = colidx[i]
+        outnm = os.path.join(outdir, "col{}ids.dict".format(elemidx))
+        saveSimpleDictData(nodedict, outnm, delim=':', mode='b')
+        #-with open(os.path.join(outdir, "col{}ids.dict".format(elemidx)),
+        #-        'w'+mode) as f:
+        #-    for k, val in nodedict.items():
+        #-        k = k.decode() if type(k) is bytes else str(u)
+        #-        outstr = "{}:{}\n".format(k, val)
+        #-        x = outstr.encode() if 'b' in mode else outstr
+        #-        f.write(x)
+        #-    f.close()
+
+    #=with open(os.path.join(outdir, 'userid.dict'), 'w'+mode) as f1,\
+    #=        open(os.path.join(outdir, 'msgid.dict'), 'w'+mode) as f2:
+    #=    for u, val in users.items():
+    #=        u = u.decode() if type(u) is bytes else str(u)
+    #=        outstr = "{},{}\n".format(u, val)
+    #=        x = outstr.encode() if 'b' in mode else outstr
+    #=        f1.write(x)
+    #=    for m, val in msgs.items():
+    #=        m = m.decode() if type(m) is bytes else str(m)
+    #=        outstr = "{},{}\n".format(m, val)
+    #=        x = outstr.encode() if 'b' in mode else outstr
+    #=        f2.write(x)
+    #=    f1.close()
+    #=    f2.close()
+    return [ len(nodes[i]) for i in range(nodes[i]) ]
 
