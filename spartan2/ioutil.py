@@ -69,7 +69,7 @@ def get_sep_of_file(infn):
 def saveSimpleDictData(simdict, outdata, delim=':', mode=''):
     delim = delim.decode() if type(delim) is bytes else str(delim)
     with myopenfile(outdata, 'w'+mode) as fw:
-        for k, val in nodedict.items():
+        for k, val in simdict.items():
             k = k.decode() if type(k) is bytes else str(u)
             val = val.decode() if type(val) is bytes else str(val)
             outstr = "{}{}{}\n".format(k, delim,  val)
@@ -172,7 +172,7 @@ def renumberids(indir, outdir, fnm, ofnm, delimeter=' ', comments='#', nodetype=
   If dicts exists , then reuse this dicts, and append new kyes when necessary.
 '''
 def renumberids2(infiles, outdir, delimeter:str=' ', isbyte=False,
-        comments:str='#', nodetype=int, colidx:list =[0, 1], dicts:list=None):
+        comments:str='#', nodetype=str, colidx:list =[0, 1], dicts:list=None):
     mode = 'b' if isbyte else ''
     numids = len(colidx)
     if dicts is  None:
@@ -200,7 +200,7 @@ def renumberids2(infiles, outdir, delimeter:str=' ', isbyte=False,
         os.makedirs(outdir, exist_ok=True)
     import glob
     files = glob.glob(infiles)
-    for filepath in files:
+    for filepath in files[:1]:
         fnm = os.path.basename(filepath)
         print('\tprocessing file {}'.format(fnm), flush=True)
         j = fnm.find('.')
@@ -218,11 +218,11 @@ def renumberids2(infiles, outdir, delimeter:str=' ', isbyte=False,
                 for i in range(numids):
                     nodedict = nodes[i] # e.g. users
                     elemidx = colidx[i]
-                    orgid = nodetype(elems[elemidx])
+                    orgid = elems[elemidx].encode() if nodetype is bytes \
+                            else nodetype(elems[elemidx])
                     if orgid not in nodedict:
                         nodedict[orgid] = len(nodedict)
-                    nelems[elemidx] = str(nodedict[orgid]).encode() if isbyte \
-                            else str(nodedict[orgid])
+                    nelems[elemidx] = str(nodedict[orgid])
                 #=uid = nodetype(elems[colidx[0]])
                 #=bid = nodetype(elems[colidx[1]])
                 #=if uid not in users:
@@ -235,7 +235,9 @@ def renumberids2(infiles, outdir, delimeter:str=' ', isbyte=False,
                 #=        str(msgs[bid])
                 #import ipdb
                 #ipdb.set_trace()
-                outf.write(delimeter.join(nelems) + b'\n')
+                outstr = delimeter.join(nelems) + '\n'
+                outx = outstr.encode() if 'b' in mode else outstr
+                outf.write(outx)
             outf.close()
             f.close()
 
@@ -267,5 +269,14 @@ def renumberids2(infiles, outdir, delimeter:str=' ', isbyte=False,
     #=        f2.write(x)
     #=    f1.close()
     #=    f2.close()
-    return [ len(nodes[i]) for i in range(nodes[i]) ]
+    return [ len(nodes[i]) for i in range(numids) ]
+
+
+'''
+    extract time stamps in log files or edgelist tensor
+    @groupids the goup col idx used for aggregae time stamps
+'''
+def extracttimes( infiles, outdir, delimeter:str=' ', stbyte=False,
+        comments:str='#', nodetype=str, groupids:list=[]):
+    return ''
 
