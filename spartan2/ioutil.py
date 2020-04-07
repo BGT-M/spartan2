@@ -70,7 +70,7 @@ def saveSimpleDictData(simdict, outdata, delim=':', mode=''):
     delim = delim.decode() if type(delim) is bytes else str(delim)
     with myopenfile(outdata, 'w'+mode) as fw:
         for k, val in simdict.items():
-            k = k.decode() if type(k) is bytes else str(u)
+            k = k.decode() if type(k) is bytes else str(k)
             val = val.decode() if type(val) is bytes else str(val)
             outstr = "{}{}{}\n".format(k, delim,  val)
             x = outstr.encode() if 'b' in mode else outstr
@@ -175,18 +175,20 @@ def renumberids2(infiles, outdir, delimeter:str=' ', isbyte=False,
         comments:str='#', nodetype=str, colidx:list =[0, 1], dicts:list=None):
     mode = 'b' if isbyte else ''
     numids = len(colidx)
+    nodes = []
     if dicts is  None:
         nodes = [ {} for i in range(numids) ]
     elif len(dicts)==numids:
         for i in range(numids):
             if type(dicts[i]) is str:
-                nodes[i] = loadSimpleDictData(dicts[i], mode=mode,
-                        dtypes=[nodetype, int])
+                nodes.append(loadSimpleDictData(dicts[i], mode=mode,
+                        dtypes=[nodetype, int]))
             elif type(dicts[i]) is dict:
-                nodes[i] = dicts[i]
+                nodes.append(dicts[i])
             else:
-                print("Error: incorrect type of dicts element: str or dict.")
-                sys.exit(1)
+                print("Error:\tincorrect type of dicts element: str or dict.")
+                print("\tuse empty dict instead")
+                nodes.append({})
     else:
         print("Error: incorrect input of dicts, {}".format(dicts))
         sys.exit(1)
@@ -199,6 +201,8 @@ def renumberids2(infiles, outdir, delimeter:str=' ', isbyte=False,
     #=users, msgs = {}, {}
     if not os.path.exists(outdir):
         os.makedirs(outdir, exist_ok=True)
+
+    #import ipdb; ipdb.set_trace()
     import glob
     files = glob.glob(infiles)
     for filepath in files:
@@ -240,9 +244,44 @@ def renumberids2(infiles, outdir, delimeter:str=' ', isbyte=False,
 
 '''
     extract time stamps in log files or edgelist tensor
-    @groupids the goup col idx used for aggregae time stamps
+    @groupids the goup col idx used for aggregating timestamps
+    '\x01'
 '''
-def extracttimes( infiles, outdir, delimeter:str=' ', stbyte=False,
-        comments:str='#', nodetype=str, groupids:list=[]):
+def extracttimes( infiles, outdir, timeidx=0, timeformat=int, delimeter:str=' ',
+        isbyte=False, comments:str='#', nodetype=str, groupids:list=[] ):
+
+    aggts = {} # final dict list for aggregating time series.
+    import glob
+    files = glob.glob(infiles)
+    for filepath in files:
+        fnm = os.path.basename(filepath)
+        print('\tprocessing file {}'.format(fnm), flush=True)
+        with myopenfile(filepath, 'r'+mode) as f:
+            for line in f:
+                line = line.decode() if 'b' in mode else line
+                line = line.strip()
+                if line.startswith(comments):
+                    continue
+                elems = line.split(delimeter)
+                # todo: convert time string to ts
+                ts = 0
+                # group by groupid
+                key = ','.join(np.array(elems)[groupids])
+                if key not in aggts:
+                    aggts[key] = []
+                aggts[key].append(ts)
+
+    aggtsnm = 'allcolsagg.ts' if len(groupids)==0 else \
+            'col{}sagg.ts'.format( ''.join(groupids) )
+    aggfile = os.path.join(outdir, aggtsnm)
+    with myopenfile(aggfile, 'w'+mode) as outf:
+        'out put dict'
+
     return ''
+
+'''
+time\x01uid\x01...
+e.g.: uid:t1,t2,t3
+e.g.: uid,msg:t1,t2,t3
+'''
 
