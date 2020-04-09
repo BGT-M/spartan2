@@ -8,7 +8,7 @@ from . import system
 import importlib
 import sqlite3
 import scipy.sparse.linalg as slin
-from .ioutil import checkfilegz, get_sep_of_file, myreadfile
+from .ioutil import checkfilegz, get_sep_of_file, myopenfile
 from .sttensor import STTensor
 from scipy.sparse import csc_matrix, coo_matrix, csr_matrix, lil_matrix
 
@@ -58,7 +58,7 @@ def loadTensor(name, path, col_types=[int, int, int],
     #import ipdb;ipdb.set_trace()
     sep = get_sep_of_file(tensor_file)
     tensorlist = []
-    with myreadfile(tensor_file, 'r') as fin:
+    with myopenfile(tensor_file, 'r') as fin:
         for line in fin:
             line = line.strip()
             if line.startswith("#"):
