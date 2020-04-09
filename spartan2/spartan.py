@@ -45,7 +45,9 @@ def loadTensor(name, path, col_types=[int, int, int],
     tensor_file = checkfilegz(full_path + '.tensor')
 
     if tensor_file is None:
-        raise Exception(f"Error: Can not find file {tensor_file}[.gz], please check the file path!\n")
+        tensor_file = checkfilegz(full_path)
+    if tensor_file is None:
+        raise Exception(f"Error: Can not find file {full_path}[.gz], please check the file path!\n")
 
     # NOTE: zip and range are different in py3
     col_idx = [i for i in range(len(col_types))] if len(col_idx) == 0 else col_idx
