@@ -14,6 +14,7 @@ class SeriesAlgorithm():
         # TODO
         pass
 
+
 class Beatlex(SeriesAlgorithm):
     def run(self, param):
         result = self.alg_func(self.data, param, self.out_path, self.name)

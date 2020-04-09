@@ -33,6 +33,7 @@ class STTimeseries:
             self.startts = time[0]
         self.attrlists = attrlists
         self.attrlabels = attrlabels
+
     def __len__(self):
         return self.length
 
@@ -114,7 +115,7 @@ class STTimeseries:
         _self.length = resampled_length
         if not inplace:
             return _self
-        
+
     def add_column(self, column_name, value, inplace=False):
         _self = self._handle_inplace(inplace)
         _self.attrlabels.extend([column_name])
@@ -294,17 +295,17 @@ class STTimeseries:
     def _combine_several(self, combined_series, _self):
         for obj in combined_series:
             _self._combine_one(obj, _self)
-    
+
     def _concat_one(self, obj, _self):
         if not _self.dimen_size == obj.dimen_size:
             raise Exception(f'dimension sizes are not the same with self {_self.dimen_size} and obj {obj.dimen_size}')
         for i in range(len(_self.attrlabels)):
             if not _self.attrlabels[i] == obj.attrlabels[i]:
-                raise Exception (f'{i}th dimension is not corresponding with self {_self.attrlabels[i]} and obj {obj.attrlabels[i]}')
+                raise Exception(f'{i}th dimension is not corresponding with self {_self.attrlabels[i]} and obj {obj.attrlabels[i]}')
         _self.attrlists = np.concatenate((_self.attrlists, obj.attrlists), axis=1)
         _self.length = len(_self.attrlists[0])
         _self.timelist = np.arange(_self.startts, 1/_self.freq*_self.length, 1 / _self.freq)
-    
+
     def _concat_several(self, concated_series, _self):
         for obj in concated_series:
             _self._concat_one(obj, _self)
