@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 
+
 class Drawer:
 
     def __init__(self, datamat, result):
@@ -12,13 +13,13 @@ class Drawer:
         self.ends = result['ends']
 
         self.id_dict = self._get_id_dict()
-        
+
     def _get_id_dict(self):
         _dict = dict.fromkeys(set(list(self.idx)), 0)
         for key in _dict.keys():
             _dict[key] = self.idx.count(key)
         return _dict
-    
+
     def vocabulary_distribution(self, semilog=False):
         data = sorted(self.id_dict.items(), key=lambda x: x[1], reverse=True)
         y = [x[1] for x in data]

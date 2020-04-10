@@ -1,6 +1,7 @@
 import numpy as np
 from .drawer import Drawer
 
+
 class BeatLex():
     def __init__(self, data_mat, para_dict):
         self.data_mat = data_mat
@@ -10,7 +11,7 @@ class BeatLex():
         self.Smax = para_dict['Smax']
         self.max_dist = para_dict['max_dist']
         self.prediction_length = para_dict['prediction_length']
-        
+
         self.model_momentum = para_dict['model_momentum']
         self.max_vocab = para_dict['max_vocab']
         self.termination_threshold = para_dict['termination_threshold']
@@ -42,7 +43,7 @@ class BeatLex():
             cur_idx = len(start_pos_list) + 1
             cur_pos = end_pos_list[-1] + 1
             start_pos_list.append(cur_pos)
-            
+
             num_models = len(self.models)
             ave_costs = np.full((num_models, self.Smax), np.nan)
             cur_end = min(cur_pos + self.Smax - 1, self.data_mat.shape[1])
@@ -56,7 +57,7 @@ class BeatLex():
                 ave_costs[k, 0:data_cur.shape[1]] = dtw_costs / np.arange(1, data_cur.shape[1]+1, 1)
                 ave_costs[k, 0:self.Smin-1] = np.nan
             best_cost = np.nanmin(ave_costs)
-            min_place = np.where(ave_costs==best_cost)
+            min_place = np.where(ave_costs == best_cost)
             try:
                 min_k = min_place[0][0]
                 best_size = min_place[1][0]
@@ -72,7 +73,7 @@ class BeatLex():
                     good_prefix_costs[k] = min(ave_prefix_costs)
                     good_prefix_lengths[k] = np.where(ave_prefix_costs == min(ave_prefix_costs))[0]
                 best_prefix_cost = min(good_prefix_costs)
-                best_prefix_k = np.where(good_prefix_costs==min(good_prefix_costs))
+                best_prefix_k = np.where(good_prefix_costs == min(good_prefix_costs))
                 best_prefix_length = good_prefix_lengths[best_prefix_k]
                 print('best prefix found {} {} {}'.format(min_k, best_cost, best_prefix_cost))
                 if best_prefix_cost < best_cost:
@@ -142,11 +143,11 @@ class BeatLex():
                 dist, dtw_mat, ans_k, ans_w = self.dynamic_time_warping(cur_model, data_cur)
                 dtw_costs = dtw_mat[-1, :]
                 ave_costs[S-1, k, 0:data_cur.shape[1]] = [dtw_costs[index] / (index+1) for index in range(len(dtw_costs))]
-                ave_costs[S-1, k, 0:self.Smin] = np.inf        
-        best_place = np.where(ave_costs==np.nanmin(ave_costs))
+                ave_costs[S-1, k, 0:self.Smin] = np.inf
+        best_place = np.where(ave_costs == np.nanmin(ave_costs))
         best_place = [x[0] for x in best_place]
         return best_place
-    
+
     def dynamic_time_warping(self, cur_model, data_seg):
         '''
         cur_model, model chosen from model_list
