@@ -77,7 +77,7 @@ def saveSimpleDictData(simdict, outdata, delim=':', mode=''):
             fw.write(x)
         fw.close()
 
-def loadSimpleDictData(indata, delim=':', mode='b', dtypes=[int, int]):
+def loadSimpleDictData(indata, delim=':', mode='', dtypes=[int, int]):
     simdict={}
     with myopenfile(indata, 'r'+mode) as fr:
         lines=fr.readlines()
@@ -89,8 +89,8 @@ def loadSimpleDictData(indata, delim=':', mode='b', dtypes=[int, int]):
         fr.close()
     return simdict
 
-def saveDictListData(dictls, outdata, delim=':'):
-    with myopenfile(outdata, 'w') as fw:
+def saveDictListData(dictls, outdata, delim=':', mode=''):
+    with myopenfile(outdata, 'w'+mode) as fw:
         for k, l in dictls.iteritems():
             if type(l) != list:
                 print("This is not a dict of value list.")
@@ -102,9 +102,9 @@ def saveDictListData(dictls, outdata, delim=':'):
         fw.close()
 
 
-def loadDictListData(indata, ktype=str, vtype=str):
+def loadDictListData(indata, ktype=str, vtype=str, mode=''):
     dictls={}
-    with myopenfile(indata, 'rb') as fr:
+    with myopenfile(indata, 'r'+mode) as fr:
         lines = fr.readlines()
         for line in lines:
             line = line.strip().split(':')
