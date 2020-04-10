@@ -29,14 +29,23 @@ git clone https://github.com/shenghua-liu/spartan2.git
 ```
 2. Install the appropriate version for Anaconda from here - https://www.anaconda.com/distribution/
 
-3. Create a new conda environment named "eigenpulse" and install requirements.
+3. Create a new conda environment named "eigenpulse"
 ```bash
 conda create -n spartan python=3.6
 conda activate spartan
 pip install --user --requirement requirements
 ```
 
-4. install code in development mode
+4. Install requirements.
+```
+pip install --user --requirement requirements
+```
+or
+```
+python setup.py install
+```
+
+5. install code in development mode
 ```bash
 pip install -e spartan2
 ```
