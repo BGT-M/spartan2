@@ -12,10 +12,14 @@ AUTHOR = 'Shenghua Liu, Houquan Zhou, Quan Ding'
 EMAIL = 'liu.shengh@foxmail.com'
 
 # Get the long description from the README file.
-with open('README.md') as fp:
-  _LONG_DESCRIPTION = fp.read()
-  
-  
+#with open('readme.md') as fp:
+#    _LONG_DESCRIPTION = fp.read()
+
+# Get the long description from the README file
+with open('README.md', encoding='utf-8') as fp:
+    _LONG_DESCRIPTION = fp.read()
+
+
 REQUIRED_PACKAGES = [
       'numpy',
       'scipy',
