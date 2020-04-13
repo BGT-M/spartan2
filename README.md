@@ -64,19 +64,19 @@ git clone https://github.com/shenghua-liu/spartan2.git
 ## Table of Contents
 
 **Part 1: Basic**
-* [Quick start](https://github.com/shenghua-liu/spartan2/blob/master/quick_start.ipynb)
+* [Quick start](https://github.com/shenghua-liu/spartan2/blob/master/demo/quick_start.ipynb)
 
 
 **Part 2: Big Graphs**
-* [Load graph](https://github.com/shenghua-liu/spartan2/blob/master/ioutil_demo.ipynb)
-* [SVD](https://github.com/shenghua-liu/spartan2/blob/master/SVD_demo.ipynb)
-* [Eaglemine](https://github.com/shenghua-liu/spartan2/blob/master/Eaglemine_demo.ipynb)
-* [Fraudar](https://github.com/shenghua-liu/spartan2/blob/master/Fraudar_demo.ipynb)
-* [Holoscope](https://github.com/shenghua-liu/spartan2/blob/master/Holoscope_demo.ipynb)
+* [Load graph](https://github.com/shenghua-liu/spartan2/blob/master/demo/ioutil_demo.ipynb)
+* [SVD](https://github.com/shenghua-liu/spartan2/blob/master/demo/SVD_demo.ipynb)
+* [Eaglemine](https://github.com/shenghua-liu/spartan2/blob/master/demo/Eaglemine_demo.ipynb)
+* [Fraudar](https://github.com/shenghua-liu/spartan2/blob/master/demo/Fraudar_demo.ipynb)
+* [Holoscope](https://github.com/shenghua-liu/spartan2/blob/master/demo/Holoscope_demo.ipynb)
 
 **Part 3: Time Series**
-* [Load time series](https://github.com/shenghua-liu/spartan2/blob/master/TimeseriesData_demo.ipynb)
-* [Beatlex](https://github.com/shenghua-liu/spartan2/blob/master/Beatlex_demo.ipynb)
+* [Load time series](https://github.com/shenghua-liu/spartan2/blob/master/demo/TimeseriesData_demo.ipynb)
+* [Beatlex](https://github.com/shenghua-liu/spartan2/blob/master/demo/Beatlex_demo.ipynb)
 
 ## References
 1. Shenghua Liu, Bryan Hooi, Christos Faloutsos, A Contrast Metric for Fraud Detection in Rich Graphs, IEEE Transactions on Knowledge and Data Engineering (TKDE), Vol 31, Issue 12, Dec. 1 2019, pp. 2235-2248.
