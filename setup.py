@@ -2,18 +2,14 @@
 #
 #
 
-from setuptools import setup
+import setuptools
 
-NAME = 'spartan2'
-VERSION = 0
+NAME = 'spartan2-pkg-ictetc'
+VERSION = '0.0a.dev1'
 DESCRIPTION = 'collection of data mining algorithms on big graphs and time series'
 URL = 'https://github.com/shenghua-liu/spartan2'
 AUTHOR = 'Shenghua Liu, Houquan Zhou, Quan Ding, Jiabao Zhang, Xin Zhao, etc'
 EMAIL = 'liu.shengh@foxmail.com'
-
-# Get the long description from the README file.
-#with open('readme.md') as fp:
-#    _LONG_DESCRIPTION = fp.read()
 
 # Get the long description from the README file
 with open('README.md', encoding='utf-8') as fp:
@@ -31,7 +27,7 @@ REQUIRED_PACKAGES = [
       'scikit-image',
 ]
 
-setup(name=NAME,
+setuptools.setup(name=NAME,
       version=VERSION,
       description=DESCRIPTION,
       long_description=_LONG_DESCRIPTION,
@@ -40,6 +36,12 @@ setup(name=NAME,
       author_email=EMAIL,
       url=URL,
       install_requires=REQUIRED_PACKAGES,
-      packages=['spartan2', 'spartan2.algorithm', 'spartan2.models', 'spartan2.tensor'],
+      packages=setuptools.find_packages(),
+      classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+      ],
+      python_requires='>=3.6',
       )
 
