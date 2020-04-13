@@ -24,31 +24,36 @@ Everything here is viewed as a tensor (sparse).
  This project is written in Python 3.6
  We suggest recreating the experimental environment using Anaconda through the following steps.
  
-1. Clone the project
-```bash
-git clone https://github.com/shenghua-liu/spartan2.git
-```
-2. Install the appropriate version for Anaconda from here - https://www.anaconda.com/distribution/
+1. Install the appropriate version for Anaconda from here - https://www.anaconda.com/distribution/
 
-3. Create a new conda environment named "eigenpulse"
+2. Create a new conda environment named "spartan"
 ```bash
 conda create -n spartan python=3.6
 conda activate spartan
 ```
 
-4. Install requirements.
+3. Install package by pip
+```bash
+pip install -i https://test.pypi.org/simple/ spartan2
+```
+
+<!-- 4. Install requirements.
 ```
 pip install --user --requirement requirements
 ```
 or
 ```
 python setup.py install
-```
+``` -->
 
-5. install code in development mode
+<!-- 5. install code in development mode
 ```bash
 pip install -e spartan2
 ```
+2. Clone the project
+```bash
+git clone https://github.com/shenghua-liu/spartan2.git
+``` -->
 
 ## run the project demos in jupyter notebook:
 
