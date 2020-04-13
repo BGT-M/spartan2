@@ -68,14 +68,14 @@ git clone https://github.com/shenghua-liu/spartan2.git
 
 
 **Part 2: Big Graphs**
-* [Load graph](https://github.com/shenghua-liu/spartan2/blob/master/demo/ioutil_demo.ipynb)
-* [SVD](https://github.com/shenghua-liu/spartan2/blob/master/demo/SVD_demo.ipynb)
+* [graph start](https://github.com/shenghua-liu/spartan2/blob/master/demo/ioutil_demo.ipynb)
+* [SpokEn](https://github.com/shenghua-liu/spartan2/blob/master/demo/SVD_demo.ipynb): an implementation of [EigenSpokes](http://www.cs.cmu.edu/~christos/PUBLICATIONS/pakdd10-eigenspokes.pdf) by SVD.
 * [Eaglemine](https://github.com/shenghua-liu/spartan2/blob/master/demo/Eaglemine_demo.ipynb)
-* [Fraudar](https://github.com/shenghua-liu/spartan2/blob/master/demo/Fraudar_demo.ipynb)
+* [Fraudar](https://github.com/shenghua-liu/spartan2/blob/master/demo/Fraudar_demo.ipynb): a wrapper of [Fraudar](https://bhooi.github.io/projects/fraudar/index.html) algorithm.
 * [Holoscope](https://github.com/shenghua-liu/spartan2/blob/master/demo/Holoscope_demo.ipynb)
 
 **Part 3: Time Series**
-* [Load time series](https://github.com/shenghua-liu/spartan2/blob/master/demo/TimeseriesData_demo.ipynb)
+* [time series start](https://github.com/shenghua-liu/spartan2/blob/master/demo/TimeseriesData_demo.ipynb)
 * [Beatlex](https://github.com/shenghua-liu/spartan2/blob/master/demo/Beatlex_demo.ipynb)
 
 ## References
