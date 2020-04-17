@@ -19,7 +19,7 @@ we name the package of algorithms as
 spartan2 is backend of SparTAn.
 Everything here is viewed as a tensor (sparse).
 
-## install requires
+### install requires
 
  This project is written in Python 3.6
  We suggest recreating the experimental environment using Anaconda through the following steps.
@@ -32,36 +32,37 @@ conda create -n spartan python=3.6
 conda activate spartan
 ```
 
-3. Install package by pip
+3. Clone the project
 ```bash
-pip install -i https://test.pypi.org/simple/ spartan2
-```
+git clone https://github.com/shenghua-liu/spartan2.git
+``` 
 
-<!-- 4. Install requirements.
+4. Install requirements.
 ```
 pip install --user --requirement requirements
 ```
 or
 ```
 python setup.py install
-``` -->
+```
 
-<!-- 5. install code in development mode
+5. install code in development mode
 ```bash
 pip install -e spartan2
 ```
-2. Clone the project
-```bash
-git clone https://github.com/shenghua-liu/spartan2.git
-``` -->
 
-## run the project demos in jupyter notebook:
+### Install package by pip
+```bash
+pip install -i https://test.pypi.org/simple/ spartan2
+```
+
+### run the project demos in jupyter notebook:
 
 1. start jupyter notebook
 2. click to see each jupyter notebook (xxx.ipynb) demo for each algorithm, or see the following guidline.
 
 
-## Table of Contents
+## Live-tutorials: Table of Contents
 
 **Part 1: Basic**
 * [Quick start](https://github.com/shenghua-liu/spartan2/blob/master/demo/quick_start.ipynb)
