@@ -120,6 +120,67 @@ def drawRectbin(xs, ys, outfig=None, xscale = 'log', yscale= 'log',
         fig.savefig(outfig)
     return fig
 
+
+def findMaxRectbin(x, y, radius, xs, ys, gridsize=100, mode='log'):
+    '''
+    gridsize: [ 100 | integer ]
+            The number of hexagons in the x-direction, default is 100. The
+            corresponding number of hexagons in the y-direction is chosen such that
+            the hexagons are approximately regular. Alternatively, gridsize can be
+            a tuple with two elements specifying the number of hexagons in the
+            x-direction and the y-direction.
+    mode: [ 'linear' | 'log' ]
+    return: the bin with the largest number of samples in the range of
+            horizontal axis: [x-radius, x+radius]
+            vertical axis: [y-radius, y+radius]
+    '''
+    xmin, xmax = min(xs), max(xs)
+    ymin, ymax = min(ys), max(ys)
+    if mode == 'log' and xmin <= 0:
+        print('[Warning] logscale with nonpositive values in x coord')
+        print('\tremove {} nonpositives'.format(len(np.argwhere(xs <= 0))))
+        xg0 = xs > 0
+        xs = xs[xg0]
+        ys = ys[xg0]
+    '''
+        x range: [x - radius, x + radius]
+        y range: [y - radius, y + radius]
+    '''
+    if x - radius < xmin:
+        xst = xmin
+    else:
+        xst = x - radius
+    if x + radius > xmax:
+        xend = xmax
+    else:
+        xend = x + radius
+    if y - radius < ymin:
+        yst = ymin
+    else:
+        yst = y - radius
+    if y + radius > ymax:
+        yend = ymax
+    else:
+        yend = y + radius
+    '''
+        bi-dimensional array H: the number of samples of bins
+        xedges: The bin edges along the first dimension
+        yedges: The bin edges along the second dimension
+    '''
+    H, xedges, yedges = np.histogram(xs, ys, gridsize)
+    xpoints = list(set(np.argwhere(xedges >= xst).T[0]) & set(np.argwhere(xedges <= xend).T[0]))
+    ypoints = list(set(np.argwhere(yedges >= yst).T[0]) & set(np.argwhere(yedges <= yend).T[0]))
+    'find bin with the largest number of samples in the range'
+    H1 = H[xpoints]
+    H2 = H1[:, ypoints]
+    maxpoint = np.argmax(H2)
+    'the index of the largest number of array H2'
+    xindex, yindex = maxpoint / H2.shape[1], maxpoint % H2.shape[1]
+    'the index of bin with the largest number'
+    binxst, binxend, binyst, binyend = xpoints[xindex], xpoints[xindex + 1],  ypoints[yindex],  ypoints[yindex + 1]
+    return binxst, binxend, binyst, binyend
+
+
 def drawTimeseries(T, S, bins='auto', savepath='', savefn=None, dumpfn=None):
     ts = np.histogram(T,bins=bins)
     y = np.append([0],ts[0])
@@ -152,4 +213,3 @@ def userTimeSeries(lts, twindow):
         xcoords.append(mints+twindow*i+int(twindow/2.0))
 
     return xcoords, series
-
