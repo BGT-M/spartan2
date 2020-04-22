@@ -65,19 +65,19 @@ pip install -i https://test.pypi.org/simple/ spartan2
 ## Live-tutorials: Table of Contents
 
 **Part 1: Basic**
-* [Quick start](https://github.com/shenghua-liu/spartan2/blob/master/demo/quick_start.ipynb)
+* [Quick start](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/quick_start.ipynb)
 
 
 **Part 2: Big Graphs**
-* [graph start](https://github.com/shenghua-liu/spartan2/blob/master/demo/ioutil_demo.ipynb)
-* [SpokEn](https://github.com/shenghua-liu/spartan2/blob/master/demo/SVD_demo.ipynb): an implementation of [EigenSpokes](http://www.cs.cmu.edu/~christos/PUBLICATIONS/pakdd10-eigenspokes.pdf) by SVD.
-* [Eaglemine](https://github.com/shenghua-liu/spartan2/blob/master/demo/Eaglemine_demo.ipynb)
-* [Fraudar](https://github.com/shenghua-liu/spartan2/blob/master/demo/Fraudar_demo.ipynb): a wrapper of [Fraudar](https://bhooi.github.io/projects/fraudar/index.html) algorithm.
-* [Holoscope](https://github.com/shenghua-liu/spartan2/blob/master/demo/Holoscope_demo.ipynb)
+* [graph start](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/ioutil_demo.ipynb)
+* [SpokEn](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/SVD_demo.ipynb): an implementation of [EigenSpokes](http://www.cs.cmu.edu/~christos/PUBLICATIONS/pakdd10-eigenspokes.pdf) by SVD.
+* [Eaglemine](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/Eaglemine_demo.ipynb)
+* [Fraudar](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/Fraudar_demo.ipynb): a wrapper of [Fraudar](https://bhooi.github.io/projects/fraudar/index.html) algorithm.
+* [Holoscope](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/Holoscope_demo.ipynb)
 
 **Part 3: Time Series**
-* [time series start](https://github.com/shenghua-liu/spartan2/blob/master/demo/TimeseriesData_demo.ipynb)
-* [Beatlex](https://github.com/shenghua-liu/spartan2/blob/master/demo/Beatlex_demo.ipynb)
+* [time series start](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/TimeseriesData_demo.ipynb)
+* [Beatlex](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/Beatlex_demo.ipynb)
 
 ## References
 1. Shenghua Liu, Bryan Hooi, Christos Faloutsos, A Contrast Metric for Fraud Detection in Rich Graphs, IEEE Transactions on Knowledge and Data Engineering (TKDE), Vol 31, Issue 12, Dec. 1 2019, pp. 2235-2248.
