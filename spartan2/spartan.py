@@ -21,7 +21,7 @@ decomposition = system.Decomposition()
 traingle_count = system.TraingleCount()
 series_summarization = system.SeriesSummarization()
 
-# model
+# model positions
 ad_policy, tc_policy, ed_policy, ss_policy = None, None, None, None
 
 '''Input tensor format:

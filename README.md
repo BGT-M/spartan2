@@ -21,8 +21,8 @@ Everything here is viewed as a tensor (sparse).
 
 ### install requires
 
- This project is written in Python 3.6
- We suggest recreating the experimental environment using Anaconda through the following steps.
+This project is written in Python 3.6
+We suggest recreating the experimental environment using Anaconda through the following steps.
  
 1. Install the appropriate version for Anaconda from here - https://www.anaconda.com/distribution/
 
@@ -53,7 +53,7 @@ pip install -e spartan2
 
 ### Install package by pip
 ```bash
-pip install -i https://test.pypi.org/simple/ spartan2
+pip install -i https://test.pypi.org/simple/ spartan2-pkg-ictetc==0.0a0.dev3
 ```
 
 ### run the project demos in jupyter notebook:
