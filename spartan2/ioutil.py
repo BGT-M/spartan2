@@ -1,6 +1,6 @@
 import os
 import sys
-
+import numpy as np
 
 def myopenfile(fnm, mode):
     f = None
@@ -32,39 +32,6 @@ def myopenfile(fnm, mode):
             print('file: {} or its zip file does NOT exist'.format(fnm))
             sys.exit(1)
     return f
-
-
-def checkfilegz(name):
-    if os.path.isfile(name):
-        return name
-    elif os.path.isfile(name+'.gz'):
-        return name+'.gz'
-    else:
-        return None
-
-
-def get_sep_of_file(infn):
-    '''
-    return the separator of the line.
-    :param infn: input file
-    '''
-    sep = None
-    with open(infn, 'r') as fp:
-        for line in fp:
-            if (line.startswith("%") or line.startswith("#")):
-                continue
-            line = line.strip()
-            if (" " in line):
-                sep = " "
-            if ("," in line):
-                sep = ","
-            if (";" in line):
-                sep = ';'
-            if ("\t" in line):
-                sep = "\t"
-            break
-    return sep
-
 
 def saveSimpleDictData(simdict, outdata, delim=':', mode=''):
     delim = delim.decode() if type(delim) is bytes else str(delim)

@@ -4,12 +4,11 @@
 
 import sys
 import os
+from .tensor.STTensor import loadTensor
 from . import system
 import importlib
 import sqlite3
 import scipy.sparse.linalg as slin
-from .ioutil import checkfilegz, get_sep_of_file, myopenfile
-from .sttensor import STTensor
 from scipy.sparse import csc_matrix, coo_matrix, csr_matrix, lil_matrix
 
 # engine
@@ -23,72 +22,6 @@ series_summarization = system.SeriesSummarization()
 
 # model positions
 ad_policy, tc_policy, ed_policy, ss_policy = None, None, None, None
-
-'''Input tensor format:
-    format: att1, att2, ..., value1, value2, ...
-    comment line started with #
-    e.g.
-    user obj 1
-    ... ...
-    if multivariate time series, hasvalue equals to the number of
-    time series
-    return: tensorlist
-'''
-
-
-def loadTensor(name, path, col_types=[int, int, int],
-               hasvalue=1, col_idx=[]):
-
-    if path == None:
-        path = "inputData/"
-    full_path = os.path.join(path, name)
-    tensor_file = checkfilegz(full_path + '.tensor')
-
-    if tensor_file is None:
-        tensor_file = checkfilegz(full_path)
-    if tensor_file is None:
-        raise Exception(f"Error: Can not find file {full_path}[.gz], please check the file path!\n")
-
-    # NOTE: zip and range are different in py3
-    col_idx = [i for i in range(len(col_types))] if len(col_idx) == 0 else col_idx
-
-    if len(col_idx) == len(col_types):
-        idxtypes = [(col_idx[i], col_types[i]) for i in range(len(col_idx))]
-    else:
-        raise Exception(f"Error: input same size of col_types and col_idx")
-
-    #import ipdb;ipdb.set_trace()
-    sep = get_sep_of_file(tensor_file)
-    tensorlist = []
-    with myopenfile(tensor_file, 'r') as fin:
-        for line in fin:
-            line = line.strip()
-            if line.startswith("#"):
-                continue
-            coords = line.split(sep)
-            tline = []
-            try:
-                for i, tp in idxtypes:
-                    tline.append(tp(coords[i]))
-            except Exception as e:
-                raise Exception(f"The {i}-th col does not match the given type {tp} in line:\n{line}")
-            tensorlist.append(tline)
-    printTensorInfo(tensorlist, hasvalue)
-
-    return STTensor(tensorlist, hasvalue)
-
-#    for i in range(len(col_types)):
-#        col_types[i] = convert_to_db_type(col_types[i])
-#
-
-
-def printTensorInfo(tensorlist, hasvalue):
-    m = len(tensorlist[0]) - hasvalue
-    print(f"Info: Tensor is loaded\n\
-           ----------------------\n\
-             attr     |\t{m}\n\
-             values   |\t{hasvalue}\n\
-             nonzeros |\t{len(tensorlist)}\n")
 
 
 def config(frame_name):

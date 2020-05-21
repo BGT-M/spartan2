@@ -1,7 +1,12 @@
 import numpy as np
 import pandas as pd
+import matplotlib
 import matplotlib.pyplot as plt
 from scipy import signal
+
+matplotlib.rcParams['font.sans-serif'] = ['SimHei']
+matplotlib.rcParams['axes.unicode_minus'] = False
+plt.rcParams['savefig.dpi'] = 200
 
 
 class STTimeseries:
@@ -281,7 +286,7 @@ class STTimeseries:
 
     def _combine_one(self, obj, _self):
         if not _self.freq == obj.freq:
-            raise Exception(f'Frequency not matched, with {self.freq} and {combined_series.freq}')
+            raise Exception(f'Frequency not matched, with {_self.freq} and {obj.freq}')
         for label in obj.attrlabels:
             if label in _self.attrlabels:
                 for i in range(1, 10000):
