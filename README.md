@@ -32,12 +32,20 @@ conda create -n spartan python=3.6
 conda activate spartan
 ```
 
-3. Clone the project
+3. For users, download the package from pip
+
+```bash
+pip install -i https://test.pypi.org/simple/ spartan2-pkg-ictetc==0.0a0.dev3
+```
+
+4. For developers
+- clone the project from github
+
 ```bash
 git clone https://github.com/shenghua-liu/spartan2.git
 ``` 
 
-4. Install requirements.
+- Install requirements.
 ```
 pip install --user --requirement requirements
 ```
@@ -46,20 +54,17 @@ or
 python setup.py install
 ```
 
-5. install code in development mode
+- install code in development mode
 ```bash
 pip install -e spartan2
 ```
 
-### Install package by pip
-```bash
-pip install -i https://test.pypi.org/simple/ spartan2-pkg-ictetc==0.0a0.dev3
-```
 
-### run the project demos in jupyter notebook:
 
-1. start jupyter notebook
-2. click to see each jupyter notebook (xxx.ipynb) demo for each algorithm, or see the following guidline.
+5. run the project demos in jupyter notebook:
+
+- start jupyter notebook
+- click to see each jupyter notebook (xxx.ipynb) demo for each algorithm, or see the following guidline.
 
 
 ## Live-tutorials: Table of Contents
