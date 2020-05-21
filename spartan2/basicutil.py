@@ -1,13 +1,14 @@
 class IAT:
-    aggiat = {}  # key:user; value:timestamp list
-    iatcount = {}  # key:user; value:iat list
+    aggiat = {}  # key:user; value:iat list
+    iatcount = {}  # key:iat; value:count
 
     def __init__(self, aggiat={}, iatcount={}):
         self.aggiat = aggiat
         self.iatcount = iatcount
 
-    def iat(self, aggts):
-        for k, lst in aggts:
+    def calaggiat(self, aggts):
+        'aggts: key->user; value->timestamp list'
+        for k, lst in aggts.items():
             if len(lst) >= 2:
                 self.aggiat[k] = []
                 pre_ts = lst[0]
@@ -16,7 +17,7 @@ class IAT:
                     self.aggiat[k].append(iat)
                     pre_ts = ts
 
-    def iatcount(self):
+    def caliatcount(self):
         for k, lst in self.aggiat.items():
             for iat in lst:
                 if iat not in self.iatcount:
