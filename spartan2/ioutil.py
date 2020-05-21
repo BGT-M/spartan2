@@ -211,39 +211,41 @@ def renumberids2(infiles, outdir, delimeter:str=' ', isbyte=False,
 
 '''
     extract time stamps in log files or edgelist tensor
-    @groupids the goup col idx used for aggregating timestamps
+    @groupids the group col idx used for aggregating timestamps
     '\x01'
 '''
-def extracttimes( infiles, outdir, timeidx=0, timeformat=int, delimeter:str=' ',
-        isbyte=False, comments:str='#', nodetype=str, groupids:list=[] ):
-
+def extracttimes(infile, outdir, timeidx=0, timeformat=int, delimeter=' ',
+        isbyte=False, comments='#', nodetype=str, groupids=[]):
+    mode = 'b' if isbyte else ''
     aggts = {} # final dict list for aggregating time series.
     import glob
-    files = glob.glob(infiles)
+    files = glob.glob(infile)
     for filepath in files:
         fnm = os.path.basename(filepath)
         print('\tprocessing file {}'.format(fnm), flush=True)
         with myopenfile(filepath, 'r'+mode) as f:
             for line in f:
                 line = line.decode() if 'b' in mode else line
-                line = line.strip()
                 if line.startswith(comments):
                     continue
                 elems = line.split(delimeter)
                 # todo: convert time string to ts
-                ts = 0
+                if timeformat != 'int':
+                    date = datetime.strptime(elems[timeidx], timeformat)
+                    ts = int(time.mktime(date.timetuple()))
                 # group by groupid
-                key = ','.join(np.array(elems)[groupids])
+                if len(groupids) == 1:
+                    key = elems[groupids[0]]
+                else:
+                    key = ','.join(np.array(elems)[groupids])
                 if key not in aggts:
                     aggts[key] = []
                 aggts[key].append(ts)
-
     aggtsnm = 'allcolsagg.ts' if len(groupids)==0 else \
-            'col{}sagg.ts'.format( ''.join(groupids) )
-    aggfile = os.path.join(outdir, aggtsnm)
-    with myopenfile(aggfile, 'w'+mode) as outf:
-        'out put dict'
+            'col{}agg.ts'.format( ''.join(map(str, groupids)))
 
+    aggfile = os.path.join(outdir, aggtsnm)
+    saveDictListData(aggts, aggfile)
     return ''
 
 '''
