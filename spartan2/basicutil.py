@@ -31,18 +31,3 @@ class IAT:
                     usrlist.append(k)
         return usrlist
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
