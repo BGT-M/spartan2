@@ -1,6 +1,8 @@
 import os
 import sys
 import numpy as np
+from datetime import datetime
+import time
 
 def myopenfile(fnm, mode):
     f = None
@@ -58,7 +60,7 @@ def loadSimpleDictData(indata, delim=':', mode='', dtypes=[int, int]):
 
 def saveDictListData(dictls, outdata, delim=':', mode=''):
     with myopenfile(outdata, 'w'+mode) as fw:
-        for k, l in dictls.iteritems():
+        for k, l in dictls.items():
             if type(l) != list:
                 print("This is not a dict of value list.")
                 break
@@ -214,7 +216,7 @@ def renumberids2(infiles, outdir, delimeter:str=' ', isbyte=False,
     @groupids the group col idx used for aggregating timestamps
     '\x01'
 '''
-def extracttimes(infile, outdir, timeidx=0, timeformat=int, delimeter=' ',
+def extracttimes(infile, outfile, timeidx=0, timeformat=int, delimeter=' ',
         isbyte=False, comments='#', nodetype=str, groupids=[]):
     mode = 'b' if isbyte else ''
     aggts = {} # final dict list for aggregating time series.
@@ -241,11 +243,7 @@ def extracttimes(infile, outdir, timeidx=0, timeformat=int, delimeter=' ',
                 if key not in aggts:
                     aggts[key] = []
                 aggts[key].append(ts)
-    aggtsnm = 'allcolsagg.ts' if len(groupids)==0 else \
-            'col{}agg.ts'.format( ''.join(map(str, groupids)))
-
-    aggfile = os.path.join(outdir, aggtsnm)
-    saveDictListData(aggts, aggfile)
+    saveDictListData(aggts, outfile)
     return ''
 
 '''
