@@ -32,13 +32,13 @@ conda create -n spartan python=3.6
 conda activate spartan
 ```
 
-3. For users, download the package from pip
+3. If you are a normal **USER**, download the package from pip
 
 ```bash
 pip install -i https://test.pypi.org/simple/ spartan2-pkg-ictetc==0.0a0.dev3
 ```
 
-4. For developers
+4. If you are a **DEVELOPER** and want to **contribute** to the project, please
 - clone the project from github
 
 ```bash
