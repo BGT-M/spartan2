@@ -97,7 +97,6 @@ def drawRectbin(xs, ys, outfig=None, xscale = 'log', yscale= 'log',
     suptitle = suptitle+' with a log color scale' if colorscale else \
             suptitle
 
-
     xlogmax = np.ceil(np.log10(max(xs)))
     ylogmax = np.ceil(np.log10(max(ys)))
     y_space = np.logspace(0, xlogmax, gridsize)
@@ -115,10 +114,9 @@ def drawRectbin(xs, ys, outfig=None, xscale = 'log', yscale= 'log',
     else:
         cb.set_label('counts')
 
-    #plt.axis([xmin, xmax, ymin, ymax])
     if outfig is not None:
         fig.savefig(outfig)
-    return fig
+    return ''
 
 
 def findMaxRectbin(x, y, radius, xs, ys, gridsize=100, mode='log'):

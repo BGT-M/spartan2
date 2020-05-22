@@ -11,6 +11,7 @@ class IAT:
     def calaggiat(self, aggts):
         'aggts: key->user; value->timestamp list'
         for k, lst in aggts.items():
+            lst.sort()
             if len(lst) >= 2:
                 self.aggiat[k] = []
                 pre_ts = lst[0]
