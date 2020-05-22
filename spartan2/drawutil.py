@@ -64,7 +64,7 @@ def drawHexbin(xs, ys, outfig=None, xscale = 'log', yscale= 'log',
 def drawRectbin(xs, ys, outfig=None, xscale = 'log', yscale= 'log',
                gridsize = 200,
                suptitle='Rectangle binning points',
-               colorscale=True, xlabel='', ylabel=''):
+               colorscale=True ):
     '''
         xscale: [ 'linear' | 'log' ]
             Use a linear or log10 scale on the horizontal axis.
@@ -109,8 +109,6 @@ def drawRectbin(xs, ys, outfig=None, xscale = 'log', yscale= 'log',
     cb = plt.colorbar()
 
     plt.title(suptitle)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
     if colorscale:
         cb.set_label('log10(N)')
     else:
@@ -121,7 +119,7 @@ def drawRectbin(xs, ys, outfig=None, xscale = 'log', yscale= 'log',
     return ''
 
 
-def findMaxRectbin(xs, ys, x, y, radius, gridsize=100, xscale='log', yscale='log'):
+def findMaxRectbin(x, y, radius, xs, ys, gridsize=100, mode='log'):
     '''
     gridsize: [ 100 | integer ]
             The number of hexagons in the x-direction, default is 100. The
@@ -134,22 +132,14 @@ def findMaxRectbin(xs, ys, x, y, radius, gridsize=100, xscale='log', yscale='log
             horizontal axis: [x-radius, x+radius]
             vertical axis: [y-radius, y+radius]
     '''
-    xs = np.array(xs) if type(xs) is list else xs
-    ys = np.array(ys) if type(ys) is list else ys
-    if xscale == 'log' and min(xs) <= 0:
+    xmin, xmax = min(xs), max(xs)
+    ymin, ymax = min(ys), max(ys)
+    if mode == 'log' and xmin <= 0:
         print('[Warning] logscale with nonpositive values in x coord')
         print('\tremove {} nonpositives'.format(len(np.argwhere(xs <= 0))))
         xg0 = xs > 0
         xs = xs[xg0]
         ys = ys[xg0]
-    if yscale == 'log' and min(ys) <= 0:
-        print('[Warning] logscale with nonpositive values in y coord')
-        print('\tremove {} nonpositives'.format(len(np.argwhere(ys <= 0))))
-        yg0 = ys > 0
-        xs = xs[yg0]
-        ys = ys[yg0]
-    xmin, xmax = min(xs), max(xs)
-    ymin, ymax = min(ys), max(ys)
     '''
         x range: [x - radius, x + radius]
         y range: [y - radius, y + radius]
@@ -175,18 +165,18 @@ def findMaxRectbin(xs, ys, x, y, radius, gridsize=100, xscale='log', yscale='log
         xedges: The bin edges along the first dimension
         yedges: The bin edges along the second dimension
     '''
-    H, xedges, yedges = np.histogram2d(xs, ys, gridsize)
+    H, xedges, yedges = np.histogram(xs, ys, gridsize)
     xpoints = list(set(np.argwhere(xedges >= xst).T[0]) & set(np.argwhere(xedges <= xend).T[0]))
     ypoints = list(set(np.argwhere(yedges >= yst).T[0]) & set(np.argwhere(yedges <= yend).T[0]))
-    # xoffset, yoffset = min(xpoints), min(ypoints)
     'find bin with the largest number of samples in the range'
     H1 = H[xpoints]
     H2 = H1[:, ypoints]
     maxpoint = np.argmax(H2)
     'the index of the largest number of array H2'
-    xindex, yindex = int(maxpoint / H2.shape[1]) + min(xpoints), int(maxpoint % H2.shape[1]) + min(ypoints)
-    xindex, yindex = int(maxpoint / H2.shape[1]) + min(xpoints), int(maxpoint % H2.shape[1]) + min(ypoints)
-    return xindex, yindex
+    xindex, yindex = maxpoint / H2.shape[1], maxpoint % H2.shape[1]
+    'the index of bin with the largest number'
+    binxst, binxend, binyst, binyend = xpoints[xindex], xpoints[xindex + 1],  ypoints[yindex],  ypoints[yindex + 1]
+    return binxst, binxend, binyst, binyend
 
 
 def drawTimeseries(T, S, bins='auto', savepath='', savefn=None, dumpfn=None):
