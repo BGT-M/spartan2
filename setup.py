@@ -4,7 +4,8 @@
 
 import setuptools
 
-NAME = 'spartan2-pkg-ictetc'
+#NAME = 'spartan2-pkg-ictetc'
+NAME = 'spartan2'
 VERSION = '0.0a0.dev4'
 DESCRIPTION = 'collection of data mining algorithms on big graphs and time series'
 URL = 'https://github.com/shenghua-liu/spartan2'

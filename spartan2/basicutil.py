@@ -1,4 +1,5 @@
-
+import numpy as np
+import spartan2.ioutil as ioutil
 
 class IAT:
     aggiat = {}  # key:user; value:iat list
@@ -12,14 +13,25 @@ class IAT:
     def calaggiat(self, aggts):
         'aggts: key->user; value->timestamp list'
         for k, lst in aggts.items():
+            if len(lst)<2:
+                continue
             lst.sort()
-            if len(lst) >= 2:
-                self.aggiat[k] = []
-                pre_ts = lst[0]
-                for ts in lst[1:]:
-                    iat = ts - pre_ts
-                    self.aggiat[k].append(iat)
-                    pre_ts = ts
+            iat = np.diff(lst)
+            self.aggiat[k]= iat
+
+    def save_aggiat(self, outfile):
+        ioutil.saveDictListData(self.aggiat, outfile)
+
+    def load_aggiat(self, infile):
+        self.aggiat = ioutil.loadDictListData(infile, ktype=str, vtype=int)
+
+    def getiatpairs(self):
+        xs, ys = [], []
+        for k, lst in self.aggiat.items():
+            for i in range(len(lst)-1):
+                xs.append(lst[i])
+                ys.append(lst[i+1])
+        return xs, ys
 
     def caliatcount(self):
         for k, lst in self.aggiat.items():
@@ -28,7 +40,7 @@ class IAT:
                     self.iatcount[iat] = 0
                 self.iatcount[iat] += 1
 
-    def caliatpair(self):
+    def caliatpaircount(self):
         for k, lst in self.aggiat.items():
             if len(lst) >= 2:
                 iat1 = lst[0]
@@ -38,6 +50,8 @@ class IAT:
                     if iatpair not in self.iatcount:
                         self.iatpaircount[iatpair] = 0
                     self.iatpaircount[iatpair] += 1
+            else:
+                continue
 
     def findUsers(self, iats):
         usrlist = []

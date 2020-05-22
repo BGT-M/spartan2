@@ -9,8 +9,6 @@ def myopenfile(fnm, mode):
     if 'w' in mode:
         if '.gz' == fnm[-3:]:
             import gzip
-            if 'b' not in mode:
-                mode += 'b'
             f = gzip.open(fnm, mode)
         else:
             f = open(fnm, mode)
@@ -61,9 +59,11 @@ def loadSimpleDictData(indata, delim=':', mode='', dtypes=[int, int]):
 def saveDictListData(dictls, outdata, delim=':', mode=''):
     with myopenfile(outdata, 'w'+mode) as fw:
         for k, l in dictls.items():
-            if type(l) != list:
-                print("This is not a dict of value list.")
+            if not isinstance(l,(list, np.ndarray)):
+                print("This is not a dict of value list.", type(l))
                 break
+            if len(l)<1:
+                continue
             fw.write("{}{}".format(k,delim))
             for i in range(len(l)-1):
                 fw.write("{} ".format(l[i]))
@@ -71,12 +71,12 @@ def saveDictListData(dictls, outdata, delim=':', mode=''):
         fw.close()
 
 
-def loadDictListData(indata, ktype=str, vtype=str, mode=''):
+def loadDictListData(indata, ktype=str, vtype=str, delim=':', mode=''):
     dictls={}
     with myopenfile(indata, 'r'+mode) as fr:
         lines = fr.readlines()
         for line in lines:
-            line = line.strip().split(':')
+            line = line.strip().split(delim)
             lst=[]
             for e in line[1].strip().split(' '):
                 lst.append(vtype(e))
@@ -216,7 +216,7 @@ def renumberids2(infiles, outdir, delimeter:str=' ', isbyte=False,
     @groupids the group col idx used for aggregating timestamps
     '\x01'
 '''
-def extracttimes(infile, outfile, timeidx=0, timeformat=int, delimeter=' ',
+def extracttimes(infile, outfile, timeidx=0, timeformat='%Y-%m-%d %H:%M:%S', delimeter=' ',
         isbyte=False, comments='#', nodetype=str, groupids=[]):
     mode = 'b' if isbyte else ''
     aggts = {} # final dict list for aggregating time series.
