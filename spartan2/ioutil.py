@@ -216,7 +216,7 @@ def renumberids2(infiles, outdir, delimeter:str=' ', isbyte=False,
     @groupids the group col idx used for aggregating timestamps
     '\x01'
 '''
-def extracttimes(infile, outfile, timeidx=0, timeformat=int, delimeter=' ',
+def extracttimes(infile, outfile, timeidx=0, timeformat='%Y-%m-%d %H:%M:%S', delimeter=' ',
         isbyte=False, comments='#', nodetype=str, groupids=[]):
     mode = 'b' if isbyte else ''
     aggts = {} # final dict list for aggregating time series.
