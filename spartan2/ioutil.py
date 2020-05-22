@@ -244,7 +244,7 @@ def extracttimes(infile, outfile, timeidx=0, timeformat=int, delimeter=' ',
                     aggts[key] = []
                 aggts[key].append(ts)
     saveDictListData(aggts, outfile)
-    return ''
+    return aggts
 
 '''
 time\x01uid\x01...
