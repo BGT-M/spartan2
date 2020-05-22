@@ -70,11 +70,14 @@ sys.path.append("/<dir to spartan2>/spartan2")
 export PYTHONPATH=/<dir to spartan2>/spartan2:$PYTHONPATH
 ```
 
-   Or add \<name\>.pth file in your site-packages directory
-   find directory of site-packages
+   Or 
 ```bash
+#find directory of site-packages
 python -c 'import site; print(site.getsitepackages())'
 ```
+
+   and add \<name\>.pth file in your site-packages directory
+
 ```
 /<dir to spartan2>/spartan2
 ```
