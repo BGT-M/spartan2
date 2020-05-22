@@ -93,24 +93,34 @@ def drawRectbin(xs, ys, outfig=None, xscale = 'log', yscale= 'log',
         ys = ys[yg0]
 
     fig = plt.figure()
+
+    # color scale
     cnorm = matplotlib.colors.LogNorm() if colorscale else matplotlib.colors.Normalize()
     suptitle = suptitle+' with a log color scale' if colorscale else \
             suptitle
 
-    xlogmax = np.ceil(np.log10(max(xs)))
-    ylogmax = np.ceil(np.log10(max(ys)))
-    y_space = np.logspace(0, xlogmax, gridsize)
-    x_space = np.logspace(0, ylogmax, gridsize)
+    # axis space
+    if xscale=='log':
+        xlogmax = np.ceil(np.log10(max(xs)))
+        x_space = np.logspace(0, ylogmax, gridsize)
+    else:
+        x_space = gridsize
+    if yscale=='log':
+        ylogmax = np.ceil(np.log10(max(ys)))
+        y_space = np.logspace(0, xlogmax, gridsize)
+    else:
+        y_space = gridsize
 
-    plt.hist2d(xs, ys, bins=(x_space, y_space),  cmin=1, norm=matplotlib.colors.LogNorm(),
+    plt.hist2d(xs, ys, bins=(x_space, y_space),  cmin=1, norm=cnorm,
             cmap=plt.cm.jet )
     plt.xscale(xscale)
     plt.yscale(yscale)
-    cb = plt.colorbar()
 
     plt.title(suptitle)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
+
+    cb = plt.colorbar()
     if colorscale:
         cb.set_label('log10(N)')
     else:
