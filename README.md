@@ -49,7 +49,8 @@ git clone https://github.com/shenghua-liu/spartan2.git
 ```
 pip install --user --requirement requirements
 ```
-or
+
+   Or  
 ```
 python setup.py install
 ```
@@ -63,11 +64,17 @@ pip install -e spartan2
 import sys
 sys.path.append("/<dir to spartan2>/spartan2")
 ```
-Or add environment variable PYTHONPATH in ~/.bashrc
+
+   Or add environment variable PYTHONPATH in ~/.bashrc  
 ```bash
 export PYTHONPATH=/<dir to spartan2>/spartan2:$PYTHONPATH
 ```
-Or add \<name\>.pth file in your site-packages directory
+
+   Or add \<name\>.pth file in your site-packages directory
+   find directory of site-packages
+```bash
+python -c 'import site; print(site.getsitepackages())'
+```
 ```
 /<dir to spartan2>/spartan2
 ```
