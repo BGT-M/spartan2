@@ -2,6 +2,7 @@
 
 class IAT:
     aggiat = {}  # key:user; value:iat list
+    iatpaircount = {}  # key:(iat1, iat2); value:count
     iatcount = {}  # key:iat; value:count
 
     def __init__(self, aggiat={}, iatcount={}):
@@ -26,6 +27,17 @@ class IAT:
                 if iat not in self.iatcount:
                     self.iatcount[iat] = 0
                 self.iatcount[iat] += 1
+
+    def caliatpair(self):
+        for k, lst in self.aggiat.items():
+            if len(lst) >= 2:
+                iat1 = lst[0]
+                for iat2 in lst[1:]:
+                    iatpair = (iat1, iat2)
+                    iat1 = iat2
+                    if iatpair not in self.iatcount:
+                        self.iatpaircount[iatpair] = 0
+                    self.iatpaircount[iatpair] += 1
 
     def findUsers(self, iats):
         usrlist = []

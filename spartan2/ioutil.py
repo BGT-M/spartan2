@@ -243,7 +243,8 @@ def extracttimes(infile, outfile, timeidx=0, timeformat='%Y-%m-%d %H:%M:%S', del
                 if key not in aggts:
                     aggts[key] = []
                 aggts[key].append(ts)
-    saveDictListData(aggts, outfile)
+    if outfile is not None:
+        saveDictListData(aggts, outfile)
     return aggts
 
 '''
@@ -251,4 +252,3 @@ time\x01uid\x01...
 e.g.: uid:t1,t2,t3
 e.g.: uid,msg:t1,t2,t3
 '''
-
