@@ -17,7 +17,7 @@ def drawScatterPoints(xs, ys, outfig=None, suptitle="scatter points",
 def drawHexbin(xs, ys, outfig=None, xscale = 'log', yscale= 'log',
                gridsize = 200,
                suptitle='Hexagon binning points',
-               colorscale=True ):
+               colorscale=True, xlabel='', ylabel=''):
     '''
         xscale: [ 'linear' | 'log' ]
             Use a linear or log10 scale on the horizontal axis.
@@ -47,16 +47,20 @@ def drawHexbin(xs, ys, outfig=None, xscale = 'log', yscale= 'log',
     if colorscale:
         plt.hexbin(xs, ys, bins='log', gridsize=gridsize, xscale=xscale,
                    yscale=yscale, mincnt=1, cmap=plt.cm.jet)
-        plt.title(suptitle+' with a log color scale')
-        cb = plt.colorbar()
-        cb.set_label('log10(N)')
     else:
         plt.hexbin(xs, ys, gridsize=gridsize, xscale=xscale, yscale=yscale,
                    mincnt=1, cmap=plt.cm.jet)
-        plt.title(suptitle)
-        cb = plt.colorbar()
+        
+    suptitle = suptitle+' with a log color scale' if colorscale else suptitle
+    plt.title(suptitle)
+
+    cb = plt.colorbar()
+    if colorscale:
+        cb.set_label('log10(N)')
+    else:
         cb.set_label('counts')
-    #plt.axis([xmin, xmax, ymin, ymax])
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
     if outfig is not None:
         fig.savefig(outfig)
     return fig
@@ -118,7 +122,7 @@ def drawRectbin(xs, ys, outfig=None, xscale = 'log', yscale= 'log',
 
     if outfig is not None:
         fig.savefig(outfig)
-    return ''
+    return fig
 
 
 def findMaxRectbin(xs, ys, x, y, radius, gridsize=100, xscale='log', yscale='log'):
@@ -184,9 +188,10 @@ def findMaxRectbin(xs, ys, x, y, radius, gridsize=100, xscale='log', yscale='log
     H2 = H1[:, ypoints]
     maxpoint = np.argmax(H2)
     'the index of the largest number of array H2'
-    xindex, yindex = int(maxpoint / H2.shape[1]) + min(xpoints), int(maxpoint % H2.shape[1]) + min(ypoints)
-    xindex, yindex = int(maxpoint / H2.shape[1]) + min(xpoints), int(maxpoint % H2.shape[1]) + min(ypoints)
-    return xindex, yindex
+    xindex, yindex = int(maxpoint / H2.shape[1]), int(maxpoint % H2.shape[1])
+    'the index of bin with maximum number'
+    xbinid, ybinid = xindex + min(xpoints),  yindex + min(ypoints)
+    return xbinid, ybinid
 
 
 def drawTimeseries(T, S, bins='auto', savepath='', savefn=None, dumpfn=None):
