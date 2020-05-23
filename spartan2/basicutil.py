@@ -28,8 +28,9 @@ class IAT:
 
     def load_aggiat(self, infile):
         self.aggiat = ioutil.loadDictListData(infile, ktype=str, vtype=int)
-
-    def calaggiatpair(self):
+    
+    "todo: construct dict for iat pair to keys"
+    def getiatpairdict(self):
         for k, lst in self.aggiat.items():
             pairs = []
             for i in range(len(lst) - 1):
