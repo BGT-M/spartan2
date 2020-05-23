@@ -3,11 +3,14 @@ import spartan2.ioutil as ioutil
 
 class IAT:
     aggiat = {}  # key:user; value:iat list
+    aggiatpair = {}  # key:user; value: (iat1, iat2) list
     iatpaircount = {}  # key:(iat1, iat2); value:count
     iatcount = {}  # key:iat; value:count
 
-    def __init__(self, aggiat={}, iatcount={}):
+    def __init__(self, aggiat={}, aggiatpair={}, iatpaircount={}, iatcount={}):
         self.aggiat = aggiat
+        self.aggiatpair = aggiatpair
+        self.iatpaircount = iatpaircount
         self.iatcount = iatcount
 
     def calaggiat(self, aggts):
@@ -24,7 +27,21 @@ class IAT:
 
     def load_aggiat(self, infile):
         self.aggiat = ioutil.loadDictListData(infile, ktype=str, vtype=int)
+        
+    def calaggiatpair(self):
+        for k, lst in self.aggiat.items():
+            pairs = []
+            for i in range(len(lst) - 1):
+                pair = (lst[i], lst[i + 1])
+                pairs.append(pair)
+            self.aggiatpair[k] = pairs
+    
+    def save_aggiatpair(self, outfile):
+        ioutil.saveDictListData(self.aggiatpair, outfile)
 
+    def load_aggiatpair(self, infile):
+        self.aggiatpair = ioutil.loadDictListData(infile, ktype=str, vtype=int)
+    
     def getiatpairs(self):
         xs, ys = [], []
         for k, lst in self.aggiat.items():
@@ -39,7 +56,7 @@ class IAT:
                 if iat not in self.iatcount:
                     self.iatcount[iat] = 0
                 self.iatcount[iat] += 1
-
+        
     def caliatpaircount(self):
         for k, lst in self.aggiat.items():
             if len(lst) >= 2:
@@ -52,12 +69,13 @@ class IAT:
                     self.iatpaircount[iatpair] += 1
             else:
                 continue
-
-    def findUsers(self, iats):
-        usrlist = []
-        for k, lst in self.aggiat.items():
-            for iat in lst:
-                if iat in iats:
-                    usrlist.append(k)
+    
+    'find users that have pairs in iatpairs'
+    def find_iatpair_user(self, iatpairs):
+        usrlist, pairset = [], set(iatpairs)
+        for k, lst in self.aggiatpair.items():
+            if len(set(lst) & pairset) == 0:
+                continue
+            else:
+                usrlist.append(k)
         return usrlist
-
