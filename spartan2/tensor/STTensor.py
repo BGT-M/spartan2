@@ -80,26 +80,30 @@ class STTensor:
 
         return STGraph(sm, weighted, bipartite, rich, attlist, relabel, labelmaps)
 
-    def toTimeseries(self, attrlabels, numsensors=None, freq=None, startts=None):
+    def toTimeseries(self, attrlabels: list, numsensors: int = None, freq: int = None, startts: int = None) -> STTimeseries:
         ''' transfer data to time-series type
-            @params attrlabels: labels for each dimension
-            @params numsensors: number of signal dimension [except time dimension]
-            @params freq: frequency of the signal, default is None
+
+        Args:
+            attrlabels: labels for each dimension
+            numsensors: number of signal dimension [except time dimension]
+            freq: frequency of the signal, default is None
                 if time dimension is not provided, this parameter is needed to initiate time dimension
                 if time dimension is provided, freq will not work and will be calculated by the time sequence
-            @param startts: start timestamp, default is None
-                if time is not provided, this parameter is needed to initiate time dimension
+            startts: start timestamp, default is None
+                if time dimension is not provided, this parameter is needed to initiate time dimension
                 if time dimension is provided, startts will not work and will be calculated by the time sequence
 
+        Returns:
+            STTimeseries object
         '''
         time = []
         start = 0
         attrlists = np.array(self.tensorlist).T
-        if self.value_idx is None:
-            self.value_idx = 0
         if self.hasvalue == True:
+            if self.value_idx is None:
+                self.value_idx = 0
             time = attrlists[self.value_idx]
-            del attrlists[self.value_idx]
+            attrlists = np.delete(attrlists, self.value_idx, axis=0)
             start = 0
         if numsensors is None:
             tensors = attrlists[start:]
@@ -130,12 +134,18 @@ def loadTensor(name: str, path: str, col_idx: list = None, col_types: list = Non
     if path == None:
         path = "inputData/"
     full_path = os.path.join(path, name)
-    if col_idx is None:
-        col_idx = [i for i in range(len(col_types))]
-    if len(col_idx) == len(col_types):
-        idxtypes = [(col_idx[i], col_types[i]) for i in range(len(col_idx))]
+    if col_types is None:
+        # TODO
+        pass
     else:
-        raise Exception(f"Error: input same size of col_types and col_idx")
+        if col_idx is None:
+            col_idx = [i for i in range(len(col_types))]
+        if len(col_idx) == len(col_types):
+            idxtypes = [(col_idx[i], col_types[i]) for i in range(len(col_idx))]
+        else:
+            raise Exception(f"Error: input same size of col_types and col_idx")
+    if hasvalue and value_idx is None:
+        value_idx = 0
     tensorlist = checkfileformat(full_path + '.tensor', idxtypes)
     printTensorInfo(tensorlist, hasvalue)
     return STTensor(tensorlist, hasvalue, value_idx)
