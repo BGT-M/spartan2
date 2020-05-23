@@ -16,8 +16,9 @@ def drawScatterPoints(xs, ys, outfig=None, suptitle="scatter points",
 
 def drawHexbin(xs, ys, outfig=None, xscale = 'log', yscale= 'log',
                gridsize = 200,
+               colorscale=True, 
                suptitle='Hexagon binning points',
-               colorscale=True, xlabel='', ylabel=''):
+               xlabel='', ylabel=''):
     '''
         xscale: [ 'linear' | 'log' ]
             Use a linear or log10 scale on the horizontal axis.
@@ -65,6 +66,67 @@ def drawHexbin(xs, ys, outfig=None, xscale = 'log', yscale= 'log',
         fig.savefig(outfig)
     return fig
 
+
+def drawRectbin(xs, ys, outfig=None, xscale='log', yscale='log', 
+                gridsize=200,
+                colorscale=True, 
+                suptitle='Rectangle binning points',
+                xlabel='', ylabel=''):
+    xs = np.array(xs) if type(xs) is list else xs
+    ys = np.array(ys) if type(ys) is list else ys
+    if xscale == 'log' and min(xs) <= 0:
+        print('[Warning] logscale with nonpositive values in x coord')
+        print('\tremove {} nonpositives'.format(len(np.argwhere(xs <= 0))))
+        xg0 = xs > 0
+        xs = xs[xg0]
+        ys = ys[xg0]
+    if yscale == 'log' and min(ys) <= 0:
+        print('[Warning] logscale with nonpositive values in y coord')
+        print('\tremove {} nonpositives'.format(len(np.argwhere(ys <= 0))))
+        yg0 = ys > 0
+        xs = xs[yg0]
+        ys = ys[yg0]
+
+    fig = plt.figure()
+
+    # color scale
+    cnorm = matplotlib.colors.LogNorm() if colorscale else matplotlib.colors.Normalize()
+    suptitle = suptitle + ' with a log color scale' if colorscale else suptitle
+
+    # axis space
+    if isinstance(gridsize, tuple):
+        xgridsize = gridsize[0]
+        ygridsize = gridsize[1]
+    else:
+        xgridsize = ygridsize = gridsize
+    if xscale == 'log':
+        xlogmax = np.ceil(np.log10(max(xs)))
+        x_space = np.logspace(0, xlogmax, xgridsize)
+    else:
+        x_space = xgridsize
+    if yscale == 'log':
+        ylogmax = np.ceil(np.log10(max(ys)))
+        y_space = np.logspace(0, ylogmax, ygridsize)
+    else:
+        y_space = ygridsize
+
+    plt.hist2d(xs, ys, bins=(x_space, y_space), cmin=1, norm=cnorm, cmap=plt.cm.jet)
+    plt.xscale(xscale)
+    plt.yscale(yscale)
+
+    plt.title(suptitle)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+
+    cb = plt.colorbar()
+    if colorscale:
+        cb.set_label('log10(N)')
+    else:
+        cb.set_label('counts')
+
+    if outfig is not None:
+        fig.savefig(outfig)
+    return fig
 
 def drawTimeseries(T, S, bins='auto', savepath='', savefn=None, dumpfn=None):
     ts = np.histogram(T,bins=bins)
@@ -179,7 +241,7 @@ class RectHistogram:
             fig.savefig(outfig)
         return fig
 
-    def find_peak_rects(self, xs, ys, x, y, radius):
+    def find_peak_rect(self, xs, ys, x, y, radius):
         '''
         return: the bin with the largest number of samples in the range of
                 horizontal axis: [x-radius, x+radius]

@@ -4,13 +4,15 @@ import spartan2.ioutil as ioutil
 
 class IAT:
     aggiat = {}  # key:user; value:iat list
-    aggiatpair = {}  # key:user; value: (iat1, iat2) list
+    user_iatpair = {}  # key:user; value: (iat1, iat2) list
+    iatpair_user = {}  # key:(iat1, iat2) list; value: user
     iatpaircount = {}  # key:(iat1, iat2); value:count
     iatcount = {}  # key:iat; value:count
 
-    def __init__(self, aggiat={}, aggiatpair={}, iatpaircount={}, iatcount={}):
+    def __init__(self, aggiat={}, user_iatpair={}, iatpair_user={}, iatpaircount={}, iatcount={}):
         self.aggiat = aggiat
-        self.aggiatpair = aggiatpair
+        self.user_iatpair = user_iatpair
+        self.iatpair_user = iatpair_user
         self.iatpaircount = iatpaircount
         self.iatcount = iatcount
 
@@ -29,14 +31,22 @@ class IAT:
     def load_aggiat(self, infile):
         self.aggiat = ioutil.loadDictListData(infile, ktype=str, vtype=int)
     
-    "todo: construct dict for iat pair to keys"
-    def getiatpairdict(self):
+    "construct dict for iat pair to keys"
+    def get_iatpair_user_dict(self):
+        for k, lst in self.aggiat.items():
+            for i in range(len(lst) - 1):
+                pair = (lst[i], lst[i + 1])
+                if pair not in self.iatpair_user:
+                    self.iatpair_user[pair] = []
+                self.iatpair_user[pair].append(k)
+
+    def get_user_iatpair_dict(self):
         for k, lst in self.aggiat.items():
             pairs = []
             for i in range(len(lst) - 1):
                 pair = (lst[i], lst[i + 1])
                 pairs.append(pair)
-            self.aggiatpair[k] = pairs
+            self.user_iatpair[k] = pairs
 
     def getiatpairs(self):
         xs, ys = [], []
@@ -63,8 +73,9 @@ class IAT:
 
     'find users that have pairs in iatpairs'
     def find_iatpair_user(self, iatpairs):
-        usrlist, pairset = [], set(iatpairs)
-        for k, lst in self.aggiatpair.items():
-            if len(set(lst) & pairset) != 0:
-                usrlist.append(k)
-        return usrlist
+        usrset = set()
+        for pair in iatpairs:
+            if pair in self.iatpair_user:
+                usrlist = self.iatpair_user[pair]
+                usrset.update(usrlist)
+        return list(usrset)
