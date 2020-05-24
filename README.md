@@ -46,10 +46,11 @@ git clone https://github.com/shenghua-liu/spartan2.git
 ``` 
 
 - Install requirements.
+```bash
+# [not recommended]# pip install --user --requirement requirements
+# using conda tool
+conda install --force-reinstall -y --name spartan -c conda-forge --file requirements
 ```
-pip install --user --requirement requirements
-```
-
    Or  
 ```
 python setup.py install
