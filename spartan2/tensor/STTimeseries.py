@@ -338,6 +338,44 @@ class STTimeseries:
         if not inplace:
             return _self
 
+    def aggregate(self, attrs: list = None, show: bool = False, inplace: bool = False):
+        ''' aggregate attributes by entries of attrs
+
+        Args:
+            attrs: names of columns to be aggregated
+                if not provided, all columns will be normalized
+            show: if True, show the resampled signal with matplotlib.pyplot
+            inplace:
+                if True, update origin object's variable
+                if False, return a new STTimeseries object
+
+        Returns:
+            None or a new STTimeseries object
+        '''
+        _self = self._handle_inplace(inplace)
+        for attr in attrs:
+            if not attr in _self.attrlabels:
+                raise Exception(f'Attr {attr} is not found')
+        names = ['__time__']
+        names.extend(_self.attrlabels)
+        templists = pd.DataFrame(np.concatenate([[_self.timelist], _self.attrlists]).T, columns=names)
+        names = ['__time__']
+        names.extend(attrs)
+        templists = pd.DataFrame(templists.groupby(names).size())
+        templists = templists.iloc[:, 0]
+        for attr in attrs:
+            templists = templists.unstack(level=-1).fillna(0)
+        templabels, timelist = list(templists.columns), np.array(templists.index)
+        templists = np.array(templists.T)
+        _self.attrlists, _self.attrlabels, _self.timelist, \
+            _self.startts, _self.length, _self.dimen_size = \
+            templists, templabels, timelist, \
+            timelist[0], len(timelist), len(templists)
+        if show:
+            _self.show()
+        if not inplace:
+            return _self
+
     def savefile(self, name: str, path: str = None, attrs: list = None, annotation: str = None, savetime: bool = True, format: str = 'tensor'):
         ''' save current time series object as a tensor file, time column [if exists] shall always be stored as the first column
 

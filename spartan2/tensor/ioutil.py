@@ -102,24 +102,44 @@ class CSVFile(File):
         f = pd.read_csv(self.name)
         column_names = f.columns
         dtypes = {}
-        for idx, typex in self.idxtypes:
-            dtypes[column_names[idx]] = str(typex)
-        f = pd.read_csv(self.name, dtype=dtypes)
+        if not self.idxtypes is None:
+            for idx, typex in self.idxtypes:
+                dtypes[column_names[idx]] = self.transfer_type(typex)
+            f = pd.read_csv(self.name, dtype=dtypes)
+        else:
+            f = pd.read_csv(self.name)
         return f
 
     def _read(self):
         tensorlist = []
-        idx = [i[0] for i in self.idxtypes]
         _file = self._open()
-        for _id in idx:
-            tensorlist.append(np.array(_file.iloc[:, _id].T))
-        return tensorlist
+        _names = []
+        if not self.idxtypes is None:
+            idx = [i[0] for i in self.idxtypes]
+            for _id in idx:
+                tensorlist.append(np.array(_file.iloc[:, _id].T))
+                _names.append(_file.columns[_id])
+            tensorlist = np.array(tensorlist).T
+        else:
+            tensorlist = np.array(_file)
+            _names = _file.columns
+        return tensorlist, _names
 
+    def transfer_type(self, typex):
+        if typex == float:
+            _typex = 'float'
+        elif typex == int:
+            _typex = 'int'
+        elif typex == str:
+            _typex = 'object'
+        else:
+            _typex = 'object'
+        return _typex
 
 
 def checkfileformat(name, idxtypes):
     _class = None
-    if os.path.isfile(name):
+    if os.path.isfile(name) or os.path.isfile(name+'.tensor'):
         _name = name
         _class = TensorFile
     elif os.path.isfile(name+'.gz'):
@@ -130,6 +150,6 @@ def checkfileformat(name, idxtypes):
         _class = CSVFile
     else:
         raise Exception(f"Error: Can not find file {name}, please check the file path!\n")
-    _obj = _class(name, 'r', idxtypes)
+    _obj = _class(_name, 'r', idxtypes)
     _data = _obj._read()
     return _data
