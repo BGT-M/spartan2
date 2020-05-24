@@ -21,14 +21,14 @@ Everything here is viewed as a tensor (sparse).
 
 ### install requires
 
-This project is written in Python 3.6
+This project is require Python 3.7 and upper.
 We suggest recreating the experimental environment using Anaconda through the following steps.
  
 1. Install the appropriate version for Anaconda from here - https://www.anaconda.com/distribution/
 
 2. Create a new conda environment named "spartan"
 ```bash
-conda create -n spartan python=3.6
+conda create -n spartan python=3.7
 conda activate spartan
 ```
 
