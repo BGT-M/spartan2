@@ -21,21 +21,21 @@ Everything here is viewed as a tensor (sparse).
 
 ### install requires
 
-This project is written in Python 3.6
+This project requires Python 3.7 and upper.
 We suggest recreating the experimental environment using Anaconda through the following steps.
  
 1. Install the appropriate version for Anaconda from here - https://www.anaconda.com/distribution/
 
 2. Create a new conda environment named "spartan"
 ```bash
-conda create -n spartan python=3.6
+conda create -n spartan python=3.7
 conda activate spartan
 ```
 
 3. If you are a normal **USER**, download the package from pip
 
 ```bash
-pip install -i https://test.pypi.org/simple/ spartan2-pkg-ictetc==0.0a0.dev3
+pip install -i https://test.pypi.org/simple/ spartan2
 ```
 
 4. If you are a **DEVELOPER** and want to **contribute** to the project, please
@@ -46,31 +46,34 @@ git clone https://github.com/shenghua-liu/spartan2.git
 ``` 
 
 - Install requirements.
+```bash
+# [not recommended]# pip install --user --requirement requirements
+# using conda tool
+conda install --force-reinstall -y --name spartan -c conda-forge --file requirements
 ```
-pip install --user --requirement requirements
-```
-
-   Or  
-```
+   or  
+```bash
+# this may not work in ubuntu 18.04
 python setup.py install
 ```
 
 - Install code in development mode
 ```bash
+# in parent directory of spartan2
 pip install -e spartan2
 ```
-- Since you install your package to a location other than the user site-packages directory, you will need to prepend the path to that directory to your PYTHONPATH environment variable.
-```python
-import sys
-sys.path.append("/<dir to spartan2>/spartan2")
-```
-
-   Or add environment variable PYTHONPATH in ~/.bashrc  
+- Since you install your package to a location other than the user site-packages directory, you will need to 
+add environment variable PYTHONPATH in ~/.bashrc  
 ```bash
 export PYTHONPATH=/<dir to spartan2>/spartan2:$PYTHONPATH
 ```
 
-   Or 
+   or prepend the path to that directory to your PYTHONPATH environment variable.
+```python
+import sys
+sys.path.append("/<dir to spartan2>/spartan2")
+```
+   or 
 ```bash
 #find directory of site-packages
 python -c 'import site; print(site.getsitepackages())'
@@ -104,7 +107,8 @@ python -c 'import site; print(site.getsitepackages())'
 * [Holoscope](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/Holoscope_demo.ipynb)
 
 **Part 3: Time Series**
-* [time series start](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/TimeseriesData_demo.ipynb)
+* [time series start I](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/TimeseriesData_demo%20-%20I.ipynb)
+* [time series start II](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/TimeseriesData_demo%20-%20II.ipynb)
 * [Beatlex](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/Beatlex_demo.ipynb)
 
 ## References

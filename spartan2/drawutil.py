@@ -32,7 +32,9 @@ def drawHexbin(xs, ys, outfig=None, xscale='log', yscale='log',
             a tuple with two elements specifying the number of hexagons in the
             x-direction and the y-direction.
     '''
-    if xscale == 'log' and min(xs) <= 0:
+    xs = np.array(xs) if type(xs) is list else xs
+    ys = np.array(ys) if type(ys) is list else ys
+    if xscale == 'log' and min(xs)<=0:
         print('[Warning] logscale with nonpositive values in x coord')
         print('\tremove {} nonpositives'.format(len(np.argwhere(xs <= 0))))
         xg0 = xs > 0
@@ -111,7 +113,8 @@ def drawRectbin(xs, ys, outfig=None, xscale='log', yscale='log',
     else:
         y_space = ygridsize
 
-    plt.hist2d(xs, ys, bins=(x_space, y_space), cmin=1, norm=cnorm, cmap=plt.cm.jet)
+    hist = plt.hist2d(xs, ys, bins=(x_space, y_space), cmin=1, norm=cnorm,
+            cmap=plt.cm.jet )
     plt.xscale(xscale)
     plt.yscale(yscale)
 
@@ -127,7 +130,7 @@ def drawRectbin(xs, ys, outfig=None, xscale='log', yscale='log',
 
     if outfig is not None:
         fig.savefig(outfig)
-    return fig
+    return fig, hist
 
 
 def drawTimeseries(T, S, bins='auto', savepath='', savefn=None, dumpfn=None):
