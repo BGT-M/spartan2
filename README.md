@@ -35,7 +35,7 @@ conda activate spartan
 3. If you are a normal **USER**, download the package from pip
 
 ```bash
-pip install -i https://test.pypi.org/simple/ spartan2-pkg-ictetc==0.0a0.dev8
+pip install -i https://test.pypi.org/simple/ spartan2
 ```
 
 4. If you are a **DEVELOPER** and want to **contribute** to the project, please
