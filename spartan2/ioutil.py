@@ -4,78 +4,112 @@ import numpy as np
 from datetime import datetime
 import time
 
+"gzip file must be read and write in binary/bytes"
 def myopenfile(fnm, mode):
     f = None
     if 'w' in mode:
-        if '.gz' == fnm[-3:]:
+        if isgzfile(fnm):
             import gzip
+            mode = mode+'b' if 'b' != mode[-1] else mode
             f = gzip.open(fnm, mode)
         else:
             f = open(fnm, mode)
     else:
-        if 'r' not in mode:
+        if 'r' not in mode and 'a' not in mode:
             mode = 'r' + mode
         if os.path.isfile(fnm):
-            if '.gz' != fnm[-3:]:
+            if not isgzfile(fnm):
                 f = open(fnm, mode)
             else:
                 import gzip
-                f = gzip.open(fnm, mode)
+                mode = 'rb'
+                f = gzip.open( fnm, mode )
         elif os.path.isfile(fnm+'.gz'):
             'file @fnm does not exists, use fnm.gz instead'
             print(
                 '==file {} does not exists, read {}.gz instead'.format(fnm,
                                                                        fnm))
             import gzip
+            mode = 'rb'
             f = gzip.open(fnm+'.gz', mode)
         else:
             print('file: {} or its zip file does NOT exist'.format(fnm))
             sys.exit(1)
     return f
 
-def saveSimpleDictData(simdict, outdata, delim=':', mode=''):
-    delim = delim.decode() if type(delim) is bytes else str(delim)
-    with myopenfile(outdata, 'w'+mode) as fw:
+def isgzfile( filename ):
+    return filename.endswith(".gz")
+
+# delim must be str
+def saveSimpleDictData(simdict, outdata, delim=':', mode='w'):
+    if isgzfile(outdata):
+        mode = mode + 'b' if mode[-1] != 'b' else mode
+    # write bytes
+    ib = True if 'b' in mode else False
+
+    with myopenfile(outdata, mode) as fw:
         for k, val in simdict.items():
-            k = k.decode() if type(k) is bytes else str(k)
-            val = val.decode() if type(val) is bytes else str(val)
+            k = k.decode() if isinstance(k, bytes) else str(k)
+            val = val.decode() if isinstance(val, bytes) else str(val)
             outstr = "{}{}{}\n".format(k, delim,  val)
-            x = outstr.encode() if 'b' in mode else outstr
+            x = outstr.encode() if ib else outstr
             fw.write(x)
         fw.close()
 
-def loadSimpleDictData(indata, delim=':', mode='', dtypes=[int, int]):
+def loadSimpleDictData(indata, delim=':', mode='r', dtypes=[int, int]):
+    if isgzfile(indata):
+        mode = 'rb'
+    # bytes
+    ib = True if 'b' in mode else False
+
     simdict={}
-    with myopenfile(indata, 'r'+mode) as fr:
-        lines=fr.readlines()
-        for line in lines:
-            line = line.decode() if type(line) is bytes else str(line)
+    with myopenfile(indata, mode) as fr:
+        for line in fr:
+            line = line.decode() if ib else str(line)
             line = line.strip().split(delim)
             ktype, vtype = dtypes
             simdict[ktype(line[0])] = vtype(line[1])
         fr.close()
     return simdict
 
-def saveDictListData(dictls, outdata, delim=':', mode=''):
-    with myopenfile(outdata, 'w'+mode) as fw:
+def saveDictListData(dictls, outdata, delim=':', mode='w'):
+    if isgzfile(outdata):
+        'possible mode is ab'
+        mode = mode + 'b' if mode[-1] != 'b' else mode
+    # write bytes
+    ib = True if 'b' in mode else False
+
+    with myopenfile(outdata, mode) as fw:
+        i=0
         for k, l in dictls.items():
             if not isinstance(l,(list, np.ndarray)):
                 print("This is not a dict of value list.", type(l))
                 break
             if len(l)<1:
                 continue
-            fw.write("{}{}".format(k,delim))
-            for i in range(len(l)-1):
-                fw.write("{} ".format(l[i]))
-            fw.write("{}\n".format(l[-1]))
+            k = k.decode() if isinstance(k, bytes) else str(k)
+            ostr = "{}{}".format(k,delim)
+            if len(l)<1:
+                i += 1
+                continue
+            l = [ x.decode() if isinstance(x,bytes) else str(x) for x in l ]
+            ostr = ostr + " ".join(l) + '\n'
+            fw.write(ostr.encode() if ib else ostr)
         fw.close()
+        if i > 0:
+            print( "Warn: total {} empty dict lists are removed".format(str(i)) )
 
 
-def loadDictListData(indata, ktype=str, vtype=str, delim=':', mode=''):
+def loadDictListData(indata, ktype=str, vtype=str, delim=':', mode='r'):
+    if isgzfile(indata):
+        mode = 'rb'
+    # bytes
+    ib = True if 'b' in mode else False
+
     dictls={}
-    with myopenfile(indata, 'r'+mode) as fr:
-        lines = fr.readlines()
-        for line in lines:
+    with myopenfile(indata, mode) as fr:
+        for line in fr:
+            line = line.decode() if ib else line
             line = line.strip().split(delim)
             lst=[]
             for e in line[1].strip().split(' '):
@@ -140,8 +174,11 @@ def renumberids(indir, outdir, fnm, ofnm, delimeter=' ', comments='#', nodetype=
   hdfs default delimeter is '\x01'
   If dicts exists , then reuse this dicts, and append new kyes when necessary.
 '''
-def renumberids2(infiles, outdir, delimeter:str=' ', isbyte=False,
-        comments:str='#', nodetype=str, colidx:list =[0, 1], dicts:list=None):
+def renumberids2(infiles, outdir, delimeter =' ', isbyte=False,
+        comments ='#', nodetype=str, colidx =[0, 1], dicts=None):
+# for python >= 3.7
+#def renumberids2(infiles, outdir, delimeter:str =' ', isbyte=False,
+#        comments:str='#', nodetype=str, colidx:list =[0, 1], dicts:list=None):
     mode = 'b' if isbyte else ''
     numids = len(colidx)
     nodes = []
@@ -176,7 +213,9 @@ def renumberids2(infiles, outdir, delimeter:str=' ', isbyte=False,
     files = glob.glob(infiles)
     for filepath in files:
         fnm = os.path.basename(filepath)
-        print('\tprocessing file {}'.format(fnm), flush=True)
+        #print('\tprocessing file {}'.format(fnm), flush=True)
+        print('\tprocessing file {}'.format(fnm))
+        sys.stdout.flush()
         j = fnm.find('.')
         nfnm = fnm[:j]+'.reid'+fnm[j:] if j!=-1 else fnm+'.reid'
         ofilepath = os.path.join(outdir, nfnm)
@@ -224,10 +263,12 @@ def extracttimes(infile, outfile, timeidx=0, timeformat='%Y-%m-%d %H:%M:%S', del
     files = glob.glob(infile)
     for filepath in files:
         fnm = os.path.basename(filepath)
-        print('\tprocessing file {}'.format(fnm), flush=True)
+        #print('\tprocessing file {}'.format(fnm), flush=True)
+        print('\tprocessing file {}'.format(fnm))
+        sys.stdout.flush()
         with myopenfile(filepath, 'r'+mode) as f:
             for line in f:
-                line = line.decode() if 'b' in mode else line
+                line = line.decode() if isinstance(line, bytes) else line
                 if line.startswith(comments):
                     continue
                 elems = line.split(delimeter)
