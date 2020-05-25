@@ -105,7 +105,8 @@ python -c 'import site; print(site.getsitepackages())'
 * [Holoscope](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/Holoscope_demo.ipynb)
 
 **Part 3: Time Series**
-* [time series start](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/TimeseriesData_demo.ipynb)
+* [time series start I](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/TimeseriesData_demo%20-%20I.ipynb)
+* [time series start II](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/TimeseriesData_demo%20-%20II.ipynb)
 * [Beatlex](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/Beatlex_demo.ipynb)
 
 ## References
