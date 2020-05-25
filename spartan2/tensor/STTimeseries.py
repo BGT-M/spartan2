@@ -1,3 +1,6 @@
+# -*- coding:utf-8 -*-
+# Authors: Quan Ding
+
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -10,20 +13,23 @@ plt.rcParams['savefig.dpi'] = 200
 
 
 class STTimeseries:
-    def __init__(self, time, attrlists, attrlabels, freq=None, startts=None):
+    def __init__(self, time: int, attrlists: np.ndarray, attrlabels: list, freq: int = None, startts: int = None):
         ''' init STTimeseries object
-            @param time: time dimension of data
-            @param attrlists: signal dimensions of data
-            @param attrlabels: labels of data, positions corresponding to data
-            @params freq: frequency of the signal, default is None
+
+        Args:
+            time: time dimension of data
+            attrlists: signal dimensions of data
+            attrlabels: labels of data, positions corresponding to data
+            freq: frequency of the signal, default is None
                 if time dimension is not provided, this parameter is needed to initiate time dimension
                 if time dimension is provided, freq will not work and will be calculated by the time sequence
-            @param startts: start timestamp, default is None
+            startts: start timestamp, default is None
                 if time is not provided, this parameter is needed to initiate time dimension
                 if time dimension is provided, startts will not work and will be calculated by the time sequence
         '''
         self.length = len(attrlists[0])
         self.dimen_size = len(attrlists)
+        self.time_origin = True if not len(time) == 0 else False
         if len(time) == 0:
             if freq is None:
                 raise Exception('Parameter freq not provided')
@@ -39,21 +45,43 @@ class STTimeseries:
         self.attrlists = attrlists
         self.attrlabels = attrlabels
 
+    def __str__(self):
+        ''' description of STTimeseries object
+        '''
+        _str = f'''
+            Time Series Object
+            Dimension Size: {self.dimen_size}
+            Length: {self.length}
+            Time Length: {format(self.length / self.freq, '.2f')}
+            Origin Time Dimension: {self.time_origin}
+            Frequency: {self.freq}
+            Start Timestamp: {self.startts}
+            Labels: {', '.join([str(x) for x in self.attrlabels])}
+        '''
+        return _str
+
     def __len__(self):
+        ''' return length of time series
+        '''
         return self.length
 
     def copy(self):
+        ''' copy a new STTimeseries object from self
+
+        Returns:
+            STTimeseries object
+        '''
         time = self.timelist.copy()
         attrlists = self.attrlists.copy()
         attrlabels = self.attrlabels.copy()
         return STTimeseries(time, attrlists, attrlabels)
 
-    def show(self, chosen_labels=None):
+    def show(self, chosen_labels: list = None):
         ''' draw series data with matplotlib.pyplot
-            @type chosen_labels: [[]]
-            @param chosen_labels:
-                if None, draw all the attrs in subgraph;
-                or treat all 1-dimen array as subgraphs and entries in each array as lines in each subgraph
+
+        Args:
+            chosen_labels: if not provided, draw all the attrs in subgraph;
+                else treat all 1-dimen array as subgraphs and entries in each array as lines in each subgraph
         '''
         plt.figure()
         if chosen_labels is None:
@@ -73,18 +101,24 @@ class STTimeseries:
                 for label in chosen_label:
                     index = self.attrlabels.index(label)
                     plt.plot(self.timelist, self.attrlists[index], label=label)
-                    plt.legend(loc="best")
-                plt.title(chosen_label)
+                plt.legend(loc="best")
+                plt.title(', '.join(chosen_label))
                 actual_dimension += 1
+        plt.xlabel('time/s')
         plt.show()
 
-    def resample(self, resampled_freq, show=False, inplace=False):
-        ''' resample series data with a new frequency, acomplish on the basis of scipy.signal.sample
-            @param resampled_freq: resampled frequency
-            @param show: if True, show the resampled signal with matplotlib.pyplot
-            @param inplace:
+    def resample(self, resampled_freq: int, show: bool = False, inplace: bool = False):
+        ''' resample series data with a new frequency, acomplished on the basis of scipy.signal.sample
+
+        Args:
+            resampled_freq: resampled frequency
+            show: if True, show the resampled signal with matplotlib.pyplot
+            inplace:
                 if True, update origin object's variable
                 if False, return a new STTimeseries object
+
+        Returns:
+            None or a new STTimeseries object
         '''
         _self = self._handle_inplace(inplace)
         origin_list = _self.attrlists
@@ -100,20 +134,7 @@ class STTimeseries:
         resampled_length = len(resampled_list[0])
         resampled_time = np.arange(_self.startts, _self.startts + 1 / resampled_freq * resampled_length, 1 / resampled_freq)
         if show == True:
-            plt.figure()
-            sub_dimension = len(resampled_list)
-            actual_dimension = 1
-            for label in _self.attrlabels:
-                x_origin = np.arange(0, attr_length/origin_freq, 1/origin_freq)
-                x_resampled = np.arange(0, attr_length/origin_freq, 1/resampled_freq)
-                plt.subplot(sub_dimension, 1, actual_dimension)
-                index = _self.attrlabels.index(label)
-                plt.title(label)
-                plt.plot(x_origin, origin_list[index], 'r-', label='origin')
-                plt.plot(x_resampled, resampled_list[index], 'g.', label='resample')
-                plt.legend(loc="best")
-                actual_dimension += 1
-            plt.show()
+            _self._show_resample(attr_length, origin_freq, resampled_freq, origin_list, resampled_list)
         _self.timelist = resampled_time
         _self.attrlists = resampled_list
         _self.freq = resampled_freq
@@ -121,88 +142,146 @@ class STTimeseries:
         if not inplace:
             return _self
 
-    def add_column(self, column_name, value, inplace=False):
-        _self = self._handle_inplace(inplace)
-        _self.attrlabels.extend([column_name])
-        _self.dimen_size += 1
-        attrlist = np.array([value] * _self.length)
-        _self.attrlists = np.concatenate((_self.attrlists, [attrlist]), axis=0)
-        if not inplace:
-            return _self
+    def add_columns(self, column_names: list, values: list or np.ndarray = None, show: bool = False, inplace: bool = False):
+        ''' add columns to STTimeseries object
 
-    def combine(self, series, inplace=False):
-        ''' combine series data which have the same frequency, can be a single STTimeseries object or a list of STTImeseries objects
-            @param combined_series: series to be combined
-            @param inplace:
+        Args:
+            column_name: list of column names
+            values: values of columns
+                if one-dimension list, new column will be single value
+                if two-dimension list, new column will be a list
+            show: if True, show the resampled signal with matplotlib.pyplot
+            inplace:
                 if True, update origin object's variable
                 if False, return a new STTimeseries object
+
+        Returns:
+            None or a new STTimeseries object
         '''
         _self = self._handle_inplace(inplace)
-        if type(series) == list:
-            _series = []
-            for x in series:
-                if type(x) == STTimeseries:
-                    _series.append(x.copy())
+        for index in range(len(column_names)):
+            _type = type(values[index])
+            if _type == list or _type == np.ndarray:
+                if len(values[index]) == self.length:
+                    _value = values[index]
                 else:
-                    raise Exception(f'list contains non-STTimeseries object')
-            self._combine_several(_series, _self)
-        elif type(series) == STTimeseries:
-            self._combine_one(series.copy(), _self)
+                    raise Exception(f"length of values[{index}] mismatches with self length {_self.length}.")
+            else:
+                _value = np.array([values[index]] * self.length)
+            _name = column_names[index]
+            _self = _self._add_column(_name, _value)
+        if show:
+            _self.show()
         if not inplace:
             return _self
 
-    def concat(self, series, inplace=False):
+    def combine(self, series: object or list, show: bool = False, inplace: bool = False):
+        ''' combine series data which have the same frequency
+
+        Args:
+            combined_series: a single or a list of STTimeseries object to be combined.
+            show: if True, show the resampled signal with matplotlib.pyplot
+            inplace:
+                if True, update origin object's variable
+                if False, return a new STTimeseries object
+
+        Returns:
+            None or a new STTimeseries object
+        '''
         _self = self._handle_inplace(inplace)
-        if type(series) == list:
+        _type = type(series)
+        if _type == list:
             _series = []
             for x in series:
                 if type(x) == STTimeseries:
                     _series.append(x.copy())
                 else:
                     raise Exception(f'list contains non-STTimeseries object')
-            self._concat_several(_series, _self)
-        elif type(series) == STTimeseries:
-            self._concat_one(series.copy(), _self)
+            _self._combine_several(_series)
+        elif _type == STTimeseries:
+            _self._combine_one(series.copy())
+        if show:
+            _self.show()
         if not inplace:
             return _self
 
-    def extract(self, attrs=None, inplace=False):
+    def concat(self, series: object or list, show: bool = False, inplace: bool = False):
+        ''' concat series data which have the same dimension size
+
+        Args:
+            combined_series: a single or a list of STTimeseries object to be concatted.
+            show: if True, show the resampled signal with matplotlib.pyplot
+            inplace:
+                if True, update origin object's variable
+                if False, return a new STTimeseries object
+
+        Returns:
+            None or a new STTimeseries object
+        '''
+        _self = self._handle_inplace(inplace)
+        _type = type(series)
+        if _type == list:
+            _series = []
+            for x in series:
+                if type(x) == STTimeseries:
+                    _series.append(x.copy())
+                else:
+                    raise Exception(f'list contains non-STTimeseries object')
+            _self._concat_several(_series)
+        elif _type == STTimeseries:
+            _self._concat_one(series.copy())
+        if show:
+            _self.show()
+        if not inplace:
+            return _self
+
+    def extract(self, attrs: list = None, show: bool = False, inplace: bool = False):
         ''' extract attrs from series data
-            @param attrs: default is None, return each dimension
-                if not None, return required dimensions
-            @param inplace:
+
+        Args:
+            attrs: names of chosen dimensions to be extracted
+                if not provided, all columns will be extracted
+            show: if True, show the resampled signal with matplotlib.pyplot
+            inplace:
                 if True, update origin object's variable
                 if False, return a new STTimeseries object
+
+        Returns:
+            None or a new STTimeseries object
         '''
         _self = self._handle_inplace(inplace)
-        _attrlists = list(_self.attrlists)
-        for attr in _self.attrlabels.copy():
-            if attr not in attrs:
-                index = _self.attrlabels.index(attr)
-                del(_attrlists[index])
-                _self.attrlabels.remove(attr)
-        _self.attrlists = np.array(_attrlists)
+        templabels, templists = _self._handle_attrs(attrs)
+        _self.attrlabels = templabels
+        _self.attrlists = templists
+        _self.dimen_size = len(templabels)
+        if show:
+            _self.show()
         if not inplace:
             return _self
 
-    def cut(self, attrs=None, start=None, end=None, form='point', inplace=False):
-        ''' cut columns in time dimension
-            @type attrs: array
-            @param attrs: default is None, columns to be cut
-                if not None, attr sprcified in attrs will be cut AND param inplace will be invalid
-            @param start: default is None, start position
-                if start is None, cut from the very front position
-            @param end: default is None, end position
-                if end is None, cut to the very last position
-            @param form: default is point, type of start and end
-                if "point", start and end would mean absolute positions of columns
-                if "time", start and end would mean timestamp and need to multiply frequenct to get the absolute positions
-            @param inplace: default if False, IF attrs is not None, this param will be invalid
-                if False, function will return a new STTimeseiries object
-                if True, function will make changes in current STTimeseries object
+    def cut(self, attrs: list = None, start: int = None, end: int = None, form: str = 'point', show: bool = False, inplace: bool = False):
+        ''' cut timestamp in time dimension
+
+        Args:
+            attrs: names of columns to be cut
+                if not provided, all columns will be cut
+            start: start position of cut
+                if not provided, cut from the very front position
+            end: end position of cut
+                if not provided, cut to the very last position
+            form: default is "point", type of start and end
+                if "point", start and end would mean absolute positions
+                if "time", start and end would mean timestamp and need to multiply frequency to get the absolute positions
+            show: if True, show the resampled signal with matplotlib.pyplot
+            inplace:
+                if True, update origin object's variable
+                if False, return a new STTimeseries object
+
+        Returns:
+            None or a new STTimeseries object
         '''
         _self = self._handle_inplace(inplace)
-        templabels, templists = self._handle_attrs(attrs)
+        templabels, templists = _self._handle_attrs(attrs)
         if form == 'point':
             start = start
             end = end
@@ -221,101 +300,188 @@ class STTimeseries:
             raise Exception(f'start pos: {start} with 0 and end pos {end} with {_self.length}')
         timelist = _self.timelist.copy()[start:end]
         templists = np.array([attr[start:end] for attr in templists])
-        _self.attrlists = templists
-        _self.timelist = timelist
-        _self.startts = timelist[0]
-        _self.length = len(templists[0])
-        if not inplace:
-            return _self
-
-    def filter(self, order, criterion, mode, show=False, inplace=False):
-        # TODO to be finished
-        if type(criterion) == list and mode != 'bandpass' or type(criterion) == float and (mode != 'highpass' and mode != 'lowpass'):
-            raise Exception('criterion not fit mode')
-        b, a = signal.butter(order, criterion, mode)
+        _self.attrlists, _self.attrlabels, _self.timelist, \
+            _self.startts, _self.length, _self.dimen_size = \
+            templists, templabels, timelist, \
+            timelist[0], len(timelist), len(templists)
         if show:
-            plt.figure()
-
-    def normalize(self, attrs=None, inplace=False):
-        _self = self._handle_inplace(inplace)
-        if attrs is None:
-            attrs = _self.attrlabels
-        _attrlists = list(_self.attrlists)
-        for i, value in enumerate(_self.attrlabels):
-            if value in attrs:
-                _attrlists[i] = self._normalize(_attrlists[i])
-        _self.attrlists = np.array(_attrlists)
+            _self.show()
         if not inplace:
             return _self
 
-    def savefile(self, name, path=None, attrs=None, annotation=None, time=True, format='tensor'):
+    def normalize(self, attrs: list = None, strategy: str = 'minmax', show: bool = False, inplace: bool = False):
+        ''' normalize attributes by different strategies
+
+        Args:
+            attrs: names of columns to be normalized
+                if not provided, all columns will be normalized
+            strategy: normalize strategy
+                minmax: normalize by minmax strategy to [-1, 1]
+            show: if True, show the resampled signal with matplotlib.pyplot
+            inplace:
+                if True, update origin object's variable
+                if False, return a new STTimeseries object
+
+        Returns:
+            None or a new STTimeseries object
+        '''
+        _self = self._handle_inplace(inplace)
+        templabels, templists = _self._handle_attrs(attrs)
+        attrlists = []
+        for templist in templists:
+            attrlist = _self._normalize_minmax(templist)
+            attrlists.append(attrlist)
+        _self.attrlists, _self.attrlabels, _self.dimen_size =\
+            np.array(attrlists), templabels, len(templabels)
+        if show:
+            _self.show()
+        if not inplace:
+            return _self
+
+    def aggregate(self, attrs: list = None, show: bool = False, inplace: bool = False):
+        ''' aggregate attributes by entries of attrs
+
+        Args:
+            attrs: names of columns to be aggregated
+                if not provided, all columns will be normalized
+            show: if True, show the resampled signal with matplotlib.pyplot
+            inplace:
+                if True, update origin object's variable
+                if False, return a new STTimeseries object
+
+        Returns:
+            None or a new STTimeseries object
+        '''
+        _self = self._handle_inplace(inplace)
+        for attr in attrs:
+            if not attr in _self.attrlabels:
+                raise Exception(f'Attr {attr} is not found')
+        names = ['__time__']
+        names.extend(_self.attrlabels)
+        templists = pd.DataFrame(np.concatenate([[_self.timelist], _self.attrlists]).T, columns=names)
+        names = ['__time__']
+        names.extend(attrs)
+        templists = pd.DataFrame(templists.groupby(names).size())
+        templists = templists.iloc[:, 0]
+        for attr in attrs:
+            templists = templists.unstack(level=-1).fillna(0)
+        templabels, timelist = list(templists.columns), np.array(templists.index)
+        templists = np.array(templists.T)
+        _self.attrlists, _self.attrlabels, _self.timelist, \
+            _self.startts, _self.length, _self.dimen_size = \
+            templists, templabels, timelist, \
+            timelist[0], len(timelist), len(templists)
+        if show:
+            _self.show()
+        if not inplace:
+            return _self
+
+    def savefile(self, name: str, path: str = None, attrs: list = None, annotation: str = None, savetime: bool = True, format: str = 'tensor'):
         ''' save current time series object as a tensor file, time column [if exists] shall always be stored as the first column
-            @param name: name of the file to be saved
-            @param path: default is None, parent directory
-            @param attr: default is None
+
+        Args:
+            name: name of the file to be saved
+            path: default is None, parent directory
+            attr: default is None
                 if assigned, only save required columns
-            @param annotation: annotations which will be saved at the first line of the file
-            @param time: default is True, save time dimension
+            annotation: annotations which will be saved at the first line of the file
+            savetime: default is True, save time dimension
+            format: support 'tensor', 'csv' format
+
+        Returns:
+            None
         '''
         if path is None:
             path = f'./{name}.{format}'
         else:
             path = f'{path}{name}.{format}'
-        if time == False:
-            time_flag = False
-        elif time == True:
-            time_flag = True
-        else:
-            time_flag = True
-            if time in self.attrlabels:
-                _pos = self.attrlabels.index(time)
-                self.timelist = self.attrlists[_pos]
-                _attrs = list(self.attrlists)
-                del(_attrs[_pos])
-                self.attrlists = np.array(_attrs)
-                self.attrlabels.remove(time)
-            else:
-                raise Exception('time dimension assigned error')
         templabels, templists = self._handle_attrs(attrs)
         if format == 'tensor':
-            self._savefile_tensor(path, templists, templabels, annotation, time_flag)
+            self._savefile_tensor(path, templists, templabels, annotation, savetime)
         elif format == 'csv':
-            self._savefile_csv(path, templists, templabels, time_flag)
+            self._savefile_csv(path, templists, templabels, savetime)
         else:
             raise Exception(f'{format} not supported!')
 
-    def _combine_one(self, obj, _self):
-        if not _self.freq == obj.freq:
-            raise Exception(f'Frequency not matched, with {_self.freq} and {obj.freq}')
+    def _show_resample(self, attr_length: int, origin_freq: int, resampled_freq: int, origin_list: np.ndarray, resampled_list: np.ndarray):
+        ''' draw resampled time series figure
+        '''
+        plt.figure()
+        sub_dimension = len(resampled_list)
+        actual_dimension = 1
+        for label in self.attrlabels:
+            x_origin = np.arange(0, attr_length/origin_freq, 1/origin_freq)
+            x_resampled = np.arange(0, attr_length/origin_freq, 1/resampled_freq)
+            plt.subplot(sub_dimension, 1, actual_dimension)
+            index = self.attrlabels.index(label)
+            plt.title(label)
+            plt.plot(x_origin, origin_list[index], 'r-', label='origin')
+            plt.plot(x_resampled, resampled_list[index], 'g.', label='resample')
+            plt.legend(loc="best")
+            actual_dimension += 1
+        plt.xlabel('time/s')
+        plt.show()
+
+    def _add_column(self, _name: str, _value: np.ndarray):
+        ''' add one column to STTimeseries object
+        '''
+        self.dimen_size += 1
+        self.attrlabels.append(_name)
+        self.attrlists = np.concatenate((self.attrlists, [_value]), axis=0)
+        return self
+
+    def _combine_one(self, obj: object):
+        ''' combine single STTimeseries object
+        '''
+        if not self.freq == obj.freq:
+            raise Exception(f'Frequency not matched, with {self.freq} and {obj.freq}')
         for label in obj.attrlabels:
-            if label in _self.attrlabels:
+            if label in self.attrlabels:
                 for i in range(1, 10000):
-                    if not (label + '_' + str(i)) in _self.attrlabels:
-                        _self.attrlabels.extend([label + '_' + str(i)])
+                    if not (label + '_' + str(i)) in self.attrlabels:
+                        self.attrlabels.extend([label + '_' + str(i)])
                         break
             else:
-                _self.attrlabels.extend([label])
-        _self.attrlists = np.concatenate([_self.attrlists, obj.attrlists])
+                self.attrlabels.extend([label])
+        self.dimen_size += obj.dimen_size
+        self.attrlists = np.concatenate([self.attrlists, obj.attrlists])
 
-    def _combine_several(self, combined_series, _self):
+    def _combine_several(self, combined_series: list):
+        ''' combine several STTimeseries object
+        '''
         for obj in combined_series:
-            _self._combine_one(obj, _self)
+            self._combine_one(obj)
 
-    def _concat_one(self, obj, _self):
-        if not _self.dimen_size == obj.dimen_size:
-            raise Exception(f'dimension sizes are not the same with self {_self.dimen_size} and obj {obj.dimen_size}')
-        for i in range(len(_self.attrlabels)):
-            if not _self.attrlabels[i] == obj.attrlabels[i]:
-                raise Exception(f'{i}th dimension is not corresponding with self {_self.attrlabels[i]} and obj {obj.attrlabels[i]}')
-        _self.attrlists = np.concatenate((_self.attrlists, obj.attrlists), axis=1)
-        _self.length = len(_self.attrlists[0])
-        _self.timelist = np.arange(_self.startts, 1/_self.freq*_self.length, 1 / _self.freq)
+    def _concat_one(self, obj: object):
+        ''' concat single STTimeseries object
+        '''
+        if not self.dimen_size == obj.dimen_size:
+            raise Exception(f'dimension sizes are not the same with self {self.dimen_size} and obj {obj.dimen_size}')
+        for i in range(len(self.attrlabels)):
+            if not self.attrlabels[i] == obj.attrlabels[i]:
+                raise Exception(f'{i}th dimension is not corresponding with self {self.attrlabels[i]} and obj {obj.attrlabels[i]}')
+        self.attrlists = np.concatenate((self.attrlists, obj.attrlists), axis=1)
+        self.length = len(self.attrlists[0])
+        self.timelist = np.arange(self.startts, 1/self.freq*self.length, 1 / self.freq)
 
-    def _concat_several(self, concated_series, _self):
+    def _concat_several(self, concated_series: list):
+        ''' concat several STTimeseries object
+        '''
         for obj in concated_series:
-            _self._concat_one(obj, _self)
+            self._concat_one(obj)
 
-    def _savefile_tensor(self, path, templists, templabels, annotation, time_flag):
+    def _normalize_minmax(self, attrlist: np.ndarray):
+        ''' normalize by minmax strategy to [-1, 1]
+        '''
+        _min = np.min(attrlist)
+        _max = np.max(attrlist)
+        _middle = (_min+_max) / 2
+        attrlist = (attrlist - _middle) / (_max - _min) * 2
+        return attrlist
+
+    def _savefile_tensor(self, path: str, templists: np.ndarray, templabels: list, annotation: str, time_flag: bool):
+        ''' save file in tensor format
+        '''
         templists = templists.T
         templists = [','.join(map(lambda x:str(x), t)) for t in templists]
         with open(path, 'w') as writer:
@@ -328,7 +494,9 @@ class STTimeseries:
                 else:
                     writer.write(f'{templists[i]}\n')
 
-    def _savefile_csv(self, path, templists, templabels, time_flag):
+    def _savefile_csv(self, path: str, templists: np.ndarray, templabels: list, time_flag: bool):
+        ''' save file in csv format
+        '''
         if time_flag:
             timelist = np.array(self.timelist)
             templists = np.concatenate(([timelist], templists), axis=0)
@@ -339,14 +507,9 @@ class STTimeseries:
         data_frame = pd.DataFrame(templists, columns=templabels)
         data_frame.to_csv(path, index=None)
 
-    def _normalize(self, attrlist):
-        _min = np.min(attrlist)
-        _max = np.max(attrlist)
-        _middle = (_min+_max) / 2
-        attrlist = (attrlist - _middle) / (_max - _min) * 2
-        return attrlist
-
     def _handle_inplace(self, inplace):
+        ''' return a new object or origin object
+        '''
         if inplace:
             _self = self
         else:
@@ -354,6 +517,8 @@ class STTimeseries:
         return _self
 
     def _handle_attrs(self, attrs):
+        ''' return attrlabels and attrlists
+        '''
         if attrs is None:
             templabels = self.attrlabels
             templists = self.attrlists
@@ -368,3 +533,11 @@ class STTimeseries:
                 templists.append(self.attrlists[index])
             templists = np.array(templists)
         return templabels, templists
+
+    def filter(self, order, criterion, mode, show=False, inplace=False):
+        # TODO to be finished
+        if type(criterion) == list and mode != 'bandpass' or type(criterion) == float and (mode != 'highpass' and mode != 'lowpass'):
+            raise Exception('criterion not fit mode')
+        b, a = signal.butter(order, criterion, mode)
+        if show:
+            plt.figure()

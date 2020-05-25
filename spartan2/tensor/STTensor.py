@@ -25,10 +25,11 @@ from scipy.sparse import coo_matrix
 
 
 class STTensor:
-    def __init__(self, tensorlist, hasvalue, value_idx):
+    def __init__(self, tensorlist, hasvalue, value_idx, names):
         self.tensorlist = tensorlist
         self.hasvalue = hasvalue
         self.value_idx = value_idx
+        self.names = names
         'number of columns'
         self.m = len(tensorlist[0])
 
@@ -80,33 +81,46 @@ class STTensor:
 
         return STGraph(sm, weighted, bipartite, rich, attlist, relabel, labelmaps)
 
-    def toTimeseries(self, attrlabels, numsensors=None, freq=None, startts=None):
+    def toTimeseries(self, attrlabels: list = None, numsensors: int = None, freq: int = None, startts: int = None) -> STTimeseries:
         ''' transfer data to time-series type
-            @params attrlabels: labels for each dimension
-            @params numsensors: number of signal dimension [except time dimension]
-            @params freq: frequency of the signal, default is None
+
+        Args:
+            attrlabels: labels for each dimension
+            numsensors: number of signal dimension [except time dimension]
+            freq: frequency of the signal, default is None
                 if time dimension is not provided, this parameter is needed to initiate time dimension
                 if time dimension is provided, freq will not work and will be calculated by the time sequence
-            @param startts: start timestamp, default is None
-                if time is not provided, this parameter is needed to initiate time dimension
+            startts: start timestamp, default is None
+                if time dimension is not provided, this parameter is needed to initiate time dimension
                 if time dimension is provided, startts will not work and will be calculated by the time sequence
 
+        Returns:
+            STTimeseries object
         '''
         time = []
-        start = 0
         attrlists = np.array(self.tensorlist).T
-        if self.value_idx is None:
-            self.value_idx = 0
+        if self.names is None and attrlabels is None:
+            raise Exception(f'Attrlabels missed.')
         if self.hasvalue == True:
+            if self.value_idx is None:
+                self.value_idx = 0
             time = attrlists[self.value_idx]
-            del attrlists[self.value_idx]
-            start = 0
+            attrlists = np.delete(attrlists, self.value_idx, axis=0)
+            if not self.names is None:
+                self.names = list(self.names)
+                del self.names[self.value_idx]
+        if attrlabels is None:
+            attrlabels = self.names
         if numsensors is None:
-            tensors = attrlists[start:]
+            tensors = attrlists[:]
         else:
-            tensors = attrlists[start:numsensors+start]
+            tensors = attrlists[:numsensors]
         attrlists = np.array(tensors)
-        time = np.array(time)
+        try:
+            assert len(attrlabels) == len(tensors)
+        except:
+            raise Exception(f'Assertions failed with length of labels: {len(attrlabels)} and length of tensors: {len(tensors)}')
+        time = np.array(time.astype(np.int64))
         return STTimeseries(time, attrlists, attrlabels, freq=freq, startts=startts)
 
 
@@ -130,15 +144,26 @@ def loadTensor(name: str, path: str, col_idx: list = None, col_types: list = Non
     if path == None:
         path = "inputData/"
     full_path = os.path.join(path, name)
-    if col_idx is None:
-        col_idx = [i for i in range(len(col_types))]
-    if len(col_idx) == len(col_types):
-        idxtypes = [(col_idx[i], col_types[i]) for i in range(len(col_idx))]
+    if col_types is None:
+        if col_idx is None:
+            idxtypes = None
+        else:
+            idxtypes = [(x, str) for x in col_idx]
     else:
-        raise Exception(f"Error: input same size of col_types and col_idx")
-    tensorlist = checkfileformat(full_path + '.tensor', idxtypes)
+        if col_idx is None:
+            col_idx = [i for i in range(len(col_types))]
+        if len(col_idx) == len(col_types):
+            idxtypes = [(x, col_types[i]) for x in col_idx]
+        else:
+            raise Exception(f"Error: input same size of col_types and col_idx")
+    if hasvalue and value_idx is None:
+        value_idx = 0
+    tensorlist = checkfileformat(full_path, idxtypes)
+    names = None
+    if type(tensorlist) == tuple:
+        tensorlist, names = tensorlist
     printTensorInfo(tensorlist, hasvalue)
-    return STTensor(tensorlist, hasvalue, value_idx)
+    return STTensor(tensorlist, hasvalue, value_idx, names)
 
 
 def printTensorInfo(tensorlist, hasvalue):

@@ -21,7 +21,7 @@ Everything here is viewed as a tensor (sparse).
 
 ### install requires
 
-This project is require Python 3.7 and upper.
+This project requires Python 3.7 and upper.
 We suggest recreating the experimental environment using Anaconda through the following steps.
  
 1. Install the appropriate version for Anaconda from here - https://www.anaconda.com/distribution/
@@ -35,7 +35,7 @@ conda activate spartan
 3. If you are a normal **USER**, download the package from pip
 
 ```bash
-pip install -i https://test.pypi.org/simple/ spartan2-pkg-ictetc==0.0a0.dev3
+pip install -i https://test.pypi.org/simple/ spartan2
 ```
 
 4. If you are a **DEVELOPER** and want to **contribute** to the project, please
@@ -105,7 +105,8 @@ python -c 'import site; print(site.getsitepackages())'
 * [Holoscope](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/Holoscope_demo.ipynb)
 
 **Part 3: Time Series**
-* [time series start](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/TimeseriesData_demo.ipynb)
+* [time series start I](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/TimeseriesData_demo%20-%20I.ipynb)
+* [time series start II](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/TimeseriesData_demo%20-%20II.ipynb)
 * [Beatlex](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/Beatlex_demo.ipynb)
 
 ## References
