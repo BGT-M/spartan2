@@ -51,27 +51,29 @@ git clone https://github.com/shenghua-liu/spartan2.git
 # using conda tool
 conda install --force-reinstall -y --name spartan -c conda-forge --file requirements
 ```
-   Or  
-```
+   or  
+```bash
+# this may not work in ubuntu 18.04
 python setup.py install
 ```
 
 - Install code in development mode
 ```bash
+# in parent directory of spartan2
 pip install -e spartan2
 ```
-- Since you install your package to a location other than the user site-packages directory, you will need to prepend the path to that directory to your PYTHONPATH environment variable.
-```python
-import sys
-sys.path.append("/<dir to spartan2>/spartan2")
-```
-
-   Or add environment variable PYTHONPATH in ~/.bashrc  
+- Since you install your package to a location other than the user site-packages directory, you will need to 
+add environment variable PYTHONPATH in ~/.bashrc  
 ```bash
 export PYTHONPATH=/<dir to spartan2>/spartan2:$PYTHONPATH
 ```
 
-   Or 
+   or prepend the path to that directory to your PYTHONPATH environment variable.
+```python
+import sys
+sys.path.append("/<dir to spartan2>/spartan2")
+```
+   or 
 ```bash
 #find directory of site-packages
 python -c 'import site; print(site.getsitepackages())'
