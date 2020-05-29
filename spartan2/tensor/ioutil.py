@@ -139,8 +139,11 @@ class CSVFile(File):
 
 def checkfileformat(name, idxtypes):
     _class = None
-    if os.path.isfile(name) or os.path.isfile(name+'.tensor'):
+    if os.path.isfile(name):
         _name = name
+        _class = TensorFile
+    if os.path.isfile(name+'.tensor'):
+        _name = name + '.tensor'
         _class = TensorFile
     elif os.path.isfile(name+'.gz'):
         _name = name + '.gz'

@@ -13,7 +13,7 @@ plt.rcParams['savefig.dpi'] = 200
 
 
 class STTimeseries:
-    def __init__(self, time: int, attrlists: np.ndarray, attrlabels: list, freq: int = None, startts: int = None):
+    def __init__(self, time: np.ndarray, attrlists: np.ndarray, attrlabels: list, freq: int = None, startts: int = None):
         ''' init STTimeseries object
 
         Args:
