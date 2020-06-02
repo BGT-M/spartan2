@@ -6,7 +6,7 @@ import os
 import sys
 from abc import abstractmethod, ABCMeta
 from .algorithm.graph import Holoscope, Eaglemine, Fraudar, SVDS
-from .algorithm.time_series import Beatlex
+from .algorithm.time_series import Beatlex,BeatGAN
 
 
 class Engine:
@@ -37,6 +37,7 @@ class AnomalyDetection(Model):
             'HOLOSCOPE': Holoscope,
             'EAGLEMINE': Eaglemine,
             'FRAUDAR': Fraudar,
+            'BEATGAN':BeatGAN
         }
         return alg_list[alg_name](data, alg_obj, model_name)
 

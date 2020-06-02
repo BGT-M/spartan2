@@ -11,6 +11,9 @@ from .eaglemine.src.eaglemine_main import eaglemine
 from .eaglemine.src.graph2histogram import histogram_construct
 from .eaglemine.src.views_viz import cluster_view
 from .beatlex.Beatlex import BeatLex
+from .beatgan.BeatGAN_CNN import BeatGAN_CNN
+from .beatgan.BeatGAN_RNN import BeatGAN_RNN
+from .beatgan.preprocess import preprocess_data
 import scipy.sparse.linalg as slin
 
 
@@ -85,6 +88,26 @@ class AnomalyDetection:
                     node_cluster[cluster_id].append(node_id)
 
         return node_cluster
+    
+    @staticmethod
+    def BEATGAN(model,data,param,outpath,name,device):
+        dataloader=preprocess_data(data,False,param)
+        
+        if model is None:
+            if param["network"]=="CNN":
+                model=BeatGAN_CNN(param,dataloader,device,outpath)
+            elif param["network"]=="RNN":
+                model=BeatGAN_RNN(param,dataloader,device,outpath)
+                
+            else:
+                raise Exception("no this network:{}".format(param["network"]))
+            
+            model.load_model_from(param["model_path"])
+        model.dataloader=dataloader
+        model.test()
+        return model
+            
+            
 
 
 class Decomposition:
