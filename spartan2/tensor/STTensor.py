@@ -120,7 +120,7 @@ class STTensor:
             assert len(attrlabels) == len(tensors)
         except:
             raise Exception(f'Assertions failed with length of labels: {len(attrlabels)} and length of tensors: {len(tensors)}')
-        time = np.array(time.astype(np.int64))
+        time = np.array(time.astype(np.float))
         return STTimeseries(time, attrlists, attrlabels, freq=freq, startts=startts)
 
 
@@ -153,7 +153,7 @@ def loadTensor(name: str, path: str, col_idx: list = None, col_types: list = Non
         if col_idx is None:
             col_idx = [i for i in range(len(col_types))]
         if len(col_idx) == len(col_types):
-            idxtypes = [(x, col_types[x]) for x in col_idx]
+            idxtypes = [(x, col_types[i]) for i, x in enumerate(col_idx)]
         else:
             raise Exception(f"Error: input same size of col_types and col_idx")
     if hasvalue and value_idx is None:
