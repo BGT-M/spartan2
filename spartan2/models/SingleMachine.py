@@ -104,8 +104,8 @@ class AnomalyDetection:
             
             model.load_model_from(param["model_path"])
         model.dataloader=dataloader
-        model.test()
-        return model
+        res=model.test()
+        return model,res
             
             
 

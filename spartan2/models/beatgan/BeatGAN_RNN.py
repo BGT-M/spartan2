@@ -392,8 +392,8 @@ class BeatGAN_RNN(AD_Model):
 
 
     def test(self,intrain=False):
-        if not intrain:
-            self.load_model(self.out_dir,"cur_w.pth")
+        # if not intrain:
+        #     self.load_model(self.out_dir,"cur_w.pth")
         self.encoder.eval()
         self.decoder.eval()
         self.discriminator.eval()

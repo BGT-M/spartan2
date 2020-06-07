@@ -250,8 +250,8 @@ class BeatGAN(AD_Model):
                 print('Reloading dis net')
 
     def test(self, intrain=False, scale=True):
-        if not intrain:
-            self.load_model(self.out_dir, "cur_w.pth")
+        # if not intrain:
+        #     self.load_model(self.out_dir, "cur_w.pth")
         self.generator.eval()
         self.discriminator.eval()
 
