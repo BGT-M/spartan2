@@ -142,7 +142,7 @@ def checkfileformat(name, idxtypes):
     if os.path.isfile(name):
         _name = name
         _class = TensorFile
-    if os.path.isfile(name+'.tensor'):
+    elif os.path.isfile(name+'.tensor'):
         _name = name + '.tensor'
         _class = TensorFile
     elif os.path.isfile(name+'.gz'):
