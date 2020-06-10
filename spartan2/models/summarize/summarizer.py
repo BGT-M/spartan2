@@ -46,11 +46,10 @@ class Summarizer:
     def __init__(self, sm):
         self.sm = sm.tolil()
 
-    def summarize(self, dataset, output_dir='./output'):
+    def summarize(self, dataset):
         lilm = self.sm
         N = lilm.shape[0]
-        M = (lilm.sum() - lilm.diagonal().sum()) // 2
-        M += lilm.diagonal().sum()
+        M = (lilm.nnz + np.sum(lilm.diagonal() != 0)) // 2
         nnz = M
 
         degs = np.array(lilm.sum(axis=1))
@@ -61,9 +60,9 @@ class Summarizer:
         for n in range(N):
             nodes[n] = {n}
 
-        re_error = 0.0
+        deg_len = sum(LN(d) for d in degs)
         length = LN(N)
-        length += sum(LN(d) for d in degs)
+        length += deg_len
         length += N * LN(1)
         length += c_MDL.LnU(N*(N+1) // 2, M)
         length += M * LN(1)
@@ -120,51 +119,67 @@ class Summarizer:
                 break
 
             neiu = set(ssp.find(lilm[u])[1])
-            max_, v = 0, -1
+            max_gain, v = 0, -1
 
             len_matrix = c_MDL.LnU(cnt*(cnt+1) // 2, nnz)
-            g_common_nei = 0
-            g_cost = 0
+            g_new_nnz = 0
+            neiv = set()
             for c in candidates:
                 c = int(c)
                 if c == u:
                     continue
                 dc = degs[c]
 
-                gain = du * math.log2(du) + dc * math.log2(dc)
-                gain -= (du + dc) * math.log2(du + dc)
+                gain = xlogx(du) + xlogx(dc)
+                gain -= xlogx(du+dc)
 
                 gain2 = 0
                 common_nei = 0
-                for nei in neiu:
-                    if lilm[c, nei] == 0:
-                        continue
-                    common_nei += 1
-                    gain -= lilm[u, nei] * math.log2(lilm[u, nei])
-                    gain -= lilm[c, nei] * math.log2(lilm[c, nei])
-                    new_weight = lilm[u, nei] + lilm[c, nei]
-                    gain += new_weight * math.log2(new_weight)
+                if lilm[u, u] != 0:
+                    gain += xlogx(lilm[u, u]) / 2
+                if lilm[c, c] != 0:
+                    gain += xlogx(lilm[c, c]) / 2
+                new_weight = lilm[u, u] + lilm[c, c] + 2*lilm[u, c]
+                if new_weight != 0:
+                    gain -= xlogx(new_weight) / 2
+                gain2 += LN(lilm[u, u]) + LN(lilm[c, c]) - LN(new_weight)
 
+                neic = set(ssp.find(lilm[c])[1])
+                for nei in neiu:
+                    if nei not in neic:
+                        continue
+                    if nei == u or nei == v:
+                        continue
+                    gain -= xlogx(lilm[u, nei])
+                    gain -= xlogx(lilm[c, nei])
+                    new_weight = lilm[u, nei] + lilm[c, nei]
+                    gain += xlogx(new_weight)
                     gain2 += LN(lilm[u, nei]) + \
                         LN(lilm[c, nei]) - LN(new_weight)
 
-                cost = -gain
                 gain += gain2
                 gain += LN(cnt) - LN(cnt-1)
                 size_u, size_v = sizes[u], sizes[v]
                 gain += LN(size_u)+LN(size_v)-LN(size_u+size_v)
                 gain += c_MDL.log_comb(size_u+size_v, size_u)
+                common_nei = len(neiu & neic)
                 new_nnz = nnz - common_nei
+                if (u in neiu) and (c in neic) and (c not in neiu):
+                    new_nnz -= 1
                 gain += LN(nnz) - LN(new_nnz)
                 # gain += common_nei * self.B
-                gain -= c_MDL.LnU(cnt*(cnt-1) // 2, new_nnz)
                 gain += len_matrix
+                gain -= c_MDL.LnU(cnt*(cnt-1) // 2, new_nnz)
+                if cnt*(cnt-1) // 2 < new_nnz:
+                    logger.warning(f"Wrong parameter: {cnt}ï¼Œ {new_nnz}")
+                    end = True
+                    break
 
-                if gain > max_:
-                    max_ = gain
-                    g_common_nei = common_nei
+                if gain > max_gain:
+                    max_gain = gain
+                    g_new_nnz = new_nnz
                     v = c
-                    g_cost = cost
+                    neiv = neic
             if end:
                 break
             if v == -1:
@@ -174,15 +189,14 @@ class Summarizer:
                     end = True
                 continue
             non_gain = 0
-            re_error += g_cost
 
-            logger.debug(f"Merge {u} and {v}, gain: {max_}, cost:{g_cost}")
+            # Merge u and v
+            logger.debug(f"Merge {u} and {v}, gain: {max_gain}")
             nodes[u] = nodes[u] | nodes[v]
             if v in nodes:
                 del nodes[v]
-            length -= max_
+            length -= max_gain
             logger.debug(f"Current length: {length}")
-            neiv = set(ssp.find(lilm[v])[1])
 
             # Update degree and sizes
             pt.update(u, (degs[u] + degs[v], u))
@@ -200,9 +214,7 @@ class Summarizer:
             lilm[v] = 0
             lilm[:, v] = 0
             cnt -= 1
-            nnz -= g_common_nei
-
-            # Update LSH
+            nnz = g_new_nnz
             mu = minhashes[u]
             for nei in (neiu | neiv):
                 if nei not in neiu:
@@ -228,7 +240,6 @@ class Summarizer:
 
         elapsed = time.time() - start_time
         logger.info(f"Summarize {N} nodes to {cnt} nodes, costs {elapsed} seconds, final length: {length}")
-        logger.info(f"Total cost: {re_error}/{re_error/N}")
 
         if not os.path.exists(os.path.join(output_dir, dataset)):
             os.makedirs(os.path.join(output_dir, dataset))

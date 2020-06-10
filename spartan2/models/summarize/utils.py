@@ -8,7 +8,7 @@ from collections import defaultdict
 
 def read_edgelist(path, comments='%', delimeter=' ', undir=True, sm_type='csr'):
     node2idx = dict()
-    rows, cols = [], []
+    rows, cols, values = [], [], []
     with open(path, 'r') as f:
         for line in f:
             line = line.strip()
@@ -29,12 +29,19 @@ def read_edgelist(path, comments='%', delimeter=' ', undir=True, sm_type='csr'):
 
             rows.append(node2idx[source])
             cols.append(node2idx[target])
-            if undir:
-                rows.append(node2idx[target])
-                cols.append(node2idx[source])
+            if len(elems) > 2:
+                values.append(elems[2])
+            else:
+                values.append(1)
 
     N = len(node2idx)
-    coom = ssp.coo_matrix(([1] * len(rows), (rows, cols)), shape=(N, N), dtype=np.int32)
+    coom = ssp.coo_matrix((values, (rows, cols)), shape=(N, N), dtype=np.int32)
+    if undir:
+        coomt = coom.T
+        coom = coom.maximum(coomt)
+        for i, j, v in zip(*ssp.find(coom)):
+            if i == j:
+                coom[i, j] = 2 * v
     if sm_type == 'csr':
         sm = coom.tocsr()
     elif sm_type == 'csc':
@@ -47,7 +54,6 @@ def read_edgelist(path, comments='%', delimeter=' ', undir=True, sm_type='csr'):
         print("Only support csr/csc/coo/lil currently")
         sm = coom
 
-    sm[sm>1] = 1
     if sm_type == 'csr' or sm_type == 'csc':
         sm.sort_indices()
     return sm, node2idx
