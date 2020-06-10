@@ -46,10 +46,11 @@ class Summarizer:
     def __init__(self, sm):
         self.sm = sm.tolil()
 
-    def summarize(self, dataset, output_dir):
+    def summarize(self, dataset, output_dir='./output'):
         lilm = self.sm
         N = lilm.shape[0]
-        M = lilm.sum() // 2
+        M = (lilm.sum() - lilm.diagonal().sum()) // 2
+        M += lilm.diagonal().sum()
         nnz = M
 
         degs = np.array(lilm.sum(axis=1))
@@ -121,7 +122,7 @@ class Summarizer:
             neiu = set(ssp.find(lilm[u])[1])
             max_, v = 0, -1
 
-            len_matrix = c_MDL.LnU(cnt*(cnt-1) // 2, nnz)
+            len_matrix = c_MDL.LnU(cnt*(cnt+1) // 2, nnz)
             g_common_nei = 0
             g_cost = 0
             for c in candidates:
@@ -132,7 +133,6 @@ class Summarizer:
 
                 gain = du * math.log2(du) + dc * math.log2(dc)
                 gain -= (du + dc) * math.log2(du + dc)
-                gain *= 2
 
                 gain2 = 0
                 common_nei = 0
@@ -155,8 +155,9 @@ class Summarizer:
                 gain += LN(size_u)+LN(size_v)-LN(size_u+size_v)
                 gain += c_MDL.log_comb(size_u+size_v, size_u)
                 new_nnz = nnz - common_nei
+                gain += LN(nnz) - LN(new_nnz)
                 # gain += common_nei * self.B
-                gain -= c_MDL.LnU((cnt-1)*(cnt-2) // 2, new_nnz)
+                gain -= c_MDL.LnU(cnt*(cnt-1) // 2, new_nnz)
                 gain += len_matrix
 
                 if gain > max_:
@@ -179,7 +180,7 @@ class Summarizer:
             nodes[u] = nodes[u] | nodes[v]
             if v in nodes:
                 del nodes[v]
-            length -= gain
+            length -= max_
             logger.debug(f"Current length: {length}")
             neiv = set(ssp.find(lilm[v])[1])
 
@@ -229,9 +230,11 @@ class Summarizer:
         logger.info(f"Summarize {N} nodes to {cnt} nodes, costs {elapsed} seconds, final length: {length}")
         logger.info(f"Total cost: {re_error}/{re_error/N}")
 
-        output_file = './output/summaried.mat'.format(dataset)
+        if not os.path.exists(os.path.join(output_dir, dataset)):
+            os.makedirs(os.path.join(output_dir, dataset))
+        output_file = os.path.join(output_dir, f'{dataset}/summarized.m')
         scipy.io.savemat(output_file, {'sm': lilm})
-        output_file = './output/{}/nodes.dict'.format(dataset)
+        output_file = os.path.join(output_dir, f'{dataset}/nodes.dict')
         pickle.dump(nodes, open(output_file, 'wb'))
 
         return lilm, nodes

@@ -61,6 +61,8 @@ class PriorityTree:
         def lesser(idx1, idx2):
             if self.values[idx1][0] == math.inf:
                 return False
+            if self.values[idx2][0] == math.inf:
+                return True
             if self.visited_time[idx1] > self.visited_time[idx2]:
                 return False
             if self.visited_time[idx1] == self.visited_time[idx2]:
@@ -79,11 +81,6 @@ class PriorityTree:
             dright, right_idx = right_val
 
             minAtLeft = lesser(left_idx, right_idx)
-            # if self.visited_time[left_idx] > self.visited_time[right_idx]:
-            #     minAtLeft = False
-            # elif self.visited_time[left_idx] == self.visited_time[right_idx]:
-            #     if dleft > dright:
-            #         minAtLeft = False
             if minAtLeft:
                 parent.min_at_left = True
                 parent.min_val = left_val
