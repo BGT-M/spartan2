@@ -14,7 +14,7 @@ import scipy.sparse as ssp
 from datasketch import MinHashLSH, MinHash
 
 from . import c_MDL
-from PriorityTree import PriorityTree, PTNode
+from .PriorityTree import PriorityTree, PTNode
 
 logger = logging.getLogger('summarize')
 logger.setLevel(logging.DEBUG)
@@ -38,6 +38,9 @@ if len(logger.handlers) < 2:
 def LN(n):
     return c_MDL.LN(n)
 
+@functools.lru_cache(maxsize=10000)
+def xlogx(x):
+    return x * math.log2(x)
 
 class Summarizer:
     B = 8
@@ -69,22 +72,15 @@ class Summarizer:
         logger.info(f"Init length: {length}")
 
         # Initialize MinHash LSH
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-        lsh_path = os.path.join(output_dir, f'{dataset}.lsh')
-        if os.path.exists(lsh_path):
-            lsh, minhashes = pickle.load(open(lsh_path, 'rb'))
-        else:
-            lsh = MinHashLSH(threshold=0.4, num_perm=64)
-            minhashes = [None] * N
-            for n in range(N):
-                m = MinHash(num_perm=64, hashfunc=hash, seed=1024)
-                neighbors = ssp.find(lilm[n])[1]
-                for nei in neighbors:
-                    m.update(nei)
-                minhashes[n] = m
-                lsh.insert(str(n), m)
-            pickle.dump([lsh, minhashes], open(lsh_path, 'wb'))
+        lsh = MinHashLSH(threshold=0.4, num_perm=64)
+        minhashes = [None] * N
+        for n in range(N):
+            m = MinHash(num_perm=64, hashfunc=hash, seed=1024)
+            neighbors = ssp.find(lilm[n])[1]
+            for nei in neighbors:
+                m.update(nei)
+            minhashes[n] = m
+            lsh.insert(str(n), m)
 
         start_time = time.time()
         cnt = N
@@ -240,12 +236,5 @@ class Summarizer:
 
         elapsed = time.time() - start_time
         logger.info(f"Summarize {N} nodes to {cnt} nodes, costs {elapsed} seconds, final length: {length}")
-
-        if not os.path.exists(os.path.join(output_dir, dataset)):
-            os.makedirs(os.path.join(output_dir, dataset))
-        output_file = os.path.join(output_dir, f'{dataset}/summarized.m')
-        scipy.io.savemat(output_file, {'sm': lilm})
-        output_file = os.path.join(output_dir, f'{dataset}/nodes.dict')
-        pickle.dump(nodes, open(output_file, 'wb'))
 
         return lilm, nodes
