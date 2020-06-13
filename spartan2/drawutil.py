@@ -12,7 +12,7 @@ def drawScatterPoints(xs, ys, outfig=None, suptitle="scatter points",
     plt.xlabel(xlabel)
     if outfig is not None:
         fig.savefig(outfig)
-    return fig
+    return ''
 
 
 def drawHexbin(xs, ys, outfig=None, xscale='log', yscale='log',
@@ -67,11 +67,11 @@ def drawHexbin(xs, ys, outfig=None, xscale='log', yscale='log',
     plt.ylabel(ylabel)
     if outfig is not None:
         fig.savefig(outfig)
-    return fig
+    return ''
 
 
 def drawRectbin(xs, ys, outfig=None, xscale='log', yscale='log',
-                gridsize=200,
+                gridsize=100,
                 colorscale=True,
                 suptitle='Rectangle binning points',
                 xlabel='', ylabel=''):
@@ -113,7 +113,7 @@ def drawRectbin(xs, ys, outfig=None, xscale='log', yscale='log',
     else:
         y_space = ygridsize
 
-    hist = plt.hist2d(xs, ys, bins=(x_space, y_space), cmin=1, norm=cnorm,
+    plt.hist2d(xs, ys, bins=(x_space, y_space), cmin=1, norm=cnorm,
             cmap=plt.cm.jet )
     plt.xscale(xscale)
     plt.yscale(yscale)
@@ -130,7 +130,7 @@ def drawRectbin(xs, ys, outfig=None, xscale='log', yscale='log',
 
     if outfig is not None:
         fig.savefig(outfig)
-    return fig, hist
+    return ''
 
 
 def drawTimeseries(T, S, bins='auto', savepath='', savefn=None, dumpfn=None):
@@ -182,9 +182,9 @@ class RectHistogram:
        '''
     xscale = 'log'
     yscale = 'log'
-    gridsize = 200
+    gridsize = 100
 
-    def __init__(self, xscale='log', yscale='log', gridsize=200):
+    def __init__(self, xscale='log', yscale='log', gridsize=100):
         self.xscale = xscale
         self.yscale = yscale
         self.gridsize = gridsize
@@ -250,7 +250,7 @@ class RectHistogram:
 
         if outfig is not None:
             fig.savefig(outfig)
-        return fig, H, xedges, yedges
+        return H, xedges, yedges
 
     def find_peak_rect(self, xs, ys, H, xedges, yedges, x, y, radius):
         '''
