@@ -1,1 +1,1 @@
-from ..tensor.tensor import STTensor
+from spartan.tensor.tensor import STTensor
