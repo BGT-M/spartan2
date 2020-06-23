@@ -6,12 +6,13 @@
 '''
 
 # here put the import lib
-from .. import STTensor
-from .._model import Model
+
+from . import STTensor, Model
 
 _policy_dict = {
 
 }
+
 
 def get_policy(policy: str) -> Model:
     '''Get model class from policy string.
@@ -20,7 +21,7 @@ def get_policy(policy: str) -> Model:
     ----------
     policy : str
         name of model
-    
+
     Returns
     ----------
     ret_val : Model
