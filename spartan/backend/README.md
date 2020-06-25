@@ -3,7 +3,7 @@
 By default, `numpy` is used. You can change it in config file (default position: `~/.spartan/config.json`).
 ```json
 {
-    'backend': <backend_name>
+    "backend": "<backend_name>"
 }
 ```
 Setting the environment varaiable `SPARTAN_BACKEND` does the same, and it has higher priority than the config file.
