@@ -7,32 +7,10 @@
 
 # here put the import lib
 
-from . import STTensor, Model
+from . import STTensor
+from . import Model
 
-_policy_dict = {
-
-}
-
-
-def get_policy(policy: str) -> Model:
-    '''Get model class from policy string.
-
-    Attributes
-    ----------
-    policy : str
-        name of model
-
-    Returns
-    ----------
-    ret_val : Model
-
-    '''
-    ret_val = None
-    if not _policy_dict.__contains__(policy):
-        raise KeyError(f"{policy} is not supported.")
-    else:
-        ret_val = _policy_dict[policy]
-    return ret_val
+import importlib
 
 
 class Task():
@@ -71,7 +49,7 @@ class Task():
         tensor : STTensor
             data object
         policy : str
-            model object
+            model path, defined by an enum class
         model_name : str
             model name string
         params : dict
@@ -82,11 +60,15 @@ class Task():
         Task
             object for task
         '''
-        model_cls = get_policy(policy)
-        model = model_cls(model_name)
+        try:
+            model_cls = importlib.import_module(policy.value).__call__()
+        except Exception as e:
+            print(e)
+            raise Exception(f"{policy} Not Supported!")
+        model = model_cls.__create__(tensor, params)
         obj = cls()
         obj.tensor = tensor
-        obj.policy = model
+        obj.model = model
         obj.model_name = model_name
         obj.params = params
         return obj

@@ -6,7 +6,11 @@
 '''
 
 # here put the import lib
+
+from . import MODEL_PATH
+
 from ._task import Task
+from enum import Enum
 
 
 class Forecast(Task):
@@ -14,4 +18,19 @@ class Forecast(Task):
     '''
 
     def run(self):
-        return self.policy.forecast(self.params)
+        '''Call forecast function of selected model.
+        '''
+        return self.model.forecast(self.params)
+
+    @classmethod
+    def list_models(cls):
+        '''List models which can do forecast task.
+        '''
+        for name in ForePolicy.__members__:
+            print(name)
+
+
+class ForePolicy(Enum):
+    '''Registration for path of models who can do forecast task.
+    '''
+    pass

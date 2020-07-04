@@ -6,7 +6,11 @@
 '''
 
 # here put the import lib
+
+from . import MODEL_PATH
+
 from ._task import Task
+from enum import Enum
 
 
 class AnomalyDetection(Task):
@@ -14,4 +18,19 @@ class AnomalyDetection(Task):
     '''
 
     def run(self):
-        return self.policy.anomaly_detection(self.params)
+        '''Call anomaly detection function of selected model.
+        '''
+        return self.model.anomaly_detection(self.params)
+    
+    @classmethod
+    def list_models(cls):
+        '''List models which can do anomaly detection task.
+        '''
+        for name in ADPolicy.__members__:
+            print(name)
+
+
+class ADPolicy(Enum):
+    '''Registration for path of models who can do anomaly detection task.
+    '''
+    pass
