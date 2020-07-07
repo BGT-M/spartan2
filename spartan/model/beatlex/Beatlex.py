@@ -23,7 +23,6 @@ class BeatLex(DMmodel):
         else:
             self.models = []
 
-    
     @classmethod
     def __create__(cls, tensor, params):
         _obj = cls(tensor, params)
@@ -236,6 +235,7 @@ class BeatLex(DMmodel):
             func()
         else:
             raise KeyError(f'{task} Not Supported!')
+
 
 def __call__():
     return BeatLex
