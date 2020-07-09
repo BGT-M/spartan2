@@ -23,11 +23,6 @@ class BeatLex(DMmodel):
         else:
             self.models = []
 
-    @classmethod
-    def __create__(cls, tensor, params):
-        _obj = cls(tensor, params)
-        return _obj
-
     def _summarize_sequence(self):
         if len(self.models) == 0:
             start_init_pos = 0
@@ -235,7 +230,3 @@ class BeatLex(DMmodel):
             func()
         else:
             raise KeyError(f'{task} Not Supported!')
-
-
-def __call__():
-    return BeatLex

@@ -10,10 +10,6 @@ E.g. ./beatlex/Beatlex.py
 class Beatlex(DMmodel):
     def __init__(self):
         pass
-    
-    # design for create model object
-    def __create__(cls):
-        pass
 
     # design for summarization task
     def summarization(self, params=None):
