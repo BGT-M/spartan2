@@ -1,4 +1,4 @@
-from spartan.tensor.tensor import STTensor
+from spartan.tensor import STTensor
 
 from .ioutil import loadTensor
 
