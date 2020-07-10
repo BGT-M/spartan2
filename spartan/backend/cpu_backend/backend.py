@@ -1,7 +1,9 @@
 from typing import Union
+import functools
 import numpy as np
+import scipy.sparse as ssp
 
-from .tensor import DTensor, STensor
+from .tensor import DTensor, STensor, _wrap_ret, _require_dense, _check_params
 
 # Type definition
 short = np.short
@@ -17,527 +19,543 @@ complex64 = np.complex64
 complex128 = np.complex128
 
 
-def _wrap_ret(ret):
-    if isinstance(ret, np.ndarray):
-        return DTensor(ret)
-    else:
-        return ret
-
-
-def _check_dense(input_, func, other=None):
-    if not isinstance(input_, DTensor):
-        raise TypeError(
-            f"`st.{func.__name__}` does not support {type(input_)} type.")
-    if other is not None:
-        if not isinstance(other, DTensor):
-            raise TypeError(
-                f"`st.{func.__name__}` does not support {type(other)} type.")
-
-
-def _check_param(input_, func):
-    if isinstance(input_, STensor):
-        return STensor
-    elif isinstance(input_, DTensor):
-        return DTensor
-    else:
-        raise TypeError(
-            f"`st.{func.__name__}` does not support {type(input_)} type.")
-
-
-def _check_params(input_, other, func):
-    if isinstance(input_, STensor) and isinstance(other, STensor):
-        return STensor
-    elif isinstance(input_, DTensor) and isinstance(other, DTensor):
-        return DTensor
-    else:
-        raise TypeError(
-            f"`st.{func.__name__}` does not support {type(input_)} and {type(other)} type.")
-
-
+@_wrap_ret()
+@_check_params(0, 1)
 def add(input_, other):
-    type_ = _check_params(input_, other, add)
-    return type_(np.add(input_.data, other.data))
+    return np.add(input_._data, other._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def all(input_, axis=None, keepdim=False):
-    _check_dense(input_, all)
-    ret = np.all(input_.data, axis=axis, keepdims=keepdim)
-    return _wrap_ret(ret)
+    return np.all(input_._data, axis=axis, keepdims=keepdim)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def allclose(input_, other, rtol=1e-05, atol=1e-08, equal_nan=False) -> bool:
-    _check_dense(input_, allclose, other)
-    return np.allclose(input_.data, other.data, rtol, atol, equal_nan)
+    return np.allclose(input_._data, other._data, rtol, atol, equal_nan)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def angle(input_, deg=False):
-    _check_dense(input_, angle)
-    ret = np.angle(input_.data, deg)
-    return _wrap_ret(ret)
+    return np.angle(input_._data, deg)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def any(input_, axis, keepdim=False):
-    _check_dense(input_, any)
-    ret = np.any(input_.data, axis, keepdim)
-    return _wrap_ret(ret)
+    return np.any(input_._data, axis, keepdim)
 
 
+@_wrap_ret()
 def arange(start, stop, step, dtype=None):
-    return DTensor(np.arange(start, stop, step, dtype=dtype))
+    return np.arange(start, stop, step, dtype=dtype)
 
 
+@_wrap_ret(squeeze=True)
+@_check_params(0)
 def argmax(input_, axis=None) -> DTensor:
-    type_ = _check_param(input_, argmax)
-    ret = np.argmax(input_.data, axis)
-    if type_ == STensor:
-        ret = np.array(ret).flatten()
-    return DTensor(ret)
+    return np.argmin(input_._data, axis)
 
 
+@_wrap_ret(squeeze=True)
+@_check_params(0)
 def argmin(input_, axis=None) -> DTensor:
-    type_ = _check_param(input_, argmin)
-    ret = np.argmin(input_.data, axis)
-    if type_ == STensor:
-        ret = np.array(ret).flatten()
-    return DTensor(ret)
+    return np.argmin(input_._data, axis)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def argsort(input_: DTensor, axis=-1) -> DTensor:
-    _check_dense(input_, argsort)
-    return DTensor(np.argsort(input_.data, axis))
+    return DTensor(np.argsort(input_._data, axis))
 
 
+@_wrap_ret()
+@_require_dense(0)
 def bincount(input_: DTensor, weights, minlength=0) -> DTensor:
-    _check_dense(input_, bincount)
-    return DTensor(np.bincount(input_.data, weights, minlength))
+    return np.bincount(input_._data, weights, minlength)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def bitwise_and(input_: DTensor, other: DTensor) -> DTensor:
-    _check_dense(input_, bitwise_and, other)
-    ret = np.bitwise_and(input_.data, other.data)
-    return _wrap_ret(ret)
+    return np.bitwise_and(input_._data, other._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def bitwise_not(input_, other):
-    _check_dense(input_, bitwise_and, other)
-    ret = np.bitwise_not(input_.data, other.data)
-    return _wrap_ret(ret)
+    return np.bitwise_not(input_._data, other._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def bitwise_or(input_, other):
-    _check_dense(input_, bitwise_or, other)
-    ret = np.bitwise_or(input_.data, other.data)
-    return _wrap_ret(ret)
+    return np.bitwise_or(input_._data, other._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def bitwise_xor(input_, other):
-    _check_dense(input_, bitwise_xor, other)
-    ret = np.bitwise_xor(input_.data, other.data)
-    return _wrap_ret(ret)
+    return np.bitwise_xor(input_._data, other._data)
 
 
 def can_cast(from_, to):
     return np.can_cast(from_, to)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def ceil(input_):
-    _check_dense(input_, ceil)
-    return DTensor(np.ceil(input_.data))
+    return np.ceil(input_._data)
 
 
+@_wrap_ret()
 def conj(input_):
-    type_ = _check_param(input_, conj)
-    return type_(np.conj(input_.data))
+    return np.conj(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def cos(input_):
-    _check_dense(input_, cos)
-    return DTensor(np.cos(input_.data))
+    return np.cos(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def cosh(input_):
-    _check_dense(input_, cosh)
-    return DTensor(np.cos(input_.data))
+    return np.cos(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def cross(input_, other, axis=-1):
-    _check_dense(input_, cross, other)
-    return DTensor(np.cross(input_.data, other.data, axis=axis))
+    return np.cross(input_._data, other._data, axis=axis)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def cumprod(input_, axis=None, dtype=None):
-    _check_dense(input_, cumprod)
-    return DTensor(np.cumprod(input_.data, axis=axis, dtype=dtype))
+    return np.cumprod(input_._data, axis=axis, dtype=dtype)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def cumsum(input_, axis=None, dtype=None):
-    _check_dense(input_, cumsum)
-    return DTensor(np.cumsum(input_.data, axis, dtype))
+    return np.cumsum(input_._data, axis, dtype)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def diag(input_, k):
-    _check_dense(input_, diag)
-    return DTensor(np.diag(input_.data, k))
+    return np.diag(input_._data, k)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def diagflat(input_, offset=0):
-    _check_dense(input_, diagflat)
-    return DTensor(np.diagflat(input_.data, offset))
+    return np.diagflat(input_._data, offset)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def diagonal(input_, offset, axis1=None, axis2=None):
-    _check_dense(input_, diagonal)
-    return DTensor(np.diagonal(input_.data, offset, axis1, axis2))
+    return np.diagonal(input_._data, offset, axis1, axis2)
 
 
+@_wrap_ret()
+@_check_params(0, 1)
 def dot(input_, other):
-    type_ = _check_params(input_, other, bitwise_and)
-    return type_(np.dot(input_.data, other.data))
+    return np.dot(input_._data, other._data)
 
 
+@_wrap_ret()
 def einsum(equation, *operands):
-    return DTensor(np.eigsum(equation, *operands))
+    return np.eigsum(equation, *operands)
 
 
+@_wrap_ret()
 def empty(shape, dtype):
-    return DTensor(np.empty(shape, dtype=dtype))
+    return np.empty(shape, dtype=dtype)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def empty_like(input_, dtype):
-    _check_dense(input_, empty_like)
-    return DTensor(np.empty_like(input_.data, dtype=dtype))
+    return np.empty_like(input_._data, dtype=dtype)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def equal(input_, other):
-    _check_dense(input_, equal, other)
-    return DTensor(np.equal(input_.data, other.data))
+    return np.equal(input_._data, other._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def exp(input_):
-    _check_dense(input_, exp)
-    return DTensor(np.exp(input_.data))
+    return np.exp(input_._data)
 
 
+@_wrap_ret()
 def expm1(input_):
-    type_ = _check_param(input_, expm1)
-    return type_(np.expm1(input_.data))
+    return np.expm1(input_._data)
 
 
+@_wrap_ret()
 def eye(n, m=None, dtype=None):
-    return DTensor(np.eye(n, m, dtype=dtype))
+    return Dnp.eye(n, m, dtype=dtype)
 
 
+@_wrap_ret()
+@_check_params(0)
 def flip(input_, axis=None):
-    type_ = _check_param(input_, flip)
-    return type_(np.flip(input_.data, axis))
+    return np.flip(input_._data, axis)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def floor(input_):
-    _check_dense(input_, floor)
-    return DTensor(np.floor(input_.data))
+    return np.floor(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def floor_divide(input_, other):
-    _check_dense(input_, floor_divide, other)
-    return DTensor(np.floor_divide(input_.data, other.data))
+    return np.floor_divide(input_._data, other._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def fmod(input_, other):
-    _check_dense(input_, fmod, other)
-    return DTensor(np.fmod(input_.data, other.data))
+    return np.fmod(input_._data, other._data)
 
 
+@_wrap_ret()
 def full(shape, value, dtype=None):
-    return DTensor(np.full(shape, value, dtype=dtype))
+    return np.full(shape, value, dtype=dtype)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def full_like(input_, value, dtype=None):
-    _check_dense(input_, full_like)
-    return DTensor(np.full_like(input_.data, value, dtype=dtype))
+    return np.full_like(input_._data, value, dtype=dtype)
 
 
+@_wrap_ret()
 def imag(input_):
-    type_ = _check_param(input_, imag)
-    return type_(np.imag(input_.data))
+    return np.imag(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def isfinite(input_):
-    _check_dense(input_, isfinite)
-    return DTensor(np.isfinite(input_.data))
+    return np.isfinite(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def isinf(input_):
-    _check_dense(input_, isinf)
-    return DTensor(np.isinf(input_.data))
+    return np.isinf(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def isnan(input_):
-    _check_dense(input_, isnan)
-    return DTensor(np.isnan(input_.data))
+    return np.isnan(input_._data)
 
 
+@_wrap_ret()
 def linspace(start, end, step, dtype=None):
-    return DTensor(np.linspace(start, end, step, dtype=dtype))
+    return np.linspace(start, end, step, dtype=dtype)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def log(input_):
-    _check_dense(input_, log)
-    return DTensor(np.log(input_.data))
+    return np.log(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def log10(input_):
-    _check_dense(input_, log10)
-    return DTensor(np.log10(input_.data))
+    return np.log10(input_._data)
 
 
+@_wrap_ret()
 def log1p(input_):
-    _check_dense(input_, log1p)
-    return DTensor(np.log1p(input_.data))
+    return np.log1p(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def log2(input_):
-    _check_dense(input_, log2)
-    return DTensor(np.log2(input_.data))
+    return np.log2(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def logical_and(input_, other):
-    _check_dense(input_, logical_and, other)
-    return DTensor(np.logical_and(input_.data, other.data))
+    return np.logical_and(input_._data, other._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def logical_not(input_):
-    _check_dense(input_, logical_not)
-    return DTensor(np.logical_not(input_.data))
+    return np.logical_not(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def logical_or(input_, other):
-    _check_dense(input_, logical_or, other)
-    return DTensor(np.logical_or(input_.data, other.data))
+    return np.logical_or(input_._data, other._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def logical_xor(input_, other):
-    _check_dense(input_, logical_xor, other)
-    return DTensor(np.logical_xor(input_.data, other.data))
+    return np.logical_xor(input_._data, other._data)
 
 
+@_wrap_ret()
 def logspace(start, stop, step, base=10, dtype=None):
-    return DTensor(np.logspace(start, stop, step, base=base, dtype=dtype))
+    return np.logspace(start, stop, step, base=base, dtype=dtype)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def matmul(input_, other):
-    _check_dense(input_, matmul, other)
-    return DTensor(np.matmul(input_.data, other.data))
+    return np.matmul(input_._data, other._data)
 
 
+@_wrap_ret()
 def mean(input_, axis=None, keepdim=False):
-    type_ = _check_param(input_, mean)
-    ret = np.mean(input_.data, axis, keepdims=keepdim)
-    if type_ == STensor:
-        ret = np.array(ret).flatten()
-    return DTensor(ret)
+    return np.mean(input_._data, axis, keepdims=keepdim)
 
 
-def median(input_, dim=-1, keepdim=False):
-    type_ = _check_param(input_, median)
-    ret = np.median(input_.data, axis, keepdims=keepdim)
-    if type_ == STensor:
-        ret = np.array(ret).flatten()
-    return DTensor(ret)
+@_wrap_ret()
+def median(input_, axis=-1, keepdim=False):
+    return np.median(input_._data, axis, keepdims=keepdim)
 
 
+@_wrap_ret()
 def meshgrid(*inputs):
-    datas = [i.data for i in inputs]
+    datas = [i._data for i in inputs]
     return tuple([DTensor(d) for d in np.meshgrid(*datas)])
 
 
+@_wrap_ret()
 def nonzero(input_):
-    return tuple([DTensor(d) for d in np.nonzero(input_.data)])
+    return tuple([DTensor(d) for d in np.nonzero(input_._data)])
 
 
+@_wrap_ret()
 def ones(shape, dtype=None):
-    return DTensor(np.ones(shape, dtype=dtype))
+    return np.ones(shape, dtype=dtype)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def ones_like(input_, dtype=None):
-    _check_dense(input_, ones_like)
-    return DTensor(np.ones_like(input_.data, dtype=dtype))
+    return np.ones_like(input_._data, dtype=dtype)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def prod(input_, axis=None, keepdim=False, dtype=None):
-    _check_dense(input_, prod)
-    ret = np.prod(input_.data, axis=axis, keepdims=keepdim, dtype=dtype)
-    return _wrap_ret(ret)
+    return np.prod(input_._data, axis=axis, keepdims=keepdim, dtype=dtype)
 
 
+@_wrap_ret()
 def real(input_):
-    type_ = _check_param(input_, real)
-    return type_(np.real(input_.data))
+    return np.real(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def reciprocal(input_):
-    _check_dense(input_, reciprocal)
-    return DTensor(np.reciprocal(input_.data))
+    return np.reciprocal(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def remainder(input_, other):
-    _check_dense(input_, remainder, other)
-    return DTensor(np.remainder(input_.data, other.data))
+    return np.remainder(input_._data, other._data)
 
 
+@_wrap_ret()
 def reshape(input_, shape):
-    type_ = _check_param(input_, reshape)
-    return type_(np.rehsape(input_.data, shape))
+    return np.rehsape(input_._data, shape)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def roll(input_, shift, axis=None):
-    _check_dense(input_, roll)
-    return DTensor(np.roll(input_.data, shift, axis=axis))
+    return np.roll(input_._data, shift, axis=axis)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def rot90(input_, k=1, axes=(0, 1)):
-    _check_dense(innput_, rot90)
-    return DTensor(np.rot90(input_.data, k, axes))
+    return np.rot90(input_._data, k, axes)
 
 
+@_wrap_ret()
 def round(input_):
-    type_ = _check_param(input_, round)
-    return type_(np.round(input_.data))
+    return np.round(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def sign(input_):
-    _check_dense(input_, sign)
-    return DTensor(np.sign(input_.data))
+    return np.sign(input_._data)
 
 
+@_wrap_ret()
 def sin(input_):
-    type_ = _check_param(input_, sin)
-    return type_(np.sin(input_.data))
+    return np.sin(input_._data)
 
 
+@_wrap_ret()
 def sinh(input_):
-    type_ = _check_param(input_, sinh)
-    return type_(np.sinh(input_.data))
+    return np.sinh(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def sort(input_, axis=-1):
-    _check_dense(input_, sort)
-    return DTensor(np.sort(input_.data, axis=axis))
+    return np.sort(input_._data, axis=axis)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def split(input_, indices_or_sections, axis=0):
-    _check_dense(input_, split)
-    return DTensor(np.split(input_.data, indices_or_sections, axis))
+    return np.split(input_._data, indices_or_sections, axis)
 
 
+@_wrap_ret()
 def sqrt(input_):
-    type_ = _check_param(input_, sqrt)
-    return type_(np.sqrt(input_.data))
+    return np.sqrt(input_._data)
 
 
+@_wrap_ret()
 def square(input_):
-    type_ = _check_param(input_, square)
-    return type_(np.square(input_.data))
+    return np.square(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def squeeze(input_, axis=None):
-    _check_dense(input_, squeeze)
-    return DTensor(np.squeeze(input_.data, axis=axis))
+    return np.squeeze(input_._data, axis=axis)
 
 
+@_wrap_ret()
 def stack(inputs, axis=0):
-    return DTensor(np.stack(inputs, axis))
+    return np.stack(inputs, axis)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def std(input_, axis=None, keepdim=False):
-    _check_dense(input_, std)
-    return DTensor(np.std(input_.data, axis=axis, dtype=dtype, keepdims=keepdim))
+    return np.std(input_._data, axis=axis, keepdims=keepdim)
 
 
+@_wrap_ret()
 def sum(input_, axis=None, dtype=None, keepdim=False):
-    ret = np.sum(input_.data, axis=axis, dtype=dtype, keepdims=keepdim)
-    return _wrap_ret(ret)
+    return np.sum(input_._data, axis=axis, dtype=dtype, keepdims=keepdim)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def take(input_, indices):
-    _check_dense(input_, take)
-    return DTensor(np.take(input_.data, indices))
+    return np.take(input_._data, indices)
 
 
+@_wrap_ret()
 def tan(input_):
-    type_ = _check_param(input_, tan)
-    return type_(np.tan(input_.data))
+    return np.tan(input_._data)
 
 
+@_wrap_ret()
 def tanh(input_):
-    type_ = _check_param(input_, tan)
-    return type_(np.tanh(input_.data))
+    return np.tanh(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def tensordot(input_, other, axes=2):
-    _check_dense(input_, tensordot, other)
-    return DTensor(np.tensordot(input_.data, other.data, axes))
+    return np.tensordot(input_._data, other._data, axes)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def trace(input_):
-    _check_dense(input_)
-    ret = np.trace(input_.data)
-    return _wrap_ret(ret)
+    return np.trace(input_._data)
 
 
+@_wrap_ret()
 def transpose(input_, axes=None):
-    type_ = _check_param(input_, transpose)
-    return type_(np.transpose(input_.data, axes))
+    return np.transpose(input_._data, axes)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def tril(input_, k=0):
-    _check_dense(input_, tril)
-    return DTensor(np.tril(input_.data, k))
+    return np.tril(input_._data, k)
 
 
+@_wrap_ret()
 def tril_indices(n, m=0, offset=0):
     ret = np.tril_indices(n, k=offset, m=m)
     return tuple([DTensor(index) for index in ret])
 
 
+@_require_dense(0)
 def triu(input_, k=0):
-    _check_dense(input_, triu)
-    return DTensor(np.triu(input_.data, k))
+    return np.triu(input_._data, k)
 
 
+@_wrap_ret()
 def triu_indices(n, m=0, offset=0):
     ret = np.triu_indices(n, k=offset, m=m)
     return tuple([DTensor(index) for index in ret])
 
 
+@_wrap_ret()
 def true_divide(input_, other):
-    return DTensor(np.true_divide(input_.data, other.data))
+    return np.true_divide(input_._data, other._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def trunc(input_):
-    _check_dense(input_, trunc)
-    return DTensor(np.trunc(input_.data))
+    return np.trunc(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def unique(input_, return_inverse=False, return_counts=False, axis=None):
-    _check_dense(input_, unique)
-    return DTensor(np.unique(input_.data, return_inverse=return_inverse, return_counts=return_counts, axis=axis))
+    return np.unique(input_._data, return_inverse=return_inverse, return_counts=return_counts, axis=axis)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def var(input_, axis=None, keepdim=False):
-    _check_dense(input_, var)
-    ret = np.var(input_.data, axis, keepdims=keepdim)
-    return _wrap_ret(ret)
+    return np.var(input_._data, axis, keepdims=keepdim)
 
 
+@_require_dense(1, 2)
 def where(condition, x, y):
-    _check_dense(x, where, y)
-    return DTensor(np.where(condition, x, y))
+    return np.where(condition, x, y)
 
 
+@_wrap_ret()
 def zeros(shape, dtype=None):
-    return DTensor(np.zeros(shape, dtype=dtype))
+    return np.zeros(shape, dtype=dtype)
 
 
+@_require_dense(0)
 def zeros_like(input_, dtype=None):
-    _check_dense(input_, zeros_like)
-    return DTensor(np.zeros_like(input_.data, dtype=dtype))
+    return np.zeros_like(input_._data, dtype=dtype)
