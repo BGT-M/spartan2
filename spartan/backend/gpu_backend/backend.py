@@ -1,6 +1,6 @@
 import math
 import torch
-from .tensor import STensor, DTensor
+from .tensor import STensor, DTensor, _check_params, _require_dense, _wrap_ret
 
 # Type definition
 short = torch.short
@@ -16,553 +16,569 @@ complex64 = torch.complex64
 complex128 = torch.complex128
 
 
-def _wrap_ret(ret):
-    if isinstance(ret, torch.Tensor):
-        return DTensor(ret)
-    else:
-        return ret
-
-
-def _check_dense(input_, func, other=None):
-    if not isinstance(input_, DTensor):
-        raise TypeError(
-            f"`st.{func.__name__}` does not support {type(input_)} type.")
-    if other is not None:
-        if not isinstance(other, DTensor):
-            raise TypeError(
-                f"`st.{func.__name__}` does not support {type(other)} type.")
-
-
-def _check_single(input_, func):
-    if isinstance(input_, STensor):
-        return STensor
-    elif isinstance(input_, DTensor):
-        return DTensor
-    else:
-        raise TypeError(
-            f"`st.{func.__name__}` does not support {type(input_)} type.")
-
-
-def _check_double(input_, other, func):
-    if isinstance(input_, STensor) and isinstance(other, STensor):
-        return STensor
-    elif isinstance(input_, DTensor) and isinstance(other, DTensor):
-        return DTensor
-    else:
-        raise TypeError(
-            f"`st.{func.__name__}` does not support {type(input_)} and {type(other)} type.")
-
-
+@_wrap_ret()
+@_check_params(0, 1)
 def add(input_, other):
-    # type_ = _check_double(input_, other, add)
-    return type_(torch.add(input_.data, other.data))
+    return torch.add(input_._data, other._data)
 
 
-def all(input_, dim=None, keepdim=False):
-    _check_dense(input_, all)
-    ret = torch.all(input_.data, dim=dim, keepdim=keepdim)
-    return _wrap_ret(ret)
+@_wrap_ret()
+@_require_dense(0)
+def all(input_, axis=None, keepdim=False):
+    return torch.all(input_._data, dim=axis, keepdim=keepdim)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def allclose(input_, other, rtol=1e-05, atol=1e-08, equal_nan=False) -> bool:
-    _check_dense(input_, allclose, other)
-    return torch.allclose(input_.data, other.data, rtol, atol, equal_nan)
+    return torch.allclose(input_._data, other._data, rtol, atol, equal_nan)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def angle(input_, deg=False):
-    _check_dense(input_, angle)
     if deg:
         ret = torch.angle(input_) * 180 / math.pi
     else:
         ret = torch.angle(input_)
-    return _wrap_ret(ret)
+    return ret
 
 
-def any(input_, dim, keepdim=False):
-    _check_dense(input_, any)
-    ret = torch.any(input_.data, dim, keepdim)
-    return _wrap_ret(ret)
+@_wrap_ret()
+@_require_dense(0)
+def any(input_, axis, keepdim=False):
+    return torch.any(input_._data, axis, keepdim)
 
 
+@_wrap_ret()
 def arange(start, stop, step, dtype=None):
-    return DTensor(torch.arange(start, stop, step, dtype=dtype))
+    return torch.arange(start, stop, step, dtype=dtype)
 
 
-def argmax(input_, dim=None) -> DTensor:
-    type_ = _check_single(input_, argmax)
-    if dim is None:
-        ret = torch.argmin(input_)
+@_wrap_ret()
+@_check_params(0)
+def argmax(input_, axis=None):
+    if axis is None:
+        return torch.argmin(input_)
     else:
-        ret = torch.argmax(input_, dim=dim)
-    # if type_ == STensor:
-    #     ret = torch.tensor(ret).flatten()
-    return DTensor(ret)
+        return torch.argmax(input_, dim=axis)
 
 
-def argmin(input_, dim=None) -> DTensor:
-    if dim is None:
-        ret = torch.argmin(input_)
+@_wrap_ret()
+@_check_params(0)
+def argmin(input_, axis=None) -> DTensor:
+    if axis is None:
+        return torch.argmin(input_)
     else:
-        ret = torch.argmax(input_, dim=dim)
-    # if type_ == STensor:
-    #     ret = torch.tensor(ret).flatten()
-    return DTensor(ret)
+        return torch.argmax(input_, dim=axis)
 
 
-def argsort(input_: DTensor, dim=-1) -> DTensor:
-    _check_dense(input_, argsort)
-    return DTensor(torch.argsort(input_.data, dim=dim))
+@_wrap_ret()
+@_require_dense(0)
+def argsort(input_: DTensor, axis=-1) -> DTensor:
+    return torch.argsort(input_._data, dim=axis)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def bincount(input_: DTensor, weights, minlength=0) -> DTensor:
-    _check_dense(input_, bincount)
-    return DTensor(torch.bincount(input_.data, weights, minlength))
+    return torch.bincount(input_._data, weights, minlength)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def bitwise_and(input_: DTensor, other: DTensor) -> DTensor:
-    _check_dense(input_, bitwise_and, other)
-    ret = torch.bitwise_and(input_.data, other.data)
-    return _wrap_ret(ret)
+    return torch.bitwise_and(input_._data, other._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def bitwise_not(input_, other):
-    _check_dense(input_, bitwise_and, other)
-    ret = torch.bitwise_not(input_.data, other.data)
-    return _wrap_ret(ret)
+    return torch.bitwise_not(input_._data, other._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def bitwise_or(input_, other):
-    _check_dense(input_, bitwise_or, other)
-    ret = torch.bitwise_or(input_.data, other.data)
-    return _wrap_ret(ret)
+    return torch.bitwise_or(input_._data, other._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def bitwise_xor(input_, other):
-    _check_dense(input_, bitwise_xor, other)
-    ret = torch.bitwise_xor(input_.data, other.data)
-    return _wrap_ret(ret)
+    return torch.bitwise_xor(input_._data, other._data)
 
 
 def can_cast(from_, to):
     return torch.can_cast(from_, to)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def ceil(input_):
-    _check_dense(input_, ceil)
-    return DTensor(torch.ceil(input_.data))
+    return torch.ceil(input_._data)
 
 
+@_wrap_ret()
 def conj(input_):
-    type_ = _check_single(input_, conj)
-    return type_(torch.conj(input_.data))
+    return torch.conj(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def cos(input_):
-    _check_dense(input_, cos)
-    return DTensor(torch.cos(input_.data))
+    return torch.cos(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def cosh(input_):
-    _check_dense(input_, cosh)
-    return DTensor(torch.cos(input_.data))
+    return torch.cos(input_._data)
 
 
-def cross(input_, other, dim=-1):
-    _check_dense(input_, cross, other)
-    return DTensor(torch.cross(input_.data, other.data, dim=dim))
+@_wrap_ret()
+@_require_dense(0, 1)
+def cross(input_, other, axis=-1):
+    return torch.cross(input_._data, other._data, dim=axis)
 
 
-def cumprod(input_, dim=None, dtype=None):
-    _check_dense(input_, cumprod)
-    return DTensor(torch.cumprod(input_.data, dim=dim, dtype=dtype))
+@_wrap_ret()
+@_require_dense(0)
+def cumprod(input_, axis=None, dtype=None):
+    return torch.cumprod(input_._data, dim=axis, dtype=dtype)
 
 
-def cumsum(input_, dim=None, dtype=None):
-    _check_dense(input_, cumsum)
-    return DTensor(torch.cumsum(input_.data, dim, dtype))
+@_wrap_ret()
+@_require_dense(0)
+def cumsum(input_, axis=None, dtype=None):
+    return torch.cumsum(input_._data, axis, dtype)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def diag(input_, k):
-    _check_dense(input_, diag)
-    return DTensor(torch.diag(input_.data, k))
+    return torch.diag(input_._data, k)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def diagflat(input_, offset=0):
-    _check_dense(input_, diagflat)
-    return DTensor(torch.diagflat(input_.data, offset))
+    return torch.diagflat(input_._data, offset)
 
 
-def diagonal(input_, offset, dim1=None, dim2=None):
-    _check_dense(input_, diagonal)
-    return DTensor(torch.diagonal(input_.data, offset, dim1, dim2))
+@_wrap_ret()
+@_require_dense(0)
+def diagonal(input_, offset, axis1=None, axis2=None):
+    return torch.diagonal(input_._data, offset, axis1, axis2)
 
 
+@_wrap_ret()
+@_check_params(0, 1)
 def dot(input_, other):
-    type_ = _check_double(input_, other, bitwise_and)
-    return type_(torch.dot(input_.data, other.data))
+    return torch.dot(input_._data, other._data)
 
 
+@_wrap_ret()
 def einsum(equation, *operands):
-    return DTensor(torch.eigsum(equation, *operands))
+    return torch.eigsum(equation, *operands)
 
 
+@_wrap_ret()
 def empty(shape, dtype):
-    return DTensor(torch.empty(shape, dtype=dtype))
+    return torch.empty(shape, dtype=dtype)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def empty_like(input_, dtype):
-    _check_dense(input_, empty_like)
-    return DTensor(torch.empty_like(input_.data, dtype=dtype))
+    return torch.empty_like(input_._data, dtype=dtype)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def equal(input_, other):
-    _check_dense(input_, equal, other)
-    return DTensor(torch.equal(input_.data, other.data))
+    return torch.equal(input_._data, other._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def exp(input_):
-    _check_dense(input_, exp)
-    return DTensor(torch.exp(input_.data))
+    return torch.exp(input_._data)
 
 
+@_wrap_ret()
 def expm1(input_):
-    type_ = _check_single(input_, expm1)
-    return type_(torch.expm1(input_.data))
+    return torch.expm1(input_._data)
 
 
+@_wrap_ret()
 def eye(n, m=None, dtype=None):
-    return DTensor(torch.eye(n, m, dtype=dtype))
+    return torch.eye(n, m, dtype=dtype)
 
 
-def flip(input_, dim=None):
-    type_ = _check_single(input_, flip)
-    return type_(torch.flip(input_.data, dim))
+@_wrap_ret()
+@_check_params(0)
+def flip(input_, axis=None):
+    return torch.flip(input_._data, axis)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def floor(input_):
-    _check_dense(input_, floor)
-    return DTensor(torch.floor(input_.data))
+    return torch.floor(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def floor_divide(input_, other):
-    _check_dense(input_, floor_divide, other)
-    return DTensor(torch.floor_divide(input_.data, other.data))
+    return torch.floor_divide(input_._data, other._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def fmod(input_, other):
-    _check_dense(input_, fmod, other)
-    return DTensor(torch.fmod(input_.data, other.data))
+    return torch.fmod(input_._data, other._data)
 
 
+@_wrap_ret()
 def full(shape, value, dtype=None):
-    return DTensor(torch.full(shape, value, dtype=dtype))
+    return torch.full(shape, value, dtype=dtype)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def full_like(input_, value, dtype=None):
-    _check_dense(input_, full_like)
-    return DTensor(torch.full_like(input_.data, value, dtype=dtype))
+    return torch.full_like(input_._data, value, dtype=dtype)
 
 
+@_wrap_ret()
 def imag(input_):
-    type_ = _check_single(input_, imag)
-    return type_(torch.imag(input_.data))
+    return torch.imag(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def isfinite(input_):
-    _check_dense(input_, isfinite)
-    return DTensor(torch.isfinite(input_.data))
+    return torch.isfinite(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def isinf(input_):
-    _check_dense(input_, isinf)
-    return DTensor(torch.isinf(input_.data))
+    return torch.isinf(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def isnan(input_):
-    _check_dense(input_, isnan)
-    return DTensor(torch.isnan(input_.data))
+    return torch.isnan(input_._data)
 
 
+@_wrap_ret()
 def linspace(start, end, step, dtype=None):
-    return DTensor(torch.linspace(start, end, step, dtype=dtype))
+    return torch.linspace(start, end, step, dtype=dtype)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def log(input_):
-    _check_dense(input_, log)
-    return DTensor(torch.log(input_.data))
+    return torch.log(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def log10(input_):
-    _check_dense(input_, log10)
-    return DTensor(torch.log10(input_.data))
+    return torch.log10(input_._data)
 
 
+@_wrap_ret()
 def log1p(input_):
-    _check_dense(input_, log1p)
-    return DTensor(torch.log1p(input_.data))
+    return torch.log1p(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def log2(input_):
-    _check_dense(input_, log2)
-    return DTensor(torch.log2(input_.data))
+    return torch.log2(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def logical_and(input_, other):
-    _check_dense(input_, logical_and, other)
-    return DTensor(torch.logical_and(input_.data, other.data))
+    return torch.logical_and(input_._data, other._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def logical_not(input_):
-    _check_dense(input_, logical_not)
-    return DTensor(torch.logical_not(input_.data))
+    return torch.logical_not(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def logical_or(input_, other):
-    _check_dense(input_, logical_or, other)
-    return DTensor(torch.logical_or(input_.data, other.data))
+    return torch.logical_or(input_._data, other._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def logical_xor(input_, other):
-    _check_dense(input_, logical_xor, other)
-    return DTensor(torch.logical_xor(input_.data, other.data))
+    return torch.logical_xor(input_._data, other._data)
 
 
+@_wrap_ret()
 def logspace(start, stop, step, base=10, dtype=None):
-    return DTensor(torch.logspace(start, stop, step, base=base, dtype=dtype))
+    return torch.logspace(start, stop, step, base=base, dtype=dtype)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def matmul(input_, other):
-    _check_dense(input_, matmul, other)
-    return DTensor(torch.matmul(input_.data, other.data))
+    return torch.matmul(input_._data, other._data)
 
 
-def mean(input_, dim=None, keepdim=False):
-    type_ = _check_single(input_, mean)
-    if dim is None:
-        ret = torch.mean(input_.data)
+@_wrap_ret()
+def mean(input_, axis=None, keepdim=False):
+    if axis is None:
+        ret = torch.mean(input_._data)
     else:
-        ret = torch.mean(input_.data, dim=dim, keepdim=keepdim)
-    # if type_ == STensor:
-    #     ret = torch.array(ret).flatten()
-    return DTensor(ret)
+        ret = torch.mean(input_._data, dim=axis, keepdim=keepdim)
+    return ret
 
 
-def median(input_, dim=-1, keepdim=False):
-    type_ = _check_single(input_, median)
-    if dim is None:
-        ret = torch.median(input_.data)
+@_wrap_ret()
+def median(input_, axis=-1, keepdim=False):
+    if axis is None:
+        ret = torch.median(input_._data)
     else:
-        ret = torch.median(input_.data, dim=dim, keepdim=keepdim)
-    # if type_ == STensor:
-    #     ret = torch.tensor(ret).flatten()
-    return DTensor(ret)
+        ret = torch.median(input_._data, dim=axis, keepdim=keepdim)
+    return ret
 
 
+@_wrap_ret()
 def meshgrid(*inputs):
-    datas = [i.data for i in inputs]
-    return tuple([DTensor(d) for d in torch.meshgrid(*datas)])
+    datas = [i._data for i in inputs]
+    return tuple([d for d in torch.meshgrid(*datas)])
 
 
+@_wrap_ret()
 def nonzero(input_):
-    return tuple([DTensor(d) for d in torch.nonzero(input_.data, as_tuple=True)])
+    return tuple([d for d in torch.nonzero(input_._data, as_tuple=True)])
 
 
+@_wrap_ret()
 def ones(shape, dtype=None):
-    return DTensor(torch.ones(shape, dtype=dtype))
+    return torch.ones(shape, dtype=dtype)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def ones_like(input_, dtype=None):
-    _check_dense(input_, ones_like)
-    return DTensor(torch.ones_like(input_.data, dtype=dtype))
+    return torch.ones_like(input_._data, dtype=dtype)
 
 
-def prod(input_, dim=None, keepdim=False, dtype=None):
-    _check_dense(input_, prod)
-    ret = torch.prod(input_.data, dim=dim, keepdim=keepdim, dtype=dtype)
-    return _wrap_ret(ret)
+@_wrap_ret()
+@_require_dense(0)
+def prod(input_, axis=None, keepdim=False, dtype=None):
+    return torch.prod(input_._data, dim=axis, keepdim=keepdim, dtype=dtype)
 
 
+@_wrap_ret()
 def real(input_):
-    type_ = _check_single(input_, real)
-    return type_(torch.real(input_.data))
+    return torch.real(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def reciprocal(input_):
-    _check_dense(input_, reciprocal)
-    return DTensor(torch.reciprocal(input_.data))
+    return torch.reciprocal(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def remainder(input_, other):
-    _check_dense(input_, remainder, other)
-    return DTensor(torch.remainder(input_.data, other.data))
+    return torch.remainder(input_._data, other._data)
 
 
+@_wrap_ret()
 def reshape(input_, shape):
-    type_ = _check_single(input_, reshape)
-    return type_(torch.rehsape(input_.data, shape))
+    return torch.rehsape(input_._data, shape)
 
 
-def roll(input_, shift, dim=None):
-    _check_dense(input_, roll)
-    return DTensor(torch.roll(input_.data, shift, dims=dim))
+@_wrap_ret()
+@_require_dense(0)
+def roll(input_, shift, axis=None):
+    return torch.roll(input_._data, shift, dims=axis)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def rot90(input_, k=1, axes=(0, 1)):
-    _check_dense(innput_, rot90)
-    return DTensor(torch.rot90(input_.data, k, dims=axes))
+    return torch.rot90(input_._data, k, dims=axes)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def round(input_):
-    type_ = _check_single(input_, round)
-    return type_(torch.round(input_.data))
+    return torch.round(input_._data)
 
 
+@_wrap_ret()
 def sign(input_):
-    _check_dense(input_, sign)
-    return DTensor(torch.sign(input_.data))
+    return torch.sign(input_._data)
 
 
+@_wrap_ret()
 def sin(input_):
-    type_ = _check_single(input_, sin)
-    return type_(torch.sin(input_.data))
+    return torch.sin(input_._data)
 
 
+@_wrap_ret()
 def sinh(input_):
-    type_ = _check_single(input_, sinh)
-    return type_(torch.sinh(input_.data))
+    return torch.sinh(input_._data)
 
 
-def sort(input_, dim=-1):
-    _check_dense(input_, sort)
-    return DTensor(torch.sort(input_.data, dim=dim))
+@_wrap_ret()
+@_require_dense(0)
+def split(input_, indices_or_sections, axis=0):
+    return torch.split(input_._data, indices_or_sections, axis)
 
 
-def split(input_, indices_or_sections, dim=0):
-    _check_dense(input_, split)
-    return DTensor(torch.split(input_.data, indices_or_sections, dim))
-
-
+@_wrap_ret()
 def sqrt(input_):
-    type_ = _check_single(input_, sqrt)
-    return type_(torch.sqrt(input_.data))
+    return torch.sqrt(input_._data)
 
 
+@_wrap_ret()
 def square(input_):
-    type_ = _check_single(input_, square)
-    return type_(torch.square(input_.data))
+    return torch.square(input_._data)
 
 
-def squeeze(input_, dim=None):
-    _check_dense(input_, squeeze)
-    return DTensor(torch.squeeze(input_.data, dim=dim))
+@_wrap_ret()
+@_require_dense(0)
+def squeeze(input_, axis=None):
+    return torch.squeeze(input_._data, dim=axis)
 
 
-def stack(inputs, dim=0):
-    return DTensor(torch.stack(inputs, dim))
+@_wrap_ret()
+def stack(inputs, axis=0):
+    return torch.stack(inputs, axis)
 
 
-def std(input_, dim=None, keepdim=False):
-    _check_dense(input_, std)
-    if dim is None:
-        ret = torch.std(input_.data, unbiased=False)
+@_wrap_ret()
+@_require_dense(0)
+def std(input_, axis=None, keepdim=False):
+    if axis is None:
+        ret = torch.std(input_._data, unbiased=False)
     else:
-        ret = torch.std(input_.data, dim=dim, keepdim=keepdim, unbiased=False)
-    return DTensor(ret)
+        ret = torch.std(input_._data, dim=axis,
+                        keepdim=keepdim, unbiased=False)
+    return ret
 
 
-def sum(input_, dim=None, dtype=None, keepdim=False):
-    if dim is None:
-        ret = torch.sum(input_.data, dtype=dtype)
+@_wrap_ret()
+def sum(input_, axis=None, dtype=None, keepdim=False):
+    if axis is None:
+        ret = torch.sum(input_._data, dtype=dtype)
     else:
-        ret = torch.sum(input_.data, dim=dim, dtype=dtype, keepdim=keepdim)
-    return _wrap_ret(ret)
+        ret = torch.sum(input_._data, dim=axis, dtype=dtype, keepdim=keepdim)
+    return ret
 
 
+@_wrap_ret()
+@_require_dense(0)
 def take(input_, indices):
-    _check_dense(input_, take)
-    return DTensor(torch.take(input_.data, indices))
+    return torch.take(input_._data, indices)
 
 
+@_wrap_ret()
 def tan(input_):
-    type_ = _check_single(input_, tan)
-    return type_(torch.tan(input_.data))
+    return torch.tan(input_._data)
 
 
+@_wrap_ret()
 def tanh(input_):
-    type_ = _check_single(input_, tan)
-    return type_(torch.tanh(input_.data))
+    return torch.tanh(input_._data)
 
 
+@_wrap_ret()
+@_require_dense(0, 1)
 def tensordot(input_, other, axes=2):
-    _check_dense(input_, tensordot, other)
-    return DTensor(torch.tensordot(input_.data, other.data, axes))
+    return torch.tensordot(input_._data, other._data, axes)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def trace(input_):
-    _check_dense(input_)
-    ret = torch.trace(input_.data)
-    return _wrap_ret(ret)
+    return torch.trace(input_._data)
 
 
+@_wrap_ret()
 def transpose(input_, axes=None):
-    type_ = _check_single(input_, transpose)
     if axes is None:
         axes = (0, 1)
-    return type_(torch.transpose(input_, axes[0], axes[1]))
+    return torch.transpose(input_, axes[0], axes[1])
 
 
+@_wrap_ret()
+@_require_dense(0)
 def tril(input_, k=0):
-    _check_dense(input_, tril)
-    return DTensor(torch.tril(input_.data, k))
+    return torch.tril(input_._data, k)
 
 
+@_wrap_ret()
 def tril_indices(n, m=0, offset=0):
-    ret = torch.tril_indices(row=m, col=m, offset=offset)
-    return tuple([DTensor(index) for index in ret])
+    return torch.tril_indices(row=m, col=m, offset=offset)
 
 
+@_require_dense(0)
 def triu(input_, k=0):
-    _check_dense(input_, triu)
-    return DTensor(torch.triu(input_.data, k))
+    return torch.triu(input_._data, k)
 
 
+@_wrap_ret()
 def triu_indices(n, m=0, offset=0):
     ret = torch.triu_indices(row=m, col=m, offset=offset)
-    return tuple([DTensor(index) for index in ret])
+    return tuple([index for index in ret])
 
 
+@_wrap_ret()
 def true_divide(input_, other):
-    return DTensor(torch.true_divide(input_.data, other.data))
+    return torch.true_divide(input_._data, other._data)
 
 
+@_wrap_ret()
+@_require_dense(0)
 def trunc(input_):
-    _check_dense(input_, trunc)
-    return DTensor(torch.trunc(input_.data))
+    return torch.trunc(input_._data)
 
 
-def unique(input_, return_inverse=False, return_counts=False, dim=None):
-    _check_dense(input_, unique)
-    return DTensor(torch.unique(input_.data, return_inverse=return_inverse, return_counts=return_counts, dim=dim))
+@_wrap_ret()
+@_require_dense(0)
+def unique(input_, return_inverse=False, return_counts=False, axis=None):
+    return torch.unique(input_._data, return_inverse=return_inverse, return_counts=return_counts, dim=axis)
 
 
-def var(input_, dim=None, keepdim=False):
-    _check_dense(input_, var)
+@_wrap_ret()
+@_require_dense(0)
+def var(input_, axis=None, keepdim=False):
     if axis is None:
         ret = torch.var(input_)
     else:
-        ret = torch.var(input_, dim=dim, keepdim=keepdim)
-    return _wrap_ret(ret)
+        ret = torch.var(input_, dim=axis, keepdim=keepdim)
+    return ret
 
 
+@_require_dense(1, 2)
 def where(condition, x, y):
-    _check_dense(x, where, y)
-    return DTensor(torch.where(condition, x, y))
+    return torch.where(condition, x, y)
 
 
+@_wrap_ret()
 def zeros(shape, dtype=None):
-    return DTensor(torch.zeros(shape, dtype=dtype))
+    return torch.zeros(shape, dtype=dtype)
 
 
+@_require_dense(0)
 def zeros_like(input_, dtype=None):
-    _check_dense(input_, zeros_like)
-    return DTensor(torch.zeros_like(input_.data, dtype=dtype))
+    return torch.zeros_like(input_._data, dtype=dtype)
