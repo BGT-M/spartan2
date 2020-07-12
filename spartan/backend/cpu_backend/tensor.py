@@ -63,6 +63,8 @@ class DTensor(np.lib.mixins.NDArrayOperatorsMixin):
     def __init__(self, value):
         if isinstance(value, STensor):
             self._data = value._data.toarray()
+        elif isinstance(value, DTensor):
+            self._data = value._data
         else:
             self._data = np.asarray(value)
 
@@ -140,8 +142,12 @@ class STensor(np.lib.mixins.NDArrayOperatorsMixin):
         if type(data) is tuple:
             indices, values = data
             self._data = sparse.COO(indices, values, shape=shape)
+        elif isinstance(data, DTensor):
+            self._data = sparse.as_coo(data._data, shape=shape)
+        elif isinstance(data, STensor):
+            self._data = data._data
         else:
-            self._data = sparse.as_coo(indices, values, shape=shape)
+            self._data = sparse.as_coo(data, shape=shape)
 
     _HANDLED_TYPES = (np.ndarray, numbers.Number)
 
