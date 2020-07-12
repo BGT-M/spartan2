@@ -1,9 +1,10 @@
-from typing import Union
 import functools
+from typing import Union
+
 import numpy as np
 import scipy.sparse as ssp
 
-from .tensor import DTensor, STensor, _wrap_ret, _require_dense, _check_params
+from .tensor import DTensor, STensor, _check_params, _require_dense, _wrap_ret
 
 # Type definition
 short = np.short
@@ -27,8 +28,8 @@ def add(input_, other):
 
 @_wrap_ret()
 @_require_dense(0)
-def all(input_, axis=None, keepdim=False):
-    return np.all(input_._data, axis=axis, keepdims=keepdim)
+def all(input_, axis=None, keepdims=False):
+    return np.all(input_._data, axis=axis, keepdims=keepdims)
 
 
 @_wrap_ret()
@@ -45,8 +46,8 @@ def angle(input_, deg=False):
 
 @_wrap_ret()
 @_require_dense(0)
-def any(input_, axis, keepdim=False):
-    return np.any(input_._data, axis, keepdim)
+def any(input_, axis=None, keepdims=False):
+    return np.any(input_._data, axis, keepdims)
 
 
 @_wrap_ret()
@@ -54,33 +55,33 @@ def arange(start, stop, step, dtype=None):
     return np.arange(start, stop, step, dtype=dtype)
 
 
-@_wrap_ret(squeeze=True)
+@_wrap_ret()
 @_check_params(0)
-def argmax(input_, axis=None) -> DTensor:
+def argmax(input_, axis=None):
     return np.argmin(input_._data, axis)
 
 
-@_wrap_ret(squeeze=True)
+@_wrap_ret()
 @_check_params(0)
-def argmin(input_, axis=None) -> DTensor:
+def argmin(input_, axis=None):
     return np.argmin(input_._data, axis)
 
 
 @_wrap_ret()
 @_require_dense(0)
-def argsort(input_: DTensor, axis=-1) -> DTensor:
-    return DTensor(np.argsort(input_._data, axis))
+def argsort(input_, axis=-1):
+    return np.argsort(input_._data, axis)
 
 
 @_wrap_ret()
 @_require_dense(0)
-def bincount(input_: DTensor, weights, minlength=0) -> DTensor:
+def bincount(input_, weights, minlength=0):
     return np.bincount(input_._data, weights, minlength)
 
 
 @_wrap_ret()
 @_require_dense(0, 1)
-def bitwise_and(input_: DTensor, other: DTensor) -> DTensor:
+def bitwise_and(input_, other):
     return np.bitwise_and(input_._data, other._data)
 
 
@@ -161,7 +162,7 @@ def diagflat(input_, offset=0):
 
 @_wrap_ret()
 @_require_dense(0)
-def diagonal(input_, offset, axis1=None, axis2=None):
+def diagonal(input_, offset=0, axis1=0, axis2=1):
     return np.diagonal(input_._data, offset, axis1, axis2)
 
 
@@ -331,13 +332,13 @@ def matmul(input_, other):
 
 
 @_wrap_ret()
-def mean(input_, axis=None, keepdim=False):
-    return np.mean(input_._data, axis, keepdims=keepdim)
+def mean(input_, axis=None, keepdims=False):
+    return np.mean(input_._data, axis, keepdims=keepdims)
 
 
 @_wrap_ret()
-def median(input_, axis=-1, keepdim=False):
-    return np.median(input_._data, axis, keepdims=keepdim)
+def median(input_, axis=-1, keepdims=False):
+    return np.median(input_._data, axis, keepdims=keepdims)
 
 
 @_wrap_ret()
@@ -364,8 +365,8 @@ def ones_like(input_, dtype=None):
 
 @_wrap_ret()
 @_require_dense(0)
-def prod(input_, axis=None, keepdim=False, dtype=None):
-    return np.prod(input_._data, axis=axis, keepdims=keepdim, dtype=dtype)
+def prod(input_, axis=None, keepdims=False, dtype=None):
+    return np.prod(input_._data, axis=axis, keepdims=keepdims, dtype=dtype)
 
 
 @_wrap_ret()
@@ -403,11 +404,6 @@ def rot90(input_, k=1, axes=(0, 1)):
 
 
 @_wrap_ret()
-def round(input_):
-    return np.round(input_._data)
-
-
-@_wrap_ret()
 @_require_dense(0)
 def sign(input_):
     return np.sign(input_._data)
@@ -421,12 +417,6 @@ def sin(input_):
 @_wrap_ret()
 def sinh(input_):
     return np.sinh(input_._data)
-
-
-@_wrap_ret()
-@_require_dense(0)
-def sort(input_, axis=-1):
-    return np.sort(input_._data, axis=axis)
 
 
 @_wrap_ret()
@@ -458,13 +448,13 @@ def stack(inputs, axis=0):
 
 @_wrap_ret()
 @_require_dense(0)
-def std(input_, axis=None, keepdim=False):
-    return np.std(input_._data, axis=axis, keepdims=keepdim)
+def std(input_, axis=None, keepdims=False):
+    return np.std(input_._data, axis=axis, keepdims=keepdims)
 
 
 @_wrap_ret()
-def sum(input_, axis=None, dtype=None, keepdim=False):
-    return np.sum(input_._data, axis=axis, dtype=dtype, keepdims=keepdim)
+def sum(input_, axis=None, dtype=None, keepdims=False):
+    return np.sum(input_._data, axis=axis, dtype=dtype, keepdims=keepdims)
 
 
 @_wrap_ret()
@@ -542,8 +532,8 @@ def unique(input_, return_inverse=False, return_counts=False, axis=None):
 
 @_wrap_ret()
 @_require_dense(0)
-def var(input_, axis=None, keepdim=False):
-    return np.var(input_._data, axis, keepdims=keepdim)
+def var(input_, axis=None, keepdims=False):
+    return np.var(input_._data, axis, keepdims=keepdims)
 
 
 @_require_dense(1, 2)

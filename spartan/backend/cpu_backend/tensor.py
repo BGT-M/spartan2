@@ -1,23 +1,26 @@
 import functools
+import numbers
 
 import numpy as np
 import scipy.sparse as ssp
+import sparse
 
 
-def _wrap_ret(squeeze=False):
+def _wrap_ret():
     """Wrap return value of func to spartan tensor types.
     """
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             ret = func(*args, **kwargs)
-            if squeeze:
-                if isinstance(ret, np.matrix):
-                    ret = ret.A.squeeze()
             if isinstance(ret, np.ndarray):
                 return DTensor(ret)
-            elif ssp.isspmatrix(ret):
-                return STensor(ret)
+            elif isinstance(ret, sparse.SparseArray):
+                if todense:
+                    ret = ret.todense()
+                    return DTensor(ret)
+                t = STensor.from_sparse_array(ret)
+                return STensor.from_sparse_array(ret)
             else:
                 return ret
         return wrapper
@@ -51,33 +54,95 @@ def _check_params(*pos):
             is_dense = all([isinstance(p, DTensor) for p in params])
             if not (is_sparse or is_dense):
                 types = [str(type(p)) for p in params]
-                msg = f"Unsupported type for `st.{func.__name__}`: {', '.join(types)}"
+                msg = f"Unsupported type in `st.{func.__name__}`: {', '.join(types)}"
                 raise TypeError(msg)
             return func(*args, **kwargs)
         return wrapper
     return decorator
 
 
+class DTensor(np.lib.mixins.NDArrayOperatorsMixin):
+    def __init__(self, value):
+        if isinstance(value, STensor):
+            self._data = value._data.toarray()
+        else:
+            self._data = np.asarray(value)
+
+    _HANDLED_TYPES = (np.ndarray, numbers.Number)
+
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        out = kwargs.get('out', ())
+        for x in inputs + out:
+            if not isinstance(x, self._HANDLED_TYPES + (DTensor,)):
+                return NotImplemented
+
+        # Defer to the implementation of the ufunc on unwrapped values.
+        inputs = tuple(x._data if isinstance(x, DTensor) else x
+                       for x in inputs)
+        if out:
+            kwargs['out'] = tuple(
+                x._data if isinstance(x, DTensor) else x
+                for x in out)
+        result = getattr(ufunc, method)(*inputs, **kwargs)
+
+        if type(result) is tuple:
+            # multiple return values
+            return tuple(type(self)(x) for x in result)
+        elif method == 'at':
+            # no return value
+            return None
+        else:
+            # one return value
+            return type(self)(result)
+
+    def __repr__(self):
+        return '%s(\n%r\n)' % (type(self).__name__, self._data)
+
+    def __len__(self):
+        return self._data.__len__()
+
+    # Slice
+    @_wrap_ret()
+    def __getitem__(self, index):
+        return self._data.__getitem__(index)
+
+    def __setitem__(self, index, value):
+        self._data.__setitem__(index, value)
+
+    def __delitem__(self, index):
+        self._data.__delitem__(index)
+
+    @_wrap_ret()
+    def __getattr__(self, name):
+        if name.startswith('_'):
+            return super().__getattr__(name)
+        return getattr(self._data, name)
+
+    def __setattr__(self, name, value):
+        if name.startswith('_'):
+            super().__setattr__(name, value)
+        else:
+            setattr(self._data, name, value)
+
+    def __delattr__(self, name):
+        if name.startswith('_'):
+            super().__delattr__(name)
+        else:
+            delattr(self._data, name)
+
+
 class STensor:
-    def __init__(self, data, dtype=None, shape=None, format='coo'):
-        if ssp.isspmatrix(data):
-            self._data = data
-        else:
-            self._data = ssp.coo_matrix(
-                data, shape=shape, dtype=dtype).asformat(format)
-
-    def __str__(self):
-        return self._data.__str__()
+    def __init__(self, indices, values, dtype=None, shape=None) -> None:
+        self._data = sparse.COO(indices, values, shape=shape)
 
     def __repr__(self):
         return self._data.__repr__()
 
     @_wrap_ret()
     def __getattr__(self, name):
-        ret = getattr(self._data, name)
-        if callable(ret):
-            return _wrap_ret(True)(ret)
-        return ret
+        if name.startswith('_'):
+            return super().__getattr__(name)
+        return getattr(self._data, name)
 
     def __setattr__(self, name, value):
         if name.startswith('_'):
@@ -91,35 +156,45 @@ class STensor:
         else:
             delattr(self._data, name)
 
-
-class DTensor:
-    def __init__(self, data, dtype=None):
-        if isinstance(data, np.ndarray):
-            self._data = data
-        else:
-            self._data = np.array(data, dtype=dtype)
-
-    def __str__(self):
-        return self._data.__str__()
-
-    def __repr__(self):
-        return self._data.__repr__()
+    def __len__(self):
+        return self._data.__len__()
 
     @_wrap_ret()
-    def __getattr__(self, name):
-        ret = getattr(self._data, name)
-        if callable(ret):
-            return _wrap_ret(True)(ret)
-        return ret
+    def __getitem__(self, index):
+        return self._data.__getitem__(index)
 
-    def __setattr__(self, name, value):
-        if name.startswith('_'):
-            super().__setattr__(name, value)
-        else:
-            setattr(self._data, name, value)
+    def __setitem__(self, index, value):
+        self._data.__setitem__(index, value)
 
-    def __delattr__(self, name):
-        if name.startswith('_'):
-            super().__delattr__(name)
-        else:
-            delattr(self._data, name)
+    def __delitem__(self, index):
+        self._data.__delitem__(index)
+
+    @_wrap_ret()
+    @_check_params(1)
+    def dot(self, other):
+        return self._data.dot(other._data)
+
+    @_wrap_ret()
+    def todense(self):
+        return self._data.todense()
+
+    @classmethod
+    def from_numpy(cls, x):
+        t = cls.__new__(cls)
+        t._data = sparse.COO.from_numpy(x)
+        return t
+
+    @classmethod
+    def from_scipy_sparse(cls, x):
+        t = cls.__new__(cls)
+        t._data = sparse.COO.from_scipy_sparse(x)
+        return t
+
+    @classmethod
+    def from_sparse_array(cls, x):
+        if not isinstance(x, sparse.SparseArray):
+            raise TypeError(
+                f"Argument type should be `sparse.SparseArray`, got {type(x)}")
+        t = cls.__new__(cls)
+        t._data = x
+        return t
