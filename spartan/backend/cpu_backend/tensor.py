@@ -15,6 +15,8 @@ def _wrap_ret():
         def wrapper(*args, **kwargs):
             ret = func(*args, **kwargs)
             if isinstance(ret, np.ndarray):
+                if ret.ndim == 0:
+                    return ret.item()
                 return DTensor(ret)
             elif isinstance(ret, sparse.SparseArray):
                 t = STensor.from_sparse_array(ret)
@@ -93,7 +95,9 @@ class DTensor(np.lib.mixins.NDArrayOperatorsMixin):
             return None
         else:
             # one return value
-            return type(self)(result)
+            if isinstance(result, np.ndarray):
+                return type(self)(result)
+            return result
 
     def __repr__(self):
         return '%s(\n%r\n)' % (type(self).__name__, self._data)
@@ -116,7 +120,11 @@ class DTensor(np.lib.mixins.NDArrayOperatorsMixin):
     def __getattr__(self, name):
         if name.startswith('_'):
             return super().__getattr__(name)
-        return getattr(self._data, name)
+        ret = getattr(self._data, name)
+        if callable(ret):
+            raise AttributeError(
+                f"{type(self).__name__} doesn't have attribute {name}")
+        return ret
 
     def __setattr__(self, name, value):
         if name.startswith('_'):
@@ -190,7 +198,11 @@ class STensor(np.lib.mixins.NDArrayOperatorsMixin):
     def __getattr__(self, name):
         if name.startswith('_'):
             return super().__getattr__(name)
-        return getattr(self._data, name)
+        ret = getattr(self._data, name)
+        if callable(ret):
+            raise AttributeError(
+                f"{type(self).__name__} doesn't have attribute {name}")
+        return ret
 
     def __setattr__(self, name, value):
         if name.startswith('_'):
