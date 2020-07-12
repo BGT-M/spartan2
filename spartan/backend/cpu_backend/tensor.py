@@ -2,6 +2,7 @@ import functools
 import numbers
 
 import numpy as np
+from numpy.lib.arraysetops import isin
 import scipy.sparse as ssp
 import sparse
 
@@ -16,9 +17,6 @@ def _wrap_ret():
             if isinstance(ret, np.ndarray):
                 return DTensor(ret)
             elif isinstance(ret, sparse.SparseArray):
-                if todense:
-                    ret = ret.todense()
-                    return DTensor(ret)
                 t = STensor.from_sparse_array(ret)
                 return STensor.from_sparse_array(ret)
             else:
@@ -130,13 +128,57 @@ class DTensor(np.lib.mixins.NDArrayOperatorsMixin):
         else:
             delattr(self._data, name)
 
+    @classmethod
+    def from_numpy(cls, x):
+        t = cls.__new__(cls)
+        t._data = np.asarray(x)
+        return t
 
-class STensor:
-    def __init__(self, indices, values, dtype=None, shape=None) -> None:
-        self._data = sparse.COO(indices, values, shape=shape)
+
+class STensor(np.lib.mixins.NDArrayOperatorsMixin):
+    def __init__(self, data, shape=None):
+        if type(data) is tuple:
+            indices, values = data
+            self._data = sparse.COO(indices, values, shape=shape)
+        else:
+            self._data = sparse.as_coo(indices, values, shape=shape)
+
+    _HANDLED_TYPES = (np.ndarray, numbers.Number)
+
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        out = kwargs.get('out', ())
+        for x in inputs + out:
+            if not isinstance(x, self._HANDLED_TYPES + (STensor,)):
+                return NotImplemented
+
+        # Defer to the implementation of the ufunc on unwrapped values.
+        inputs = tuple(x._data if isinstance(x, STensor) else x
+                       for x in inputs)
+        if out:
+            kwargs['out'] = tuple(
+                x._data if isinstance(x, STensor) else x
+                for x in out)
+        result = getattr(ufunc, method)(*inputs, **kwargs)
+
+        if type(result) is tuple:
+            # multiple return values
+            return tuple(type(self)(x) for x in result)
+        elif method == 'at':
+            # no return value
+            return None
+        else:
+            # one return value
+            if isinstance(result, np.ndarray):
+                return self.__class__.from_numpy(result)
+            elif isinstance(result, ssp.spmatrix):
+                return self.__class__.from_scipy_sparse(ret)
+            elif isinstance(result, sparse.COO):
+                return self.__class__.from_sparse_array(result)
+            else:
+                return result
 
     def __repr__(self):
-        return self._data.__repr__()
+        return '%s(%r)' % (type(self).__name__, self._data)
 
     @_wrap_ret()
     def __getattr__(self, name):
