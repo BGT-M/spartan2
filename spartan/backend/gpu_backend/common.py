@@ -52,10 +52,10 @@ def add(input_, other):
 
 
 @_wrap_ret
-def all(input_, axis=None, keepdims=False):
-    if axis is None:
+def all(input_, dim=None, keepdim=False):
+    if dim is None:
         return torch.all(input_._data)
-    return torch.all(input_._data, dim=axis, keepdim=keepdims)
+    return torch.all(input_._data, dim=dim, keepdim=keepdim)
 
 
 @_wrap_ret
@@ -73,10 +73,10 @@ def angle(input_, deg=False):
 
 
 @_wrap_ret
-def any(input_, axis=None, keepdims=False):
-    if axis is None:
+def any(input_, dim=None, keepdim=False):
+    if dim is None:
         return torch.any(input_._data)
-    return torch.any(input_._data, dim=axis, keepdim=keepdims)
+    return torch.any(input_._data, dim=dim, keepdim=keepdim)
 
 
 @_wrap_ret
@@ -85,24 +85,24 @@ def arange(start, stop, step, dtype=None):
 
 
 @_wrap_ret
-def argmax(input_, axis=None):
-    if axis is None:
+def argmax(input_, dim=None):
+    if dim is None:
         return torch.argmin(input_)
     else:
-        return torch.argmax(input_, dim=axis)
+        return torch.argmax(input_, dim=dim)
 
 
 @_wrap_ret
-def argmin(input_, axis=None):
-    if axis is None:
+def argmin(input_, dim=None):
+    if dim is None:
         return torch.argmin(input_)
     else:
-        return torch.argmax(input_, dim=axis)
+        return torch.argmax(input_, dim=dim)
 
 
 @_wrap_ret
-def argsort(input_, axis=-1):
-    return torch.argsort(input_._data, dim=axis)
+def argsort(input_, dim=-1):
+    return torch.argsort(input_._data, dim=dim)
 
 
 @_wrap_ret
@@ -155,18 +155,18 @@ def cosh(input_):
 
 
 @_wrap_ret
-def cross(input_, other, axis=-1):
-    return torch.cross(input_._data, other._data, dim=axis)
+def cross(input_, other, dim=-1):
+    return torch.cross(input_._data, other._data, dim=dim)
 
 
 @_wrap_ret
-def cumprod(input_, axis=None, dtype=None):
-    return torch.cumprod(input_._data, dim=axis, dtype=dtype)
+def cumprod(input_, dim=None, dtype=None):
+    return torch.cumprod(input_._data, dim=dim, dtype=dtype)
 
 
 @_wrap_ret
-def cumsum(input_, axis=None, dtype=None):
-    return torch.cumsum(input_._data, axis, dtype)
+def cumsum(input_, dim=None, dtype=None):
+    return torch.cumsum(input_._data, dim, dtype)
 
 
 @_wrap_ret
@@ -180,8 +180,8 @@ def diagflat(input_, offset=0):
 
 
 @_wrap_ret
-def diagonal(input_, offset=0, axis1=0, axis2=1):
-    return torch.diagonal(input_._data, offset=offset, dim1=axis1, dim2=axis2)
+def diagonal(input_, offset=0, dim1=0, dim2=1):
+    return torch.diagonal(input_._data, offset=offset, dim1=dim1, dim2=dim2)
 
 
 @_wrap_ret
@@ -227,8 +227,8 @@ def eye(n, m=None, dtype=None):
 
 
 @_wrap_ret
-def flip(input_, axis=None):
-    return torch.flip(input_._data, axis)
+def flip(input_, dim=None):
+    return torch.flip(input_._data, dim)
 
 
 @_wrap_ret
@@ -332,20 +332,20 @@ def matmul(input_, other):
 
 
 @_wrap_ret
-def mean(input_, axis=None, keepdims=False):
-    if axis is None:
+def mean(input_, dim=None, keepdim=False):
+    if dim is None:
         ret = torch.mean(input_._data)
     else:
-        ret = torch.mean(input_._data, dim=axis, keepdim=keepdims)
+        ret = torch.mean(input_._data, dim=dim, keepdim=keepdim)
     return ret
 
 
 @_wrap_ret
-def median(input_, axis=-1, keepdims=False):
-    if axis is None:
+def median(input_, dim=-1, keepdim=False):
+    if dim is None:
         ret = torch.median(input_._data)
     else:
-        ret = torch.median(input_._data, dim=axis, keepdim=keepdims)
+        ret = torch.median(input_._data, dim=dim, keepdim=keepdim)
     return ret
 
 
@@ -371,10 +371,10 @@ def ones_like(input_, dtype=None):
 
 
 @_wrap_ret
-def prod(input_, axis=None, keepdims=False, dtype=None):
-    if axis is None:
+def prod(input_, dim=None, keepdim=False, dtype=None):
+    if dim is None:
         return torch.prod(input_._data, dtype=dtype)
-    return torch.prod(input_._data, dim=axis, keepdim=keepdims, dtype=dtype)
+    return torch.prod(input_._data, dim=dim, keepdim=keepdim, dtype=dtype)
 
 
 @_wrap_ret
@@ -398,8 +398,8 @@ def reshape(input_, shape):
 
 
 @_wrap_ret
-def roll(input_, shift, axis=None):
-    return torch.roll(input_._data, shift, dims=axis)
+def roll(input_, shift, dim=None):
+    return torch.roll(input_._data, shift, dims=dim)
 
 
 @_wrap_ret
@@ -428,8 +428,8 @@ def sinh(input_):
 
 
 @_wrap_ret
-def split(input_, indices_or_sections, axis=0):
-    return torch.split(input_._data, indices_or_sections, axis)
+def split(input_, indices_or_sections, dim=0):
+    return torch.split(input_._data, indices_or_sections, dim)
 
 
 @_wrap_ret
@@ -443,31 +443,31 @@ def square(input_):
 
 
 @_wrap_ret
-def squeeze(input_, axis=None):
-    return torch.squeeze(input_._data, dim=axis)
+def squeeze(input_, dim=None):
+    return torch.squeeze(input_._data, dim=dim)
 
 
 @_wrap_ret
-def stack(inputs, axis=0):
-    return torch.stack(inputs, axis)
+def stack(inputs, dim=0):
+    return torch.stack(inputs, dim)
 
 
 @_wrap_ret
-def std(input_, axis=None, keepdims=False):
-    if axis is None:
+def std(input_, dim=None, keepdim=False):
+    if dim is None:
         ret = torch.std(input_._data, unbiased=False)
     else:
-        ret = torch.std(input_._data, dim=axis,
-                        keepdim=keepdims, unbiased=False)
+        ret = torch.std(input_._data, dim=dim,
+                        keepdim=keepdim, unbiased=False)
     return ret
 
 
 @_wrap_ret
-def sum(input_, axis=None, dtype=None, keepdims=False):
-    if axis is None:
+def sum(input_, dim=None, dtype=None, keepdim=False):
+    if dim is None:
         ret = torch.sum(input_._data, dtype=dtype)
     else:
-        ret = torch.sum(input_._data, dim=axis, dtype=dtype, keepdim=keepdims)
+        ret = torch.sum(input_._data, dim=dim, dtype=dtype, keepdim=keepdim)
     return ret
 
 
@@ -534,20 +534,21 @@ def trunc(input_):
 
 
 @_wrap_ret
-def unique(input_, return_inverse=False, return_counts=False, axis=None):
+def unique(input_, return_inverse=False, return_counts=False, dim=None):
     return torch.unique(input_._data, return_inverse=return_inverse,
-                        return_counts=return_counts, dim=axis)
+                        return_counts=return_counts, dim=dim)
 
 
 @_wrap_ret
-def var(input_, axis=None, keepdims=False):
-    if axis is None:
+def var(input_, dim=None, keepdim=False):
+    if dim is None:
         ret = torch.var(input_)
     else:
-        ret = torch.var(input_, dim=axis, keepdim=keepdims)
+        ret = torch.var(input_, dim=dim, keepdim=keepdim)
     return ret
 
 
+@_wrap_ret
 def where(condition, x, y):
     return torch.where(condition, x, y)
 
@@ -557,5 +558,6 @@ def zeros(shape, dtype=None):
     return torch.zeros(shape, dtype=dtype)
 
 
+@_wrap_ret
 def zeros_like(input_, dtype=None):
     return torch.zeros_like(input_._data, dtype=dtype)

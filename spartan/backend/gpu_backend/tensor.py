@@ -1,16 +1,22 @@
 import functools
+import warnings
 
+import numpy as np
+import sparse
+import scipy
 import torch
-import torch.sparse as sparse
+import torch.sparse as tsparse
 
 
 def _ensure_tensor(x):
     if isinstance(x, torch.Tensor):
         if x.ndim == 0:
             return x.item()
+        if x.is_sparse:
+            return STensor.from_torch(x)
         return DTensor(x)
-    elif isinstance(x, sparse.SparseArray):
-        return STensor.from_sparse_array(x)
+    elif isinstance(x, torch.Size):
+        return DTensor(torch.as_tensor(x))
     else:
         return x
 
@@ -21,15 +27,11 @@ def _wrap_ret(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         ret = func(*args, **kwargs)
-        if isinstance(ret, torch.Tensor):
-            if ret.ndim == 0:
-                return ret.item()
-            if ret.is_sparse:
-                return STensor(ret)
-            else:
-                return DTensor(ret)
-        else:
-            return ret
+        try:
+            ret = torch.as_tensor(ret).cuda()
+        except Exception:
+            pass
+        return _ensure_tensor(ret)
     return wrapper
 
 
@@ -295,14 +297,17 @@ class DTensor(TorchArithmetic):
         return t
 
 
-class STensor:
-    def __init__(self, data, dtype=None):
-        if isinstance(data, DTensor):
+class STensor(TorchArithmetic):
+    def __init__(self, data, shape=None):
+        if type(data) is tuple:
+            indices, values = data
+            self._data = tsparse.FloatTensor(indices, values, shape=shape)
+        elif isinstance(data, DTensor):
             self._data = data._data.to_sparse()
         elif isinstance(data, STensor):
             self._data = data._data
         else:
-            self._data = torch.as_tensor(data, dtype=dtype).to_sparse()
+            self._data = tsparse.FloatTensor(data, shape=shape)
         self._data = self._data.cuda()
 
     def __repr__(self):
@@ -311,7 +316,17 @@ class STensor:
     def __len__(self):
         return self._data.__len__()
 
-    # Pytorch's GPU sparse tensor doesn't support slice yet!
+    # Notice that Pytorch's GPU sparse tensor doesn't support slice fully yet!
+    # Slice
+    @_wrap_ret
+    def __getitem__(self, index):
+        return self._data.__getitem__(index)
+
+    def __setitem__(self, index, value):
+        self._data.__setitem__(index, value)
+
+    def __delitem__(self, index):
+        self._data.__delitem__(index)
 
     @_wrap_ret
     def __getattr__(self, name):
@@ -334,3 +349,109 @@ class STensor:
             super().__delattr__(name)
         else:
             delattr(self._data, name)
+
+    @_wrap_ret
+    def all(self, axis=None, keepdims=False):
+        if keepdims:
+            warnings.warn(f"The keepdims parameter has no effect yet",
+                          UserWarning)
+        if axis is None:
+            return torch.all(self._data)
+        return torch.all(self._data, axis=axis, keepdim=keepdims)
+
+    @_wrap_ret
+    def any(self, axis=None, keepdims=False):
+        if keepdims:
+            warnings.warn(f"The keepdims parameter has no effect yet",
+                          UserWarning)
+        if axis is None:
+            return torch.any(self._data)
+        return torch.any(self._data, axis=axis, keepdim=keepdims)
+
+    @_wrap_ret
+    def min(self, axis=None, keepdims=False):
+        raise NotImplementedError
+
+    @_wrap_ret
+    def max(self, axis=None, keepdims=False):
+        raise NotImplementedError
+
+    @_wrap_ret
+    def sum(self, axis=None, keepdims=False):
+        if keepdims:
+            warnings.warn(f"The keepdims parameter has no effect yet",
+                          UserWarning)
+        if axis is None:
+            return tsparse.sum(self._data)
+        return tsparse.sum(self._data, dim=axis)
+
+    @_wrap_ret
+    def prod(self, axis=None, keepdims=False):
+        raise NotImplementedError
+
+    @_wrap_ret
+    def mean(self, axis=None, keepdims=False):
+        raise NotImplementedError
+
+    @_wrap_ret
+    def var(self, axis=None, keepdims=False):
+        raise NotImplementedError
+
+    @_wrap_ret
+    def std(self, axis=None, keepdims=False):
+        raise NotImplementedError
+
+    @_wrap_ret
+    def dot(self, other):
+        return tsparse.mm(self._data, other._data)
+
+    @_wrap_ret
+    def todense(self):
+        return self._data.to_dense()
+
+    @_wrap_ret
+    def reshape(self, shape):
+        raise NotImplementedError
+
+    @_wrap_ret
+    def nonzero(self):
+        return tuple([x for x in self._data.indices()])
+
+    @_wrap_ret
+    def astype(self, dtype):
+        raise NotImplementedError
+
+    @classmethod
+    def from_numpy(cls, x: np.ndarray):
+        if not isinstance(x, np.ndarray):
+            raise TypeError(
+                f"Argument type should be `numpy.ndarray`, got {type(x)}")
+        t = cls.__new__(cls)
+        t._data = torch.from_numpy(x).to_sparse().cuda()
+        return t
+
+    @classmethod
+    def from_scipy_sparse(cls, x: scipy.sparse.spmatrix):
+        if not isinstance(x, scipy.sparse.spmatrix):
+            raise TypeError(
+                f"Argument type should be `scipy.sparse.spmatrix`, \
+                got {type(x)}")
+        x = x.tocoo()
+        indices = torch.from_numpy(np.vstack([x.row, x.col])).type(torch.long)
+        values = torch.from_numpy(x.data)
+        shape = torch.Size(x.shape, dtype=torch.long)
+        t = cls.__new__(cls)
+        t._data = tsparse.FloatTensor(indices, values, shape).cuda()
+        return t
+
+    @classmethod
+    def from_sparse_array(cls, x: sparse.COO):
+        if not isinstance(x, sparse.COO):
+            raise TypeError(
+                f"Argument type should be `sparse.SparseArray`, got {type(x)}")
+        indices = torch.from_numpy(x.coords).type(torch.long)
+        values = torch.from_numpy(x.data)
+        shape = torch.Size(x.shape, dtype=torch.long)
+        t = cls.__new__(cls)
+        t._data = tsparse.FloatTensor(indices, values, shape).cuda()
+        return t
