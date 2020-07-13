@@ -21,6 +21,17 @@ class Model():
         '''Initialization function.'''
         self.model_name = model_name
 
+    @classmethod
+    def __create__(self, data: object, params: dict):
+        '''Interface of creation by class, overrided by subclasses.
+
+        Raises
+        ----------
+        NotImplementedError
+            when called, return not implemented error
+        '''
+        raise Exception("__create__ function not implemented.")
+
 
 class DMmodel(Model):
     '''Interface for data mining model.
