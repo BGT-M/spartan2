@@ -1,2 +1,2 @@
-from .backend import *
+from .common import *
 from .tensor import STensor, DTensor
