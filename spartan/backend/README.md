@@ -29,3 +29,5 @@ Using backend gpu
 ```
 
 In each backend, two classes `DTensor` and `STensor` are implemented for dense tensor and sparse tensor respectively. Several global apis are implemented (eg. `add()`, `dot()`) as well. For full supported apis, see file `spartan/backend/__init__.py`.
+
+For spartan tensor usage example, see `tensor_usage.ipynb`.
