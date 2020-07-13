@@ -286,12 +286,9 @@ class DTensor(TorchArithmetic):
 
     @classmethod
     def from_numpy(cls, x):
-        t = cls.__new__(cls)
-        t._data = torch.as_tensor(x).cuda()
-        return t
-
-    @classmethod
-    def from_torch(cls, x):
+        if not isinstance(x, np.ndarray):
+            raise TypeError(
+                f"Argument type should be `numpy.ndarray`, got {type(x)}")
         t = cls.__new__(cls)
         t._data = torch.as_tensor(x).cuda()
         return t
@@ -454,4 +451,15 @@ class STensor(TorchArithmetic):
         shape = torch.Size(x.shape, dtype=torch.long)
         t = cls.__new__(cls)
         t._data = tsparse.FloatTensor(indices, values, shape).cuda()
+        return t
+
+    @classmethod
+    def from_torch(cls, x: torch.Tensor):
+        if not isinstance(x, torch.Tensor):
+            raise TypeError(
+                f"Argument type should be `torch.Tensor`, got {type(x)}")
+        t = cls.__new__(cls)
+        if not x.is_sparse:
+            x = x.to_sparse()
+        t._data = x.cuda()
         return t

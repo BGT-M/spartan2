@@ -164,7 +164,10 @@ class DTensor(np.lib.mixins.NDArrayOperatorsMixin):
         return self._data.astype(dtype)
 
     @classmethod
-    def from_numpy(cls, x):
+    def from_numpy(cls, x: np.ndarray):
+        if not isinstance(x, np.ndarray):
+            raise TypeError(
+                f"Argument type should be `numpy.ndarray`, got {type(x)}")
         t = cls.__new__(cls)
         t._data = np.asarray(x)
         return t
@@ -311,22 +314,29 @@ class STensor(np.lib.mixins.NDArrayOperatorsMixin):
         return self._data.astype(dtype)
 
     @classmethod
-    def from_numpy(cls, x):
+    def from_numpy(cls, x: np.ndarray):
+        if not isinstance(x, np.ndarray):
+            raise TypeError(
+                f"Argument type should be `numpy.ndarray`, got {type(x)}")
         t = cls.__new__(cls)
         t._data = sparse.COO.from_numpy(x)
         return t
 
     @classmethod
-    def from_scipy_sparse(cls, x):
+    def from_scipy_sparse(cls, x: ssp.spmatrix):
+        if not isinstance(x, ssp.spmatrix):
+            raise TypeError(
+                f"Argument type should be `scipy.sparse.spmatrix`, \
+                got {type(x)}")
         t = cls.__new__(cls)
         t._data = sparse.COO.from_scipy_sparse(x)
         return t
 
     @classmethod
-    def from_sparse_array(cls, x):
-        if not isinstance(x, sparse.SparseArray):
+    def from_sparse_array(cls, x: sparse.COO):
+        if not isinstance(x, sparse.COO):
             raise TypeError(
-                f"Argument type should be `sparse.SparseArray`, got {type(x)}")
+                f"Argument type should be `sparse.COO`, got {type(x)}")
         t = cls.__new__(cls)
         t._data = x
         return t
