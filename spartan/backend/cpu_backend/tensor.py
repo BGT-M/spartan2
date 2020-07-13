@@ -2,9 +2,14 @@ import functools
 import numbers
 
 import numpy as np
-from numpy.lib.arraysetops import isin
 import scipy.sparse as ssp
 import sparse
+
+
+def _ensure_array(x):
+    if isinstance(x, DTensor):
+        return x._data
+    return np.asarray(x)
 
 
 def _wrap_ret():
@@ -19,7 +24,6 @@ def _wrap_ret():
                     return ret.item()
                 return DTensor(ret)
             elif isinstance(ret, sparse.SparseArray):
-                t = STensor.from_sparse_array(ret)
                 return STensor.from_sparse_array(ret)
             else:
                 return ret
@@ -37,7 +41,8 @@ def _require_dense(*pos):
             for p, param in zip(pos, params):
                 if not isinstance(param, DTensor):
                     raise TypeError(
-                        f"The {p}-th parameter of `st.{func.__name__}` does not support {type(param)} type.")
+                        f"The {p}-th parameter of `st.{func.__name__}` \
+                            does not support {type(param)} type.")
             return func(*args, **kwargs)
         return wrapper
     return decorator
@@ -54,7 +59,8 @@ def _check_params(*pos):
             is_dense = all([isinstance(p, DTensor) for p in params])
             if not (is_sparse or is_dense):
                 types = [str(type(p)) for p in params]
-                msg = f"Unsupported type in `st.{func.__name__}`: {', '.join(types)}"
+                msg = f"Unsupported type in `st.{func.__name__}`: \
+                    {', '.join(types)}"
                 raise TypeError(msg)
             return func(*args, **kwargs)
         return wrapper
@@ -62,13 +68,13 @@ def _check_params(*pos):
 
 
 class DTensor(np.lib.mixins.NDArrayOperatorsMixin):
-    def __init__(self, value):
+    def __init__(self, value, dtype=None):
         if isinstance(value, STensor):
-            self._data = value._data.toarray()
+            self._data = value._data.todense().astype(dtype)
         elif isinstance(value, DTensor):
-            self._data = value._data
+            self._data = value._data.astype(dtype)
         else:
-            self._data = np.asarray(value)
+            self._data = np.asarray(value, dtype=dtype)
 
     _HANDLED_TYPES = (np.ndarray, numbers.Number)
 
@@ -95,9 +101,7 @@ class DTensor(np.lib.mixins.NDArrayOperatorsMixin):
             return None
         else:
             # one return value
-            if isinstance(result, np.ndarray):
-                return type(self)(result)
-            return result
+            return type(self)(result)
 
     def __repr__(self):
         return '%s(\n%r\n)' % (type(self).__name__, self._data)
@@ -137,6 +141,58 @@ class DTensor(np.lib.mixins.NDArrayOperatorsMixin):
             super().__delattr__(name)
         else:
             delattr(self._data, name)
+
+    @_wrap_ret()
+    def all(self, axis=None, keepdims=False):
+        return np.all(self._data, axis=axis, keepdims=keepdims)
+
+    @_wrap_ret()
+    def any(self, axis=None, keepdims=False):
+        return np.any(self._data, axis=axis, keepdims=keepdims)
+
+    @_wrap_ret()
+    def min(self, axis=None, keepdims=False):
+        return self._data.min(axis=axis, keepdims=keepdims)
+
+    @_wrap_ret()
+    def max(self, axis=None, keepdims=False):
+        return self._data.max(axis=axis, keepdims=keepdims)
+
+    @_wrap_ret()
+    def sum(self, axis=None, keepdims=False):
+        return self._data.sum(axis=axis, keepdims=keepdims)
+
+    @_wrap_ret()
+    def prod(self, axis=None, keepdims=False):
+        return self._data.prod(axis=axis, keepdims=keepdims)
+
+    @_wrap_ret()
+    def mean(self, axis=None, keepdims=False):
+        return self._data.sum(axis=axis, keepdims=keepdims)
+
+    @_wrap_ret()
+    def var(self, axis=None, keepdims=False):
+        return self._data.var(axis=axis, keepdims=keepdims)
+
+    @_wrap_ret()
+    def std(self, axis=None, keepdims=False):
+        return self._data.std(axis=axis, keepdims=keepdims)
+
+    @_wrap_ret()
+    def dot(self, other):
+        return self._data.dot(other._data)
+
+    @_wrap_ret()
+    def reshape(self, shape):
+        return self._data.reshape(shape)
+
+    @_wrap_ret()
+    def nonzero(self):
+        return tuple([DTensor(d) for d in self._data.nonzero()])
+
+    @_wrap_ret()
+    def astype(self, dtype):
+        return self._data.astype(dtype)
 
     @classmethod
     def from_numpy(cls, x):
@@ -185,7 +241,7 @@ class STensor(np.lib.mixins.NDArrayOperatorsMixin):
             if isinstance(result, np.ndarray):
                 return self.__class__.from_numpy(result)
             elif isinstance(result, ssp.spmatrix):
-                return self.__class__.from_scipy_sparse(ret)
+                return self.__class__.from_scipy_sparse(result)
             elif isinstance(result, sparse.COO):
                 return self.__class__.from_sparse_array(result)
             else:
@@ -230,13 +286,60 @@ class STensor(np.lib.mixins.NDArrayOperatorsMixin):
         self._data.__delitem__(index)
 
     @_wrap_ret()
-    @_check_params(1)
+    def all(self, axis=None, keepdims=False):
+        return np.all(self._data, axis=axis, keepdims=keepdims)
+
+    @_wrap_ret()
+    def any(self, axis=None, keepdims=False):
+        return np.any(self._data, axis=axis, keepdims=keepdims)
+
+    @_wrap_ret()
+    def min(self, axis=None, keepdims=False):
+        return self._data.min(axis=axis, keepdims=keepdims)
+
+    @_wrap_ret()
+    def max(self, axis=None, keepdims=False):
+        return self._data.max(axis=axis, keepdims=keepdims)
+
+    @_wrap_ret()
+    def sum(self, axis=None, keepdims=False):
+        return self._data.sum(axis=axis, keepdims=keepdims)
+
+    @_wrap_ret()
+    def prod(self, axis=None, keepdims=False):
+        return self._data.prod(axis=axis, keepdims=keepdims)
+
+    @_wrap_ret()
+    def mean(self, axis=None, keepdims=False):
+        return self._data.sum(axis=axis, keepdims=keepdims)
+
+    @_wrap_ret()
+    def var(self, axis=None, keepdims=False):
+        return self._data.var(axis=axis, keepdims=keepdims)
+
+    @_wrap_ret()
+    def std(self, axis=None, keepdims=False):
+        return self._data.std(axis=axis, keepdims=keepdims)
+
+    @_wrap_ret()
     def dot(self, other):
         return self._data.dot(other._data)
 
     @_wrap_ret()
     def todense(self):
         return self._data.todense()
+
+    @_wrap_ret()
+    def reshape(self, shape):
+        return self._data.reshape(shape)
+
+    @_wrap_ret()
+    def nonzero(self):
+        return tuple([DTensor(d) for d in self._data.nonzero()])
+
+    @_wrap_ret()
+    def astype(self, dtype):
+        return self._data.astype(dtype)
 
     @classmethod
     def from_numpy(cls, x):

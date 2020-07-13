@@ -1,4 +1,3 @@
-import enum
 import importlib
 import json
 import os
@@ -12,7 +11,22 @@ __all__ = [
 
 # Inconsistent apis: sort(), round()
 _APIS = [
-    'add', 'all', 'allclose', 'angle', 'any', 'arange', 'argmax', 'argmin', 'argsort', 'bincount', 'bitwise_and', 'bitwise_not', 'bitwise_or', 'bitwise_xor', 'can_cast', 'ceil', 'complex128', 'complex64', 'conj', 'cos', 'cosh', 'cross', 'cumprod', 'cumsum', 'diag', 'diagflat', 'diagonal', 'dot', 'einsum', 'empty', 'empty_like', 'equal', 'exp', 'expm1', 'eye', 'flip', 'float16', 'float32', 'float64', 'floor', 'floor_divide', 'fmod', 'full', 'full_like', 'imag', 'int16', 'int32', 'int64', 'int8', 'isfinite', 'isinf', 'isnan', 'linspace', 'log', 'log10', 'log1p', 'log2', 'logical_and', 'logical_not', 'logical_or', 'logical_xor', 'logspace', 'matmul', 'mean', 'median', 'meshgrid', 'nonzero', 'ones', 'ones_like', 'prod', 'real', 'reciprocal', 'remainder', 'reshape', 'roll', 'rot90', 'short', 'sign', 'sin', 'sinh', 'split', 'sqrt', 'square', 'squeeze', 'stack', 'std', 'sum', 'take', 'tan', 'tanh', 'tensordot', 'trace', 'transpose', 'tril', 'tril_indices', 'triu', 'triu_indices', 'true_divide', 'trunc', 'uint8', 'unique', 'var', 'where', 'zeros', 'zeros_like', 'STensor', 'DTensor'
+    'add', 'all', 'angle', 'any', 'arange', 'argmax', 'argmin', 'argsort',
+    'bincount', 'bitwise_and', 'bitwise_not', 'bitwise_or', 'bitwise_xor',
+    'can_cast', 'ceil', 'complex128', 'complex64', 'conj', 'cos', 'cosh',
+    'cross', 'cumprod', 'cumsum', 'diag', 'diagflat', 'diagonal', 'dot',
+    'einsum', 'empty', 'empty_like', 'equal', 'exp', 'expm1', 'eye', 'flip',
+    'float16', 'float32', 'float64', 'floor', 'floor_divide', 'fmod', 'full',
+    'full_like', 'imag', 'int16', 'int32', 'int64', 'int8', 'isfinite',
+    'isinf', 'isnan', 'linspace', 'log', 'log10', 'log1p', 'log2',
+    'logical_and', 'logical_not', 'logical_or', 'logical_xor', 'logspace',
+    'matmul', 'mean', 'median', 'meshgrid', 'nonzero', 'ones', 'ones_like',
+    'prod', 'real', 'reciprocal', 'remainder', 'reshape', 'roll', 'rot90',
+    'short', 'sign', 'sin', 'sinh', 'split', 'sqrt', 'square', 'squeeze',
+    'stack', 'std', 'sum', 'take', 'tan', 'tanh', 'tensordot', 'trace',
+    'transpose', 'tril', 'tril_indices', 'triu', 'triu_indices', 'true_divide',
+    'trunc', 'uint8', 'unique', 'var', 'where', 'zeros', 'zeros_like',
+    'STensor', 'DTensor'
 ]
 
 _backend_dict = {
@@ -113,7 +127,8 @@ def get_preferred_backend():
         return backend_name
     else:
         print(
-            f"Spartan doesn't support backend {backend_name} yet. Use cpu backend instead.")
+            f"Spartan doesn't support backend {backend_name} yet. \
+                Use cpu backend instead.")
         set_default_backend('cpu')
         return 'cpu'
 

@@ -1,8 +1,7 @@
 import functools
-from typing import Union
 
 import numpy as np
-import scipy.sparse as ssp
+from scipy import sparse
 
 from .tensor import DTensor, STensor, _check_params, _require_dense, _wrap_ret
 
@@ -27,15 +26,9 @@ def add(input_, other):
 
 
 @_wrap_ret()
-@_require_dense(0)
+@_check_params(0)
 def all(input_, axis=None, keepdims=False):
     return np.all(input_._data, axis=axis, keepdims=keepdims)
-
-
-@_wrap_ret()
-@_require_dense(0, 1)
-def allclose(input_, other, rtol=1e-05, atol=1e-08, equal_nan=False) -> bool:
-    return np.allclose(input_._data, other._data, rtol, atol, equal_nan)
 
 
 @_wrap_ret()
@@ -45,9 +38,9 @@ def angle(input_, deg=False):
 
 
 @_wrap_ret()
-@_require_dense(0)
+@_check_params(0)
 def any(input_, axis=None, keepdims=False):
-    return np.any(input_._data, axis, keepdims)
+    return np.any(input_._data, axis=axis, keepdims=keepdims)
 
 
 @_wrap_ret()
@@ -56,13 +49,13 @@ def arange(start, stop, step, dtype=None):
 
 
 @_wrap_ret()
-@_check_params(0)
+@_require_dense(0)
 def argmax(input_, axis=None):
-    return np.argmin(input_._data, axis)
+    return np.argmax(input_._data, axis)
 
 
 @_wrap_ret()
-@_check_params(0)
+@_require_dense(0)
 def argmin(input_, axis=None):
     return np.argmin(input_._data, axis)
 
@@ -114,6 +107,7 @@ def ceil(input_):
 
 
 @_wrap_ret()
+@_check_params(0)
 def conj(input_):
     return np.conj(input_._data)
 
@@ -207,7 +201,7 @@ def expm1(input_):
 
 @_wrap_ret()
 def eye(n, m=None, dtype=None):
-    return Dnp.eye(n, m, dtype=dtype)
+    return np.eye(n, m, dtype=dtype)
 
 
 @_wrap_ret()
@@ -257,13 +251,13 @@ def isfinite(input_):
 
 
 @_wrap_ret()
-@_require_dense(0)
+@_check_params(0)
 def isinf(input_):
     return np.isinf(input_._data)
 
 
 @_wrap_ret()
-@_require_dense(0)
+@_check_params(0)
 def isnan(input_):
     return np.isnan(input_._data)
 
@@ -286,6 +280,7 @@ def log10(input_):
 
 
 @_wrap_ret()
+@_check_params(0)
 def log1p(input_):
     return np.log1p(input_._data)
 
@@ -326,17 +321,19 @@ def logspace(start, stop, step, base=10, dtype=None):
 
 
 @_wrap_ret()
-@_require_dense(0, 1)
+@_check_params(0, 1)
 def matmul(input_, other):
     return np.matmul(input_._data, other._data)
 
 
 @_wrap_ret()
+@_check_params(0)
 def mean(input_, axis=None, keepdims=False):
     return np.mean(input_._data, axis, keepdims=keepdims)
 
 
 @_wrap_ret()
+@_check_params(0)
 def median(input_, axis=-1, keepdims=False):
     return np.median(input_._data, axis, keepdims=keepdims)
 
@@ -348,6 +345,7 @@ def meshgrid(*inputs):
 
 
 @_wrap_ret()
+@_check_params(0)
 def nonzero(input_):
     return tuple([DTensor(d) for d in np.nonzero(input_._data)])
 
@@ -358,7 +356,7 @@ def ones(shape, dtype=None):
 
 
 @_wrap_ret()
-@_require_dense(0)
+@_check_params(0)
 def ones_like(input_, dtype=None):
     return np.ones_like(input_._data, dtype=dtype)
 
@@ -370,6 +368,7 @@ def prod(input_, axis=None, keepdims=False, dtype=None):
 
 
 @_wrap_ret()
+@_require_dense(0)
 def real(input_):
     return np.real(input_._data)
 
@@ -387,6 +386,7 @@ def remainder(input_, other):
 
 
 @_wrap_ret()
+@_check_params(0)
 def reshape(input_, shape):
     return np.rehsape(input_._data, shape)
 
@@ -410,11 +410,13 @@ def sign(input_):
 
 
 @_wrap_ret()
+@_check_params(0)
 def sin(input_):
     return np.sin(input_._data)
 
 
 @_wrap_ret()
+@_check_params(0)
 def sinh(input_):
     return np.sinh(input_._data)
 
@@ -426,11 +428,13 @@ def split(input_, indices_or_sections, axis=0):
 
 
 @_wrap_ret()
+@_require_dense(0)
 def sqrt(input_):
     return np.sqrt(input_._data)
 
 
 @_wrap_ret()
+@_require_dense(0)
 def square(input_):
     return np.square(input_._data)
 
@@ -453,6 +457,7 @@ def std(input_, axis=None, keepdims=False):
 
 
 @_wrap_ret()
+@_check_params(0)
 def sum(input_, axis=None, dtype=None, keepdims=False):
     return np.sum(input_._data, axis=axis, dtype=dtype, keepdims=keepdims)
 
@@ -464,28 +469,31 @@ def take(input_, indices):
 
 
 @_wrap_ret()
+@_check_params(0)
 def tan(input_):
     return np.tan(input_._data)
 
 
 @_wrap_ret()
+@_check_params(0)
 def tanh(input_):
     return np.tanh(input_._data)
 
 
 @_wrap_ret()
-@_require_dense(0, 1)
+@_check_params(0, 1)
 def tensordot(input_, other, axes=2):
     return np.tensordot(input_._data, other._data, axes)
 
 
 @_wrap_ret()
-@_require_dense(0)
+@_check_params(0)
 def trace(input_):
     return np.trace(input_._data)
 
 
 @_wrap_ret()
+@_check_params(0)
 def transpose(input_, axes=None):
     return np.transpose(input_._data, axes)
 
@@ -502,6 +510,7 @@ def tril_indices(n, m=0, offset=0):
     return tuple([DTensor(index) for index in ret])
 
 
+@_wrap_ret()
 @_require_dense(0)
 def triu(input_, k=0):
     return np.triu(input_._data, k)
@@ -514,6 +523,7 @@ def triu_indices(n, m=0, offset=0):
 
 
 @_wrap_ret()
+@_require_dense(0, 1)
 def true_divide(input_, other):
     return np.true_divide(input_._data, other._data)
 
@@ -527,16 +537,17 @@ def trunc(input_):
 @_wrap_ret()
 @_require_dense(0)
 def unique(input_, return_inverse=False, return_counts=False, axis=None):
-    return np.unique(input_._data, return_inverse=return_inverse, return_counts=return_counts, axis=axis)
+    return np.unique(input_._data, return_inverse=return_inverse,
+                     return_counts=return_counts, axis=axis)
 
 
 @_wrap_ret()
-@_require_dense(0)
+@_check_params(0)
 def var(input_, axis=None, keepdims=False):
     return np.var(input_._data, axis, keepdims=keepdims)
 
 
-@_require_dense(1, 2)
+@_check_params(1, 2)
 def where(condition, x, y):
     return np.where(condition, x, y)
 
@@ -546,6 +557,7 @@ def zeros(shape, dtype=None):
     return np.zeros(shape, dtype=dtype)
 
 
-@_require_dense(0)
+@_wrap_ret()
+@_check_params(0)
 def zeros_like(input_, dtype=None):
     return np.zeros_like(input_._data, dtype=dtype)
