@@ -1,9 +1,36 @@
+import builtins
 import functools
 
 import numpy as np
-from scipy import sparse
+import sparse
 
-from .tensor import DTensor, STensor, _check_params, _require_dense, _wrap_ret
+from .tensor import DTensor, STensor, _ensure_tensor, _wrap_ret
+
+
+def _dispatch(dfunc, sfunc=None):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            is_sparse = builtins.any([isinstance(x, STensor) for x in args])
+            is_dense = builtins.any([isinstance(x, DTensor) for x in args])
+            if (is_sparse and is_dense):
+                raise TypeError(
+                    f"Parameters of `st.{func.__name__}` should be all STensor \
+                    or all DTensor.")
+            if is_sparse:
+                if sfunc is None:
+                    raise TypeError(f"`st.{func.__name__}` doesn't support \
+                                    STensor parameters.")
+                args = tuple(x._data if isinstance(x, STensor) else x
+                             for x in args)
+                return _ensure_tensor(sfunc(*args, **kwargs))
+            else:
+                args = tuple(x._data if isinstance(x, DTensor) else x
+                             for x in args)
+                return _ensure_tensor(dfunc(*args, **kwargs))
+        return wrapper
+    return decorator
+
 
 # Type definition
 short = np.short
@@ -19,545 +46,556 @@ complex64 = np.complex64
 complex128 = np.complex128
 
 
-@_wrap_ret()
-@_check_params(0, 1)
+@_wrap_ret
+@_dispatch(np.add, np.add)
 def add(input_, other):
-    return np.add(input_._data, other._data)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.all, sparse.COO.all)
 def all(input_, axis=None, keepdims=False):
-    return np.all(input_._data, axis=axis, keepdims=keepdims)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.angle)
 def angle(input_, deg=False):
-    return np.angle(input_._data, deg)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.any, sparse.COO.any)
 def any(input_, axis=None, keepdims=False):
-    return np.any(input_._data, axis=axis, keepdims=keepdims)
+    pass
 
 
-@_wrap_ret()
+@_wrap_ret
 def arange(start, stop, step, dtype=None):
     return np.arange(start, stop, step, dtype=dtype)
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.argmax)
 def argmax(input_, axis=None):
-    return np.argmax(input_._data, axis)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.argmin)
 def argmin(input_, axis=None):
-    return np.argmin(input_._data, axis)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.argsort)
 def argsort(input_, axis=-1):
-    return np.argsort(input_._data, axis)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.bincount)
 def bincount(input_, weights, minlength=0):
-    return np.bincount(input_._data, weights, minlength)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0, 1)
+@_wrap_ret
+@_dispatch(np.bitwise_and)
 def bitwise_and(input_, other):
-    return np.bitwise_and(input_._data, other._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0, 1)
+@_wrap_ret
+@_dispatch(np.bitwise_not)
 def bitwise_not(input_, other):
-    return np.bitwise_not(input_._data, other._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0, 1)
+@_wrap_ret
+@_dispatch(np.bitwise_or)
 def bitwise_or(input_, other):
-    return np.bitwise_or(input_._data, other._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0, 1)
+@_wrap_ret
+@_dispatch(np.bitwise_xor)
 def bitwise_xor(input_, other):
-    return np.bitwise_xor(input_._data, other._data)
+    pass
 
 
+@_dispatch(np.can_cast)
 def can_cast(from_, to):
-    return np.can_cast(from_, to)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.ceil)
 def ceil(input_):
-    return np.ceil(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.conj, sparse.COO.conj)
 def conj(input_):
-    return np.conj(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.cos)
 def cos(input_):
-    return np.cos(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.cosh)
 def cosh(input_):
-    return np.cos(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0, 1)
+@_wrap_ret
+@_dispatch(np.cross)
 def cross(input_, other, axis=-1):
-    return np.cross(input_._data, other._data, axis=axis)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.cumprod)
 def cumprod(input_, axis=None, dtype=None):
-    return np.cumprod(input_._data, axis=axis, dtype=dtype)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.cumsum)
 def cumsum(input_, axis=None, dtype=None):
-    return np.cumsum(input_._data, axis, dtype)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.diag)
 def diag(input_, k):
-    return np.diag(input_._data, k)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.diagflat)
 def diagflat(input_, offset=0):
-    return np.diagflat(input_._data, offset)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.diagonal, sparse.diagonal)
 def diagonal(input_, offset=0, axis1=0, axis2=1):
-    return np.diagonal(input_._data, offset, axis1, axis2)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0, 1)
+@_wrap_ret
+@_dispatch(np.dot, sparse.dot)
 def dot(input_, other):
-    return np.dot(input_._data, other._data)
+    pass
 
 
-@_wrap_ret()
+@_wrap_ret
 def einsum(equation, *operands):
-    return np.eigsum(equation, *operands)
+    return np.einsum(equation, *operands)
 
 
-@_wrap_ret()
+@_wrap_ret
+@_dispatch(np.empty)
 def empty(shape, dtype):
-    return np.empty(shape, dtype=dtype)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.empty_like)
 def empty_like(input_, dtype):
-    return np.empty_like(input_._data, dtype=dtype)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0, 1)
+@_wrap_ret
+@_dispatch(np.equal)
 def equal(input_, other):
-    return np.equal(input_._data, other._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.exp)
 def exp(input_):
-    return np.exp(input_._data)
+    pass
 
 
-@_wrap_ret()
+@_wrap_ret
+@_dispatch(np.expm1, np.expm1)
 def expm1(input_):
-    return np.expm1(input_._data)
+    pass
 
 
-@_wrap_ret()
+@_wrap_ret
+@_dispatch(np.eye, sparse.eye)
 def eye(n, m=None, dtype=None):
-    return np.eye(n, m, dtype=dtype)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.flip)
 def flip(input_, axis=None):
-    return np.flip(input_._data, axis)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.floor)
 def floor(input_):
-    return np.floor(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0, 1)
+@_wrap_ret
+@_dispatch(np.floor_divide)
 def floor_divide(input_, other):
-    return np.floor_divide(input_._data, other._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0, 1)
+@_wrap_ret
+@_dispatch(np.fmod)
 def fmod(input_, other):
-    return np.fmod(input_._data, other._data)
+    pass
 
 
-@_wrap_ret()
+@_wrap_ret
+@_dispatch(np.full, sparse.full)
 def full(shape, value, dtype=None):
-    return np.full(shape, value, dtype=dtype)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.full_like, sparse.full_like)
 def full_like(input_, value, dtype=None):
-    return np.full_like(input_._data, value, dtype=dtype)
+    pass
 
 
-@_wrap_ret()
+@_wrap_ret
+@_dispatch(np.imag)
 def imag(input_):
-    return np.imag(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.isfinite)
 def isfinite(input_):
-    return np.isfinite(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.isinf)
 def isinf(input_):
-    return np.isinf(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.isnan)
 def isnan(input_):
-    return np.isnan(input_._data)
+    pass
 
 
-@_wrap_ret()
+@_wrap_ret
+@_dispatch(np.linspace)
 def linspace(start, end, step, dtype=None):
-    return np.linspace(start, end, step, dtype=dtype)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.log)
 def log(input_):
-    return np.log(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.log10)
 def log10(input_):
-    return np.log10(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.log1p, np.log1p)
 def log1p(input_):
-    return np.log1p(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.log2)
 def log2(input_):
-    return np.log2(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0, 1)
+@_wrap_ret
+@_dispatch(np.logical_and)
 def logical_and(input_, other):
-    return np.logical_and(input_._data, other._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.logical_not)
 def logical_not(input_):
-    return np.logical_not(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0, 1)
+@_wrap_ret
+@_dispatch(np.logical_or)
 def logical_or(input_, other):
-    return np.logical_or(input_._data, other._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0, 1)
+@_wrap_ret
+@_dispatch(np.logical_xor)
 def logical_xor(input_, other):
-    return np.logical_xor(input_._data, other._data)
+    pass
 
 
-@_wrap_ret()
+@_wrap_ret
+@_dispatch(np.logspace)
 def logspace(start, stop, step, base=10, dtype=None):
-    return np.logspace(start, stop, step, base=base, dtype=dtype)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0, 1)
+@_wrap_ret
+@_dispatch(np.matmul, sparse.matmul)
 def matmul(input_, other):
-    return np.matmul(input_._data, other._data)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.mean, sparse.COO.mean)
 def mean(input_, axis=None, keepdims=False):
-    return np.mean(input_._data, axis, keepdims=keepdims)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.median)
 def median(input_, axis=-1, keepdims=False):
-    return np.median(input_._data, axis, keepdims=keepdims)
+    pass
 
 
-@_wrap_ret()
+@_wrap_ret
+@_dispatch(np.meshgrid)
 def meshgrid(*inputs):
-    datas = [i._data for i in inputs]
-    return tuple([DTensor(d) for d in np.meshgrid(*datas)])
+    pass
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.nonzero, sparse.COO.nonzero)
 def nonzero(input_):
-    return tuple([DTensor(d) for d in np.nonzero(input_._data)])
+    pass
 
 
-@_wrap_ret()
+@_wrap_ret
+@_dispatch(np.ones, sparse.ones)
 def ones(shape, dtype=None):
-    return np.ones(shape, dtype=dtype)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.ones_like, sparse.ones_like)
 def ones_like(input_, dtype=None):
-    return np.ones_like(input_._data, dtype=dtype)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.prod, sparse.COO.prod)
 def prod(input_, axis=None, keepdims=False, dtype=None):
-    return np.prod(input_._data, axis=axis, keepdims=keepdims, dtype=dtype)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.real)
 def real(input_):
-    return np.real(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.reciprocal)
 def reciprocal(input_):
-    return np.reciprocal(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0, 1)
+@_wrap_ret
+@_dispatch(np.remainder)
 def remainder(input_, other):
-    return np.remainder(input_._data, other._data)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.reshape, sparse.COO.reshape)
 def reshape(input_, shape):
-    return np.rehsape(input_._data, shape)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.roll)
 def roll(input_, shift, axis=None):
-    return np.roll(input_._data, shift, axis=axis)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.rot90)
 def rot90(input_, k=1, axes=(0, 1)):
-    return np.rot90(input_._data, k, axes)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.sign)
 def sign(input_):
-    return np.sign(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.sin, np.sin)
 def sin(input_):
-    return np.sin(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.sinh, np.sinh)
 def sinh(input_):
-    return np.sinh(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.split)
 def split(input_, indices_or_sections, axis=0):
-    return np.split(input_._data, indices_or_sections, axis)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.sqrt, np.sqrt)
 def sqrt(input_):
-    return np.sqrt(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.square, np.square)
 def square(input_):
-    return np.square(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.squeeze)
 def squeeze(input_, axis=None):
-    return np.squeeze(input_._data, axis=axis)
+    pass
 
 
-@_wrap_ret()
+@_wrap_ret
+@_dispatch(np.stack, sparse.stack)
 def stack(inputs, axis=0):
-    return np.stack(inputs, axis)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.std, sparse.COO.std)
 def std(input_, axis=None, keepdims=False):
-    return np.std(input_._data, axis=axis, keepdims=keepdims)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.sum, sparse.COO.sum)
 def sum(input_, axis=None, dtype=None, keepdims=False):
-    return np.sum(input_._data, axis=axis, dtype=dtype, keepdims=keepdims)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.take)
 def take(input_, indices):
-    return np.take(input_._data, indices)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.tan, np.tan)
 def tan(input_):
-    return np.tan(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.tanh, np.tanh)
 def tanh(input_):
-    return np.tanh(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0, 1)
+@_wrap_ret
+@_dispatch(np.tensordot, sparse.tensordot)
 def tensordot(input_, other, axes=2):
-    return np.tensordot(input_._data, other._data, axes)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.trace, np.trace)
 def trace(input_):
-    return np.trace(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.transpose, sparse.COO.transpose)
 def transpose(input_, axes=None):
-    return np.transpose(input_._data, axes)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.tril, sparse.tril)
 def tril(input_, k=0):
-    return np.tril(input_._data, k)
+    pass
 
 
-@_wrap_ret()
+@_wrap_ret
+@_dispatch(np.tril_indices)
 def tril_indices(n, m=0, offset=0):
-    ret = np.tril_indices(n, k=offset, m=m)
-    return tuple([DTensor(index) for index in ret])
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.triu, sparse.triu)
 def triu(input_, k=0):
-    return np.triu(input_._data, k)
+    pass
 
 
-@_wrap_ret()
+@_wrap_ret
+@_dispatch(np.triu_indices)
 def triu_indices(n, m=0, offset=0):
-    ret = np.triu_indices(n, k=offset, m=m)
-    return tuple([DTensor(index) for index in ret])
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0, 1)
+@_wrap_ret
+@_dispatch(np.true_divide)
 def true_divide(input_, other):
-    return np.true_divide(input_._data, other._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.trunc)
 def trunc(input_):
-    return np.trunc(input_._data)
+    pass
 
 
-@_wrap_ret()
-@_require_dense(0)
+@_wrap_ret
+@_dispatch(np.unique)
 def unique(input_, return_inverse=False, return_counts=False, axis=None):
-    return np.unique(input_._data, return_inverse=return_inverse,
-                     return_counts=return_counts, axis=axis)
+    pass
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.var, sparse.COO.var)
 def var(input_, axis=None, keepdims=False):
-    return np.var(input_._data, axis, keepdims=keepdims)
+    pass
 
 
-@_check_params(1, 2)
+@_wrap_ret
+@_dispatch(np.where, sparse.where)
 def where(condition, x, y):
-    return np.where(condition, x, y)
+    pass
 
 
-@_wrap_ret()
+@_wrap_ret
+@_dispatch(np.zeros, sparse.zeros)
 def zeros(shape, dtype=None):
     return np.zeros(shape, dtype=dtype)
 
 
-@_wrap_ret()
-@_check_params(0)
+@_wrap_ret
+@_dispatch(np.zeros_like, sparse.zeros_like)
 def zeros_like(input_, dtype=None):
-    return np.zeros_like(input_._data, dtype=dtype)
+    pass
