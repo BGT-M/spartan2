@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 '''
 @File    :   TensorData.py
-@Desc    :   None
+@Desc    :   Structure of input file.
 '''
 
 # here put the import lib
@@ -32,27 +32,3 @@ class TensorData:
             value_tensor = None
             attr_tensor = STensor(self.data)
         return value_tensor, attr_tensor
-
-
-class Timeseries:
-    def __init__(self, time_tensor, attr_tensor):
-        self.attr_tensor = attr_tensor.T
-        self.time_tensor = self.handle_time(time_tensor)
-    
-    def handle_time(self, time_tensor):
-        if time_tensor is None:
-            # TODO create a tensor by DTensor
-            pass
-        else:
-            return time_tensor
-
-class Graph:
-    def __init__(self, value_tensor, attr_tensor):
-        self.attr_tensor = attr_tensor
-        self.value_tensor = self.handle_value(value_tensor)
-
-    def handle_value(self, value_tensor):
-        if value_tensor is None:
-            return None
-        else:
-            return value_tensor
