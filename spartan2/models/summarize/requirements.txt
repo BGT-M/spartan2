@@ -1,4 +1,0 @@
-Cython>=0.29.17
-datasketch>=1.5.1
-scipy>=1.4.1
-numpy>=1.18.1
