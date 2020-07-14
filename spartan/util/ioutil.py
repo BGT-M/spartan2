@@ -146,8 +146,8 @@ def _read_data(name: str, idxtypes: list) -> object:
     elif _postfix == ".tensor":
         _name = name
         _class = TensorFile
-    elif os.path.isfile(name+'.csv'):
-        _name = name + '.csv'
+    elif _postfix in ['.gz', '.bz2', '.zip', '.xz']:
+        _name = name
         _class = CSVFile
     else:
         raise Exception(f"Error: Can not find file {name}, please check the file path!\n")
@@ -165,7 +165,10 @@ def _check_compress_file(path: str, cformat=['.gz', '.bz2', '.zip', '.xz']):
             if os.path.isfile(path+cf):
                 valpath = path + cf
                 return valpath
-    return valpath
+    if not valpath is None:
+        return valpath
+    else:
+        raise FileNotFoundError("{path} cannot be found.")
 
 
 def _aggregate(data_list):
@@ -176,8 +179,8 @@ def _aggregate(data_list):
     else:
         pass
 
-def loadTensor(path: str, col_idx: list = None, col_types: list = None,
-        names: list = None) -> TensorData:
+
+def loadTensor(path: str, col_idx: list = None, col_types: list = None):
     if path is None:
         raise FileNotFoundError('Path is missing.')
     path = _check_compress_file(path)

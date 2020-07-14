@@ -1,6 +1,7 @@
 from spartan.backend import STensor, DTensor
 
-from .TensorData import TensorData, Timeseries, Graph
+from .tensordata import TensorData, Graph
+from .timeseries import Timeseries
 
 __all__ = [
     'TensorData', 'Timeseries', 'Graph'
