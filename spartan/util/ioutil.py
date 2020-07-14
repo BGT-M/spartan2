@@ -12,6 +12,7 @@ import sys
 import pandas as pd
 import numpy as np
 from . import TensorData
+from .basicutil import set_trace
 
 
 class File():
@@ -29,6 +30,7 @@ class File():
         sep = None
         with self._open() as fp:
             for line in fp:
+                line = line.decode('utf-8') if isinstance(line, bytes) else line
                 if (line.startswith("%") or line.startswith("#")):
                     continue
                 line = line.strip()
@@ -48,7 +50,6 @@ class File():
 
     def _read(self):
         pass
-
 
 class TensorFile(File):
     def _open(self):
@@ -136,6 +137,7 @@ def _read_data(name: str, idxtypes: list) -> object:
     Exception
         if file cannot be read, raise an exception.
     """
+
     _class = None
     _postfix = os.path.splitext(name)[-1]
     if _postfix == ".csv":
@@ -174,7 +176,8 @@ def _aggregate(data_list):
     else:
         pass
 
-def loadTensor(path: str, col_idx: list = None, col_types: list = None):
+def loadTensor(path: str, col_idx: list = None, col_types: list = None,
+        names: list = None) -> TensorData:
     if path is None:
         raise FileNotFoundError('Path is missing.')
     path = _check_compress_file(path)
@@ -192,8 +195,10 @@ def loadTensor(path: str, col_idx: list = None, col_types: list = None):
             idxtypes = [(x, col_types[i]) for i, x in enumerate(col_idx)]
         else:
             raise Exception(f"Error: input same size of col_types and col_idx")
+
     data_list = []
     for _file in files:
         data_list.append(_read_data(_file, idxtypes))
     data = _aggregate(data_list)
     return TensorData(data)
+

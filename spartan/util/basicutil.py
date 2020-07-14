@@ -6,3 +6,10 @@
 '''
 
 # here put the import lib
+
+def set_trace( isset = True ):
+    if isset is True:
+        import ipdb; ipdb.set_trace()
+    else:
+        pass
+

@@ -17,42 +17,51 @@ from scipy.sparse import coo_matrix
     e.g.
     user obj 1
     ... ...
-    if multivariate time series, hasvalue equals to the number of
-    time series
+
     return: tensorlist
 '''
 
 
 class STTensor:
-    def __init__(self, tensorlist, hasvalue, value_idx, names):
+    def __init__(self, tensorlist, names):
         self.tensorlist = tensorlist
-        self.hasvalue = hasvalue
-        self.value_idx = value_idx
         self.names = names
         'number of columns'
         self.m = len(tensorlist[0])
 
-    def toGraph(self, bipartite=True, weighted=False, rich=False, directed=False, relabel=False):
+    def toGraph(self, hasvalue: bool = False, bipartite: bool = True,
+            weighted: bool = False, rich: bool = False, directed: bool = False,
+            relabel:bool = False):
         ''' construct coo sparse matrix of graph from tensorlist
             attributes tuples or matrix are also returned
-            bipartite: homogeneous graph or bipartite graph
-            weighted: weighted graph or 0-1 adj matrix
-            rich: rich graph with edge attributes or not. if yes, requiring
-                    tensorlist has more than two attribute columns.
-            relabel: relabel ids of graph nodes start from zero
-            directed: only effective when bipartite is False, which adj matrix is symmetric
+
+            Parameters
+            ----------
+            bipartite: bool
+                homogeneous graph or bipartite graph
+            hasvalue: bool
+                whether tensorlist has the last column as value. (i.e. frequency)
+            weighted: bool
+                weighted graph or 0-1 adj matrix
+            rich: bool
+                rich graph with edge attributes or not. if yes, requiring
+                tensorlist has more than two attribute columns.
+            relabel: bool
+                relabel ids of graph nodes start from zero
+            directed: bool
+                only effective when bipartite is False, which adj matrix is symmetric
         '''
+
         tl = np.array(self.tensorlist)
-        xs = tl[:, 0]
-        ys = tl[:, 1]
+        xtype, ytype = type(self.tensorlist[0][0]), type(self.tensorlist[0][1])
+        xs = tl[:, 0].astype(xtype)
+        ys = tl[:, 1].astype(ytype)
         edge_num = tl.shape[0]
 
-        if self.hasvalue == 0:
+        if not hasvalue:
             data = [1] * edge_num
-        elif self.hasvalue == 1:
-            data = tl[:, -1]
         else:
-            raise Exception('Error: list of more than one values is used for graph')
+            data = tl[:, -1]
 
         if relabel == False:
             row_num = max(xs) + 1
@@ -75,12 +84,14 @@ class STTensor:
             smt = sm.transpose(copy=True)
             sm = sm.maximum(smt)
 
-        attlist = tensorlist[:, :self.m - hasvalue] if rich is True \
+        import ipdb; ipdb.set_trace()
+        attlist = tl[:, :self.m - hasvalue] if rich is True \
             else None
 
         return STGraph(sm, weighted, bipartite, rich, attlist, relabel, labelmaps)
 
-    def toTimeseries(self, attrlabels: list = None, numsensors: int = None, freq: int = None, startts: int = None) -> STTimeseries:
+    def toTimeseries(self, attrlabels: list = None, hastticks: bool = False,
+            numsensors: int = None, freq: int = None, startts: int = None) -> STTimeseries:
         ''' transfer data to time-series type
 
         Args:
@@ -100,7 +111,7 @@ class STTensor:
         attrlists = np.array(self.tensorlist).T
         if self.names is None and attrlabels is None:
             raise Exception(f'Attrlabels missed.')
-        if self.hasvalue == True:
+        if hastticks == True:
             if self.value_idx is None:
                 self.value_idx = 0
             time = attrlists[self.value_idx]
