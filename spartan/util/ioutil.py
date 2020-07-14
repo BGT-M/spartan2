@@ -168,7 +168,7 @@ def _check_compress_file(path: str, cformat=['.gz', '.bz2', '.zip', '.xz']):
     if not valpath is None:
         return valpath
     else:
-        raise FileNotFoundError("{path} cannot be found.")
+        raise FileNotFoundError(f"{path} cannot be found.")
 
 
 def _aggregate(data_list):

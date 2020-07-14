@@ -18,11 +18,11 @@ class TensorData:
     def toDTensor(self, hastticks: bool = True):
         if hastticks:
             time_tensor = DTensor(self.data.iloc[:, 0])
-            attr_tensor = DTensor(self.data.iloc[:, 1:])
+            val_tensor = DTensor(self.data.iloc[:, 1:])
         else:
             time_tensor = None
-            attr_tensor = DTensor(self.data)
-        return time_tensor, attr_tensor
+            val_tensor = DTensor(self.data)
+        return time_tensor, val_tensor
 
     def toSTensor(self, hasvalue: bool = True):
         if hasvalue:
