@@ -4,9 +4,11 @@ import os
 import sys
 import warnings
 
+from .cpu_backend import STensor, DTensor
+
 __all__ = [
     'get_backend', 'get_preferred_backend', 'load_backend',
-    'set_default_backend'
+    'set_default_backend', 'STensor', 'DTensor'
 ]
 
 # Inconsistent apis: sort(), round()

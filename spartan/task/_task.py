@@ -7,7 +7,6 @@
 
 # here put the import lib
 
-from . import STTensor
 from . import Model
 
 import importlib
@@ -20,7 +19,7 @@ class Task():
 
     Attributes
     ----------
-    tensor : STTensor
+    tensor : object
         data object
     policy : str
         model object
@@ -39,14 +38,14 @@ class Task():
         self.params = None
 
     @classmethod
-    def create(cls, tensor: STTensor, policy: str, model_name: str, **params) -> object:
+    def create(cls, tensor: object, policy: str, model_name: str, **params) -> object:
         '''Create function, called by class.
 
         Instantiation of policy from string and creation of Task from other parameters.
 
         Parameters
         ----------
-        tensor : STTensor
+        tensor : object
             data object
         policy : str
             model path, defined by an enum class

@@ -1,5 +1,7 @@
-from .STTensor import STTensor
+from spartan.backend import STensor, DTensor
+
+from .TensorData import TensorData, Timeseries, Graph
 
 __all__ = [
-    'STTensor'
+    'TensorData', 'Timeseries', 'Graph'
 ]
