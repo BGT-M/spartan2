@@ -78,6 +78,9 @@ class DTensor(np.lib.mixins.NDArrayOperatorsMixin):
     def __len__(self):
         return self._data.__len__()
 
+    def __copy__(self):
+        return self._data.__copy__()
+
     # Slice
     @_wrap_ret
     def __getitem__(self, index):
@@ -221,6 +224,9 @@ class STensor(np.lib.mixins.NDArrayOperatorsMixin):
 
     def __repr__(self):
         return '%s(%r)' % (type(self).__name__, self._data)
+
+    def __copy__(self):
+        return self._data.__copy__()
 
     @_wrap_ret
     def __getattr__(self, name):
