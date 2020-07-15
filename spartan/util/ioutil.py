@@ -17,10 +17,11 @@ from .basicutil import set_trace
 
 class File():
 
-    def __init__(self, name, mode, idxtypes):
-        self.name = name
+    def __init__(self, filename, mode, idxtypes):
+        self.filename = filename
         self.mode = mode
         self.idxtypes = idxtypes
+        self.dtypes = None
 
     def get_sep_of_file(self):
         '''
@@ -51,11 +52,12 @@ class File():
     def _read(self):
         pass
 
+
 class TensorFile(File):
     def _open(self):
         if 'r' not in self.mode:
             self.mode += 'r'
-        f = open(self.name, self.mode)
+        f = open(self.filename, self.mode)
         return f
 
     def _read(self):
@@ -80,28 +82,25 @@ class TensorFile(File):
 
 class CSVFile(File):
     def _open(self):
-        f = pd.read_csv(self.name)
+        f = pd.read_csv(self.filename, header=None)
         column_names = f.columns
-        dtypes = {}
+        self.dtypes = {}
         if not self.idxtypes is None:
             for idx, typex in self.idxtypes:
-                dtypes[column_names[idx]] = self.transfer_type(typex)
-            f = pd.read_csv(self.name, dtype=dtypes)
+                self.dtypes[column_names[idx]] = self.transfer_type(typex)
+            f = pd.read_csv(self.filename, dtype=self.dtypes, header=None)
         else:
-            f = pd.read_csv(self.name)
+            f = pd.read_csv(self.filename, header=None)
         return f
 
     def _read(self):
-        tensorlist = []
+        tensorlist = pd.DataFrame()
         _file = self._open()
         if not self.idxtypes is None:
             idx = [i[0] for i in self.idxtypes]
-            for _id in idx:
-                tensorlist.append(np.array(_file.iloc[:, _id].T))
-            tensorlist = np.array(tensorlist).T
+            tensorlist = _file[idx]
         else:
-            tensorlist = np.array(_file)
-        tensorlist = pd.DataFrame(tensorlist)
+            tensorlist = _file
         return tensorlist
 
     def transfer_type(self, typex):
@@ -116,14 +115,14 @@ class CSVFile(File):
         return _typex
 
 
-def _read_data(name: str, idxtypes: list) -> object:
+def _read_data(filename: str, idxtypes: list) -> object:
     """Check format of file and read data from file.
 
     Default format is .tensor. Now we support read from csv, gz, tensor.
 
     Parameters
     ----------
-    name : str
+    filename : str
         file name
     idxtypes : list
         type of columns
@@ -135,23 +134,23 @@ def _read_data(name: str, idxtypes: list) -> object:
     Raises
     ----------
     Exception
-        if file cannot be read, raise an exception.
+        if file cannot be read, raise a FileNotFoundError.
     """
 
     _class = None
-    _postfix = os.path.splitext(name)[-1]
+    _postfix = os.path.splitext(filename)[-1]
     if _postfix == ".csv":
-        _name = name
+        _filename = filename
         _class = CSVFile
     elif _postfix == ".tensor":
-        _name = name
+        _filename = filename
         _class = TensorFile
     elif _postfix in ['.gz', '.bz2', '.zip', '.xz']:
-        _name = name
+        _filename = filename
         _class = CSVFile
     else:
-        raise Exception(f"Error: Can not find file {name}, please check the file path!\n")
-    _obj = _class(_name, 'r', idxtypes)
+        raise FileNotFoundError(f"Error: Can not find file {filename}, please check the file path!\n")
+    _obj = _class(_filename, 'r', idxtypes)
     _data = _obj._read()
     return _data
 
@@ -204,4 +203,3 @@ def loadTensor(path: str, col_idx: list = None, col_types: list = None):
         data_list.append(_read_data(_file, idxtypes))
     data = _aggregate(data_list)
     return TensorData(data)
-
