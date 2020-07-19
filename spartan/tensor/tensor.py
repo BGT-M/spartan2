@@ -7,6 +7,7 @@
 
 # here put the import lib
 
+from ..util.basicutil import set_trace
 from . import STensor, DTensor
 import pandas as pd
 
@@ -24,11 +25,20 @@ class TensorData:
             val_tensor = DTensor(self.data)
         return time_tensor, val_tensor
 
-    def toSTensor(self, hasvalue: bool = True):
+    def toSTensor( self, hasvalue: bool = True, mappers:dict = {}):
         if hasvalue:
-            value_tensor = STensor(self.data.iloc[:, -1])
-            attr_tensor = STensor(self.data.iloc[:, :-1])
+            value = self.data.iloc[:, -1]
+            attr = self.data.iloc[:, :-1]
         else:
-            value_tensor = None
-            attr_tensor = STensor(self.data)
-        return value_tensor, attr_tensor
+            value = 1
+            attr = self.data
+
+        for i in attr.columns:
+            if i in mappers:
+                colind = mappers[i].map(self.data.iloc[:,i])
+                attr.iloc[:,i] = colind
+
+        ##assert(attr.dtypes[0] is int and  attr.dtypes[1] is int)
+
+        return STensor((attr, value))
+
