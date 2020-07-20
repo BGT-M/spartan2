@@ -387,7 +387,7 @@ def diag(input_, k=0):
 
 @_wrap_ret
 @_dispatch(np.diagflat)
-def diagflat(input_, offset=0):
+def diagflat(input_, k=0):
     """Wrapper of `numpy.diagflat`.
 
     Parameters
@@ -1282,7 +1282,7 @@ def tril(input_, k=0):
 
 @_wrap_ret
 @_dispatch(np.tril_indices)
-def tril_indices(n, m=0, offset=0):
+def tril_indices(n, m=0, k=0):
     """Wrapper of `numpy.tril_indices`.
 
     Parameters
@@ -1314,7 +1314,7 @@ def triu(input_, k=0):
 
 @_wrap_ret
 @_dispatch(np.triu_indices)
-def triu_indices(n, m=0, offset=0):
+def triu_indices(n, m=0, k=0):
     """Wrapper of `numpy.triu_indices`.
 
     Parameters

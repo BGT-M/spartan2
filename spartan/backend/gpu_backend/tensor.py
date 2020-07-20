@@ -194,6 +194,9 @@ class DTensor(TorchArithmetic):
     def __copy__(self):
         return self._data.__copy__()
 
+    def __iter__(self):
+        return iter(self._data)
+
     # Slice
     @_wrap_ret
     def __getitem__(self, index):
@@ -537,6 +540,9 @@ class STensor(TorchArithmetic):
 
     def __copy__(self):
         return self._data.__copy__()
+
+    def __iter__(self):
+        return iter(self._data)
 
     # Notice that Pytorch's GPU sparse tensor doesn't support slice fully yet!
     # Slice

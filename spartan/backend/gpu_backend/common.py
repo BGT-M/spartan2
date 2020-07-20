@@ -380,7 +380,7 @@ def diag(input_, k=0):
 
 
 @_wrap_ret
-def diagflat(input_, offset=0):
+def diagflat(input_, k=0):
     """Wrapper of `torch.diagflat`.
 
     Parameters
@@ -390,7 +390,7 @@ def diagflat(input_, offset=0):
     offset : int, optional
         Offset to main diagonal, by default 0
     """
-    return torch.diagflat(input_._data, offset)
+    return torch.diagflat(input_._data, k)
 
 
 @_wrap_ret
@@ -1241,7 +1241,7 @@ def tril(input_, k=0):
 
 
 @_wrap_ret
-def tril_indices(n, m=0, offset=0):
+def tril_indices(n, m=0, k=0):
     """Wrapper of `torch.tril_indices`.
 
     Parameters
@@ -1253,7 +1253,7 @@ def tril_indices(n, m=0, offset=0):
     offset : int, optional
         Offset to main diagonal, by default 0
     """
-    return torch.tril_indices(row=m, col=m, offset=offset)
+    return torch.tril_indices(row=m, col=m, offset=k)
 
 
 def triu(input_, k=0):
@@ -1270,7 +1270,7 @@ def triu(input_, k=0):
 
 
 @_wrap_ret
-def triu_indices(n, m=0, offset=0):
+def triu_indices(n, m=0, k=0):
     """Wrapper of `torch.triu_indices`.
 
     Parameters
@@ -1282,7 +1282,7 @@ def triu_indices(n, m=0, offset=0):
     offset : int, optional
         Offset to main diagonal, by default 0
     """
-    ret = torch.triu_indices(row=m, col=m, offset=offset)
+    ret = torch.triu_indices(row=m, col=m, offset=k)
     return tuple([index for index in ret])
 
 
