@@ -508,7 +508,7 @@ def expm1(input_):
 @_wrap_ret
 @_dispatch(np.eye, sparse.eye)
 def eye(n, m=None, dtype=None):
-    """Wrapper of `numpy.eye` and `sparse.eye`.
+    """Wrapper of `numpy.eye`.
 
     Parameters
     ----------
@@ -1014,7 +1014,7 @@ def roll(input_, shift, axis=None):
 @_wrap_ret
 @_dispatch(np.rot90)
 def rot90(input_, k=1, axes=(0, 1)):
-    """Wrapper of `numpy.rot90
+    """Wrapper of `numpy.rot90`
 
     Parameters
     ----------
@@ -1315,7 +1315,7 @@ def triu(input_, k=0):
 @_wrap_ret
 @_dispatch(np.triu_indices)
 def triu_indices(n, m=0, offset=0):
-    """Wrapper of `triu_indices`.
+    """Wrapper of `numpy.triu_indices`.
 
     Parameters
     ----------
@@ -1401,7 +1401,7 @@ def where(condition, x, y):
 
     Parameters
     ----------
-    condition : DTensor or STensor of bool
+    condition : DTensor of bool
         Where True, yield x, otherwise yield y.
     x : DTensor or STensor
         The first tensor.

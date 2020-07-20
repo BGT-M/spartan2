@@ -166,6 +166,16 @@ class TorchArithmetic:
 
 
 class DTensor(TorchArithmetic):
+    """A dense multi-deimensional tensor on GPU (based on PyTorch).
+
+    Parameters
+    ----------
+    value : np.ndarray or array_like
+        Data of dense tensor.
+    dtype : data-type, optional
+        Data type of the tensor, by default None(inferred automatically)
+    """
+
     def __init__(self, data, dtype=None):
         if isinstance(data, DTensor):
             self._data = data._data
@@ -219,6 +229,21 @@ class DTensor(TorchArithmetic):
 
     @_wrap_ret
     def all(self, axis=None, keepdims=False):
+        """Wrapper of `torch.all`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints , optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        DTensor or bool
+            Result of `all` operation as a DTensor or a boolean value.
+        """
         if axis is None:
             return torch.all(self._data)
         else:
@@ -226,50 +251,184 @@ class DTensor(TorchArithmetic):
 
     @_wrap_ret
     def any(self, axis=None, keepdims=False):
+        """Wrapper of `torch.any`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        DTensor or bool
+            Result of `any` operation as a DTensor or a boolean value.
+        """
         if axis is None:
             return torch.any(self._data)
         return torch.any(self._data, dim=axis, keepdim=keepdims)
 
     @_wrap_ret
     def min(self, axis=None, keepdims=False):
+        """Wrapper of `torch.Tensor.min`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        DTensor or scalar
+            Result of `min` operation as a DTensor or a scalar value.
+        """
         return self._data.min(dim=axis, keepdim=keepdims).values
 
     @_wrap_ret
     def max(self, axis=None, keepdims=False):
+        """Wrapper of `torch.Tensor.max`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        DTensor or scalar
+            Result of `max` operation as a DTensor or a scalar value.
+        """
         return self._data.max(dim=axis, keepdim=keepdims).values
 
     @_wrap_ret
     def sum(self, axis=None, keepdims=False):
+        """Wrapper of `torch.Tensor.sum`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        DTensor or scalar
+            Result of `sum` operation as a DTensor or a scalar value.
+        """
         if axis is None:
             return torch.sum(self._data)
         return self._data.sum(dim=axis, keepdim=keepdims)
 
     @_wrap_ret
     def prod(self, axis=None, keepdims=False):
+        """Wrapper of `torch.Tensor.prod`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        DTensor or scalar
+            Result of `prod` operation as a DTensor or a scalar value.
+        """
         if axis is None:
             return torch.prod(self._data)
         return self._data.prod(dim=axis, keepdim=keepdims)
 
     @_wrap_ret
     def mean(self, axis=None, keepdims=False):
+        """Wrapper of `torch.Tensor.mean`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        DTensor or scalar
+            Result of `mean` operation as a DTensor or a scalar value.
+        """
         if axis is None:
             return torch.mean(self._data)
         return self._data.sum(dim=axis, keepdim=keepdims)
 
     @_wrap_ret
     def var(self, axis=None, keepdims=False):
+        """Wrapper of `torch.Tensor.var`, note that result is biased(divisor is `n`).
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are \
+                left to size one, by default False
+
+        Returns
+        -------
+        DTensor or scalar
+            Result of `var` operation as a DTensor or a scalar value.
+        """
         if axis is None:
             return torch.var(self._data)
         return self._data.var(dim=axis, keepdim=keepdims)
 
     @_wrap_ret
     def std(self, axis=None, keepdims=False):
+        """Wrapper of `torch.Tensor.std`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        DTensor or scalar
+            Result of `std` operation as a DTensor or a scalar value.
+        """
         if axis is None:
             return torch.std(self._data)
         return self._data.std(dim=axis, keepdim=keepdims)
 
     @_wrap_ret
     def dot(self, other):
+        """Wrapper of `torch.Tensor.dot`. Perform tensor dot operation with
+        another tensor, including vector inner product, matrix multiplication
+        and general tensor dot.
+
+        Parameters
+        ----------
+        other : DTensor
+            The second operand of dot operation.
+
+        Returns
+        -------
+        DTensor or scalar
+            Tensor dot result as a DTensor or a scalar value.
+        """
         if other.ndim == 1:
             return self._data.dot(other._data)
         else:
@@ -277,27 +436,87 @@ class DTensor(TorchArithmetic):
 
     @_wrap_ret
     def reshape(self, shape):
+        """Wrapper of `torch.Tensor.reshape`. Gives a new dense tensor with
+        new shape and current data.
+
+        Parameters
+        ----------
+        shape : int or tuple of ints
+            Shape of new tensor.
+
+        Returns
+        -------
+        DTensor
+            New dense tensor with given shape.
+        """
         return self._data.reshape(shape)
 
     @_wrap_ret
     def nonzero(self):
+        """Wrapper of `torch.Tensor.nonzero`. Find the indices of non-zero elements.
+
+        Returns
+        -------
+        tuple of DTensor
+            Indices of non-zero elements.
+        """
         return tuple([DTensor(d) for d in self._data.nonzero()])
 
     @_wrap_ret
     def astype(self, dtype):
-        return self._data.astype(dtype)
+        """Wrapper of `torch.Tensor.astype`. Convert the array to a new type.
+
+        Parameters
+        ----------
+        dtype : data-type
+            Type of new tensor.
+
+        Returns
+        -------
+        DTensor
+            New dense tensor with given data type.
+        """
+        return self._data.type(dtype)
 
     @classmethod
     def from_numpy(cls, x):
+        """Construct a `DTensor` from a `numpy.ndarray`.
+
+        Parameters
+        ----------
+        x : numpy.ndarray
+            Input array.
+
+        Returns
+        -------
+        DTensor
+            Dense tensor constructed from given array.
+
+        Raises
+        ------
+        TypeError
+            Raise if the parameter is not `numpy.ndarray`.
+        """
         if not isinstance(x, np.ndarray):
             raise TypeError(
                 f"Argument type should be `numpy.ndarray`, got {type(x)}")
         t = cls.__new__(cls)
-        t._data = torch.as_tensor(x).cuda()
+        t._data = torch.from_numpy(x).cuda()
         return t
 
 
 class STensor(TorchArithmetic):
+    """A sparse multi-dimensional tensor on GPU (based on PyTorch).
+
+    Parameters
+    ----------
+    data : Tuple of indices (ndim x nnz) and values (1 x nnz) or STenosr
+        or DTensor
+        Data of sparse tensor.
+    shape : tuple, optional
+        Shape of sparse tensor, by default None (inferred automatically)
+    """
+
     def __init__(self, data, shape=None):
         if type(data) is tuple:
             indices, values = data
@@ -355,6 +574,21 @@ class STensor(TorchArithmetic):
 
     @_wrap_ret
     def all(self, axis=None, keepdims=False):
+        """Wrapper of `torch.all`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        STensor or bool
+            Result of `all` operation as a STensor or a boolean value.
+        """
         if keepdims:
             warnings.warn(f"The keepdims parameter has no effect yet",
                           UserWarning)
@@ -364,6 +598,21 @@ class STensor(TorchArithmetic):
 
     @_wrap_ret
     def any(self, axis=None, keepdims=False):
+        """Wrapper of `torch.any`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        STensor or bool
+            Result of `any` operation as a STensor or a boolean value.
+        """
         if keepdims:
             warnings.warn(f"The keepdims parameter has no effect yet",
                           UserWarning)
@@ -373,14 +622,59 @@ class STensor(TorchArithmetic):
 
     @_wrap_ret
     def min(self, axis=None, keepdims=False):
+        """Not implmented yet.
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        STensor or scalar
+            Result of `min` operation as a STensor or a scalar value.
+        """
         raise NotImplementedError
 
     @_wrap_ret
     def max(self, axis=None, keepdims=False):
+        """Not implemented yet.
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        STensor or scalar
+            Result of `max` operation as a STensor or a scalar value.
+        """
         raise NotImplementedError
 
     @_wrap_ret
     def sum(self, axis=None, keepdims=False):
+        """Wrapper of `torch.sparse.sum`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        STensor or scalar
+            Result of `sum` operation as a STensor or a scalar value.
+        """
         if keepdims:
             warnings.warn(f"The keepdims parameter has no effect yet",
                           UserWarning)
@@ -390,42 +684,172 @@ class STensor(TorchArithmetic):
 
     @_wrap_ret
     def prod(self, axis=None, keepdims=False):
+        """Not implemented yet.
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        STensor or scalar
+            Result of `prod` operation as a STensor or a scalar value.
+        """
         raise NotImplementedError
 
     @_wrap_ret
     def mean(self, axis=None, keepdims=False):
+        """Not implemented yet.
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        STensor or scalar
+            Result of `mean` operation as a STensor or a scalar value.
+        """
         raise NotImplementedError
 
     @_wrap_ret
     def var(self, axis=None, keepdims=False):
+        """Not implemented yet.
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        STensor or scalar
+            Result of `var` operation as a STensor or a scalar value.
+        """
         raise NotImplementedError
 
     @_wrap_ret
     def std(self, axis=None, keepdims=False):
+        """Not implemented yet.
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default
+            None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        STensor or scalar
+            Result of `std` operation as a STensor or a scalar value.
+        """
         raise NotImplementedError
 
     @_wrap_ret
     def dot(self, other):
+        """Wrapper of `torch.sparse.mm`. Perform tensor dot operation with
+        another tensor, including vector inner product, matrix multiplication
+        and general tensor dot.
+
+        Parameters
+        ----------
+        other : DTensor or STensor
+            The second operand of dot operation.
+
+        Returns
+        -------
+        DTensor or STensor
+            Tensor dot result as a DTensor or a STensor or a scalar value.
+        """
         return tsparse.mm(self._data, other._data)
 
     @_wrap_ret
     def todense(self):
+        """Convert to a dense tensor.
+
+        Returns
+        -------
+        DTensor
+            Dense tensor coverted from the sparse tensor.
+        """
         return self._data.to_dense()
 
     @_wrap_ret
     def reshape(self, shape):
+        """Not implemented yet.
+
+        Parameters
+        ----------
+        shape : int or tuple of ints
+            Shape of new tensor.
+
+        Returns
+        -------
+        STensor
+            New sparse tensor with given shape.
+        """
         raise NotImplementedError
 
     @_wrap_ret
     def nonzero(self):
+        """Wrapper of `torch.Tensor.indices`. Find the indices of non-zero elements.
+
+        Returns
+        -------
+        tuple of DTensor
+            Indices of non-zero elements.
+        """
         return tuple([x for x in self._data.indices()])
 
     @_wrap_ret
     def astype(self, dtype):
+        """Not implemented yet.
+
+        Parameters
+        ----------
+        dtype : data-type
+            Type of new tensor.
+
+        Returns
+        -------
+        STensor
+            New sparse tensor with given data type.
+        """
         raise NotImplementedError
 
     @classmethod
     def from_numpy(cls, x: np.ndarray):
+        """Construct a `STensor` from a `numpy.ndarray`.
+
+        Parameters
+        ----------
+        x : numpy.ndarray
+            Input array.
+
+        Returns
+        -------
+        STensor
+            Sparse tensor constructed from given array.
+
+        Raises
+        ------
+        TypeError
+            Raise if the parameter is not `numpy.ndarray`.
+        """
         if not isinstance(x, np.ndarray):
             raise TypeError(
                 f"Argument type should be `numpy.ndarray`, got {type(x)}")
@@ -435,6 +859,23 @@ class STensor(TorchArithmetic):
 
     @classmethod
     def from_scipy_sparse(cls, x: scipy.sparse.spmatrix):
+        """Construct a `STensor` from a `scipy.sparse.spmatrix`.
+
+        Parameters
+        ----------
+        x : scipy.sparse.spmatrix
+            Input sparse matrix.
+
+        Returns
+        -------
+        STensor
+            Sparse tensor constructed from given sparse matrix.
+
+        Raises
+        ------
+        TypeError
+            Raise if the parameter is not `scipy.sparse.spmatrix`.
+        """
         if not isinstance(x, scipy.sparse.spmatrix):
             raise TypeError(
                 f"Argument type should be `scipy.sparse.spmatrix`, \
@@ -449,6 +890,23 @@ class STensor(TorchArithmetic):
 
     @classmethod
     def from_sparse_array(cls, x: sparse.COO):
+        """Construct a sparse tensor from a `sparse.COO`.
+
+        Parameters
+        ----------
+        x : sparse.COO
+            Input COO sparse array.
+
+        Returns
+        -------
+        STensor
+            Sparse tensor constructed from given sparse array.
+
+        Raises
+        ------
+        TypeError
+            Raise if the parameter is not `sparse.COO`.
+        """
         if not isinstance(x, sparse.COO):
             raise TypeError(
                 f"Argument type should be `sparse.SparseArray`, got {type(x)}")
@@ -461,6 +919,23 @@ class STensor(TorchArithmetic):
 
     @classmethod
     def from_torch(cls, x: torch.Tensor):
+        """Construct a `STensor` from a `torch.Tensor`.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input tensor.
+
+        Returns
+        -------
+        STensor
+            Sparse tensor constructed from given array.
+
+        Raises
+        ------
+        TypeError
+            Raise if the parameter is not `torch.Tensor`.
+        """
         if not isinstance(x, torch.Tensor):
             raise TypeError(
                 f"Argument type should be `torch.Tensor`, got {type(x)}")

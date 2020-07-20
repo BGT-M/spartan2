@@ -37,7 +37,7 @@ def _wrap_ret(func):
 
 
 class DTensor(np.lib.mixins.NDArrayOperatorsMixin):
-    """A dense multi-deimensional tensor.
+    """A dense multi-deimensional tensor on CPU (based on NumPy).
 
     Parameters
     ----------
@@ -385,7 +385,7 @@ class DTensor(np.lib.mixins.NDArrayOperatorsMixin):
 
 
 class STensor(np.lib.mixins.NDArrayOperatorsMixin):
-    """A sparse multi-dimensional tensor.
+    """A sparse multi-dimensional tensor on CPU (based on sparse).
 
     Parameters
     ----------
