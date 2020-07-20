@@ -106,7 +106,7 @@ def argsort(input_, axis=-1):
 
 
 @_wrap_ret
-def bincount(input_, weights, minlength=0):
+def bincount(input_, weights=None, minlength=0):
     return torch.bincount(input_._data, weights, minlength)
 
 
@@ -155,11 +155,6 @@ def cosh(input_):
 
 
 @_wrap_ret
-def cross(input_, other, axis=-1):
-    return torch.cross(input_._data, other._data, dim=axis)
-
-
-@_wrap_ret
 def cumprod(input_, axis=None, dtype=None):
     return torch.cumprod(input_._data, dim=axis, dtype=dtype)
 
@@ -170,8 +165,8 @@ def cumsum(input_, axis=None, dtype=None):
 
 
 @_wrap_ret
-def diag(input_, k):
-    return torch.diag(input_._data, k)
+def diag(input_, k=0):
+    return torch.diag(input_._data, diagonal=k)
 
 
 @_wrap_ret
@@ -189,11 +184,6 @@ def dot(input_, other):
     if input_._data.ndim == 1 and other._data.ndim == 1:
         return torch.dot(input_._data, other._data)
     return torch.matmul(input_._data, other._data)
-
-
-@_wrap_ret
-def einsum(equation, *operands):
-    return torch.eigsum(equation, *operands)
 
 
 @_wrap_ret
@@ -228,6 +218,8 @@ def eye(n, m=None, dtype=None):
 
 @_wrap_ret
 def flip(input_, axis=None):
+    if axis is None:
+        axis = list(range(input_.data.ndim))
     return torch.flip(input_._data, axis)
 
 

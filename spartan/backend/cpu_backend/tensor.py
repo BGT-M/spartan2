@@ -37,6 +37,16 @@ def _wrap_ret(func):
 
 
 class DTensor(np.lib.mixins.NDArrayOperatorsMixin):
+    """A dense multi-deimensional tensor.
+
+    Parameters
+    ----------
+    value : np.ndarray or array_like
+        Data of dense tensor.
+    dtype : data-type, optional
+        Data type of the tensor, by default None(inferred automatically)
+    """
+
     def __init__(self, value, dtype=None):
         if isinstance(value, STensor):
             self._data = value._data.todense().astype(dtype)
@@ -116,58 +126,256 @@ class DTensor(np.lib.mixins.NDArrayOperatorsMixin):
 
     @_wrap_ret
     def all(self, axis=None, keepdims=False):
+        """Wrapper of `numpy.all`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints , optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        DTensor or bool
+            Result of `all` operation as a DTensor or a boolean value.
+        """
         return np.all(self._data, axis=axis, keepdims=keepdims)
 
     @_wrap_ret
     def any(self, axis=None, keepdims=False):
+        """Wrapper of `numpy.any`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        DTensor or bool
+            Result of `any` operation as a DTensor or a boolean value.
+        """
         return np.any(self._data, axis=axis, keepdims=keepdims)
 
     @_wrap_ret
     def min(self, axis=None, keepdims=False):
+        """Wrapper of `numpy.ndarray.min`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        DTensor or scalar
+            Result of `min` operation as a DTensor or a scalar value.
+        """
         return self._data.min(axis=axis, keepdims=keepdims)
 
     @_wrap_ret
     def max(self, axis=None, keepdims=False):
+        """Wrapper of `numpy.ndarray.max`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        DTensor or scalar
+            Result of `max` operation as a DTensor or a scalar value.
+        """
         return self._data.max(axis=axis, keepdims=keepdims)
 
     @_wrap_ret
     def sum(self, axis=None, keepdims=False):
+        """Wrapper of `numpy.ndarray.sum`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        DTensor or scalar
+            Result of `sum` operation as a DTensor or a scalar value.
+        """
         return self._data.sum(axis=axis, keepdims=keepdims)
 
     @_wrap_ret
     def prod(self, axis=None, keepdims=False):
+        """Wrapper of `numpy.ndarray.prod`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        DTensor or scalar
+            Result of `prod` operation as a DTensor or a scalar value.
+        """
         return self._data.prod(axis=axis, keepdims=keepdims)
 
     @_wrap_ret
     def mean(self, axis=None, keepdims=False):
-        return self._data.sum(axis=axis, keepdims=keepdims)
+        """Wrapper of `numpy.ndarray.mean`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        DTensor or scalar
+            Result of `mean` operation as a DTensor or a scalar value.
+        """
+        return self._data.mean(axis=axis, keepdims=keepdims)
 
     @_wrap_ret
     def var(self, axis=None, keepdims=False):
+        """Wrapper of `numpy.ndarray.var`, note that result is biased(divisor is `n`).
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are \
+                left to size one, by default False
+
+        Returns
+        -------
+        DTensor or scalar
+            Result of `var` operation as a DTensor or a scalar value.
+        """
         return self._data.var(axis=axis, keepdims=keepdims)
 
     @_wrap_ret
     def std(self, axis=None, keepdims=False):
+        """Wrapper of `numpy.ndarray.std`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        DTensor or scalar
+            Result of `std` operation as a DTensor or a scalar value.
+        """
         return self._data.std(axis=axis, keepdims=keepdims)
 
     @_wrap_ret
     def dot(self, other):
+        """Wrapper of `numpy.ndarray.dot`. Perform tensor dot operation with
+        another tensor, including vector inner product, matrix multiplication
+        and general tensor dot.
+
+        Parameters
+        ----------
+        other : DTensor
+            The second operand of dot operation.
+
+        Returns
+        -------
+        DTensor or scalar
+            Tensor dot result as a DTensor or a scalar value.
+        """
         return self._data.dot(other._data)
 
     @_wrap_ret
     def reshape(self, shape):
+        """Wrapper of `numpy.ndarray.reshape`. Gives a new dense tensor with
+        new shape and current data.
+
+        Parameters
+        ----------
+        shape : int or tuple of ints
+            Shape of new tensor.
+
+        Returns
+        -------
+        DTensor
+            New dense tensor with given shape.
+        """
         return self._data.reshape(shape)
 
     @_wrap_ret
     def nonzero(self):
+        """Wrapper of `numpy.ndarray.nonzero`. Find the indices of non-zero elements.
+
+        Returns
+        -------
+        tuple of DTensor
+            Indices of non-zero elements.
+        """
         return tuple([DTensor(d) for d in self._data.nonzero()])
 
     @_wrap_ret
     def astype(self, dtype):
+        """Wrapper of `numpy.ndarray.astype`. Convert the array to a new type.
+
+        Parameters
+        ----------
+        dtype : data-type
+            Type of new tensor.
+
+        Returns
+        -------
+        DTensor
+            New dense tensor with given data type.
+        """
         return self._data.astype(dtype)
 
     @classmethod
     def from_numpy(cls, x: np.ndarray):
+        """Construct a `DTensor` from a `numpy.ndarray`.
+
+        Parameters
+        ----------
+        x : numpy.ndarray
+            Input array.
+
+        Returns
+        -------
+        DTensor
+            Dense tensor constructed from given array.
+
+        Raises
+        ------
+        TypeError
+            Raise if the parameter is not `numpy.ndarray`.
+        """
         if not isinstance(x, np.ndarray):
             raise TypeError(
                 f"Argument type should be `numpy.ndarray`, got {type(x)}")
@@ -177,6 +385,17 @@ class DTensor(np.lib.mixins.NDArrayOperatorsMixin):
 
 
 class STensor(np.lib.mixins.NDArrayOperatorsMixin):
+    """A sparse multi-dimensional tensor.
+
+    Parameters
+    ----------
+    data : numpy.ndarray or scipy.sparse.spmatrix or tuple of indices (ndim
+    x nnz) and values (1 x nnz)
+        Data of sparse tensor.
+    shape : tuple, optional
+        Shape of sparse tensor, by default None (inferred automatically)
+    """
+
     def __init__(self, data, shape=None):
         if type(data) is tuple:
             indices, values = data
@@ -265,62 +484,268 @@ class STensor(np.lib.mixins.NDArrayOperatorsMixin):
 
     @_wrap_ret
     def all(self, axis=None, keepdims=False):
+        """Wrapper of `numpy.all`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        STensor or bool
+            Result of `all` operation as a STensor or a boolean value.
+        """
         return np.all(self._data, axis=axis, keepdims=keepdims)
 
     @_wrap_ret
     def any(self, axis=None, keepdims=False):
+        """Wrapper of `numpy.any`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        STensor or bool
+            Result of `any` operation as a STensor or a boolean value.
+        """
         return np.any(self._data, axis=axis, keepdims=keepdims)
 
     @_wrap_ret
     def min(self, axis=None, keepdims=False):
+        """Wrapper of `sparse.COO.min`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        STensor or scalar
+            Result of `min` operation as a STensor or a scalar value.
+        """
         return self._data.min(axis=axis, keepdims=keepdims)
 
     @_wrap_ret
     def max(self, axis=None, keepdims=False):
+        """Wrapper of `sparse.COO.max`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        STensor or scalar
+            Result of `max` operation as a STensor or a scalar value.
+        """
         return self._data.max(axis=axis, keepdims=keepdims)
 
     @_wrap_ret
     def sum(self, axis=None, keepdims=False):
+        """Wrapper of `sparse.COO.sum`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        STensor or scalar
+            Result of `sum` operation as a STensor or a scalar value.
+        """
         return self._data.sum(axis=axis, keepdims=keepdims)
 
     @_wrap_ret
     def prod(self, axis=None, keepdims=False):
+        """Wrapper of `sparse.COO.prod`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        STensor or scalar
+            Result of `prod` operation as a STensor or a scalar value.
+        """
         return self._data.prod(axis=axis, keepdims=keepdims)
 
     @_wrap_ret
     def mean(self, axis=None, keepdims=False):
+        """Wrapper of `sparse.COO.mean`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        STensor or scalar
+            Result of `mean` operation as a STensor or a scalar value.
+        """
         return self._data.sum(axis=axis, keepdims=keepdims)
 
     @_wrap_ret
     def var(self, axis=None, keepdims=False):
+        """Wrapper of `sparse.COO.var`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        STensor or scalar
+            Result of `var` operation as a STensor or a scalar value.
+        """
         return self._data.var(axis=axis, keepdims=keepdims)
 
     @_wrap_ret
     def std(self, axis=None, keepdims=False):
+        """Wrapper of `sparse.COO.std`
+
+        Parameters
+        ----------
+        axis : None or int or tuple of ints, optional
+            Axis or axes to operate on, by default
+            None
+        keepdims : bool, optional
+            If true, the axes along which the operation performed are left
+            to size one, by default False
+
+        Returns
+        -------
+        STensor or scalar
+            Result of `std` operation as a STensor or a scalar value.
+        """
         return self._data.std(axis=axis, keepdims=keepdims)
 
     @_wrap_ret
     def dot(self, other):
+        """Wrapper of `sparse.COO.dot`. Perform tensor dot operation with
+        another tensor, including vector inner product, matrix multiplication
+        and general tensor dot.
+
+        Parameters
+        ----------
+        other : DTensor or STensor
+            The second operand of dot operation.
+
+        Returns
+        -------
+        DTensor or STensor
+            Tensor dot result as a DTensor or a STensor or a scalar value.
+        """
         return self._data.dot(other._data)
 
     @_wrap_ret
     def todense(self):
+        """Convert to a dense tensor.
+
+        Returns
+        -------
+        DTensor
+            Dense tensor coverted from the sparse tensor.
+        """
         return self._data.todense()
 
     @_wrap_ret
     def reshape(self, shape):
+        """Wrapper of `sparse.COO.reshape`. Gives a new dense tensor with
+        new shape and current data.
+
+        Parameters
+        ----------
+        shape : int or tuple of ints
+            Shape of new tensor.
+
+        Returns
+        -------
+        STensor
+            New sparse tensor with given shape.
+        """
         return self._data.reshape(shape)
 
     @_wrap_ret
     def nonzero(self):
+        """Wrapper of `sparse.COO.nonzero`. Find the indices of non-zero elements.
+
+        Returns
+        -------
+        tuple of DTensor
+            Indices of non-zero elements.
+        """
         return self._data.nonzero()
 
     @_wrap_ret
     def astype(self, dtype):
+        """Wrapper of `sparse.COO.astype`. Convert the array to a new type.
+
+        Parameters
+        ----------
+        dtype : data-type
+            Type of new tensor.
+
+        Returns
+        -------
+        STensor
+            New sparse tensor with given data type.
+        """
         return self._data.astype(dtype)
 
     @classmethod
     def from_numpy(cls, x: np.ndarray):
+        """Construct a `STensor` from a `numpy.ndarray`.
+
+        Parameters
+        ----------
+        x : numpy.ndarray
+            Input array.
+
+        Returns
+        -------
+        STensor
+            Sparse tensor constructed from given array.
+
+        Raises
+        ------
+        TypeError
+            Raise if the parameter is not `numpy.ndarray`.
+        """
         if not isinstance(x, np.ndarray):
             raise TypeError(
                 f"Argument type should be `numpy.ndarray`, got {type(x)}")
@@ -330,6 +755,23 @@ class STensor(np.lib.mixins.NDArrayOperatorsMixin):
 
     @classmethod
     def from_scipy_sparse(cls, x: ssp.spmatrix):
+        """Construct a `STensor` from a `scipy.sparse.spmatrix`.
+
+        Parameters
+        ----------
+        x : scipy.sparse.spmatrix
+            Input sparse matrix.
+
+        Returns
+        -------
+        STensor
+            Sparse tensor constructed from given sparse matrix.
+
+        Raises
+        ------
+        TypeError
+            Raise if the parameter is not `scipy.sparse.spmatrix`.
+        """
         if not isinstance(x, ssp.spmatrix):
             raise TypeError(
                 f"Argument type should be `scipy.sparse.spmatrix`, \
@@ -340,6 +782,23 @@ class STensor(np.lib.mixins.NDArrayOperatorsMixin):
 
     @classmethod
     def from_sparse_array(cls, x: sparse.COO):
+        """Construct a sparse tensor from a `sparse.COO`.
+
+        Parameters
+        ----------
+        x : sparse.COO
+            Input COO sparse array.
+
+        Returns
+        -------
+        STensor
+            Sparse tensor constructed from given sparse array.
+
+        Raises
+        ------
+        TypeError
+            Raise if the parameter is not `sparse.COO`.
+        """
         if not isinstance(x, sparse.COO):
             raise TypeError(
                 f"Argument type should be `sparse.COO`, got {type(x)}")
