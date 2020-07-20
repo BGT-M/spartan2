@@ -6,15 +6,25 @@
 '''
 
 # here put the import lib
+from . import STensor
 
 
 class Graph:
-    def __init__(self, value_tensor, attr_tensor):
-        self.attr_tensor = attr_tensor
-        self.value_tensor = self.handle_value(value_tensor)
+    def __init__(self, graph_tensor:STensor, weighted:bool = True, bipartite:bool = True):
+        '''Construct a graph from sparse tensor.
+        If the sparse tensor has more than 2 modes, then it is a rich graph.
+        '''
+        self.graph_tensor = graph_tensor
+        self.weighted = weighted
+        self.bipartite = bipartite
 
-    def handle_value(self, value_tensor):
-        if value_tensor is None:
-            return None
-        else:
-            return value_tensor
+        self.sm = graph_tensor.to_scipy_sparse(modes=(0,1))
+        if not weighted:
+            self.sm = (self.sm > 0).astype(int)
+        if not bipartite:
+            pass #to be implemented
+
+    def degrees(self):
+        rowdegs, coldegs = self.sm.sum(axis=1), self.sm.sum(axis=0)
+        return rowdegs, coldegs.T
+

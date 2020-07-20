@@ -8,8 +8,11 @@ from scipy.sparse import coo_matrix, csr_matrix, lil_matrix
 from .mytools.ioutil import loadedge2sm
 from .edgepropertyAnalysis import MultiEedgePropBiGraph
 import math
+from .._model import DMmodel
 
 def scoreLevelObjects( objscores ):
+    '''todo: implement with Perato distribution, given significant value
+    '''
     sortscores = sorted(objscores, reverse=True)
     sortobjs = np.argsort(objscores)[::-1]
     diffscores = - np.diff(sortscores)
@@ -332,7 +335,7 @@ class HoloScopeOpt:
         print()
         return np.sum(self.A)
 
-    def initfastgreedy(self, ptype, numSing, rbd='avg'):
+    def initfastgreedy(self, ptype, numSing, rbd='avg', eps=1.6):
         '''
         default: ptype=[Ptype.freq], numSing=10, rbd='avg'
         '''
@@ -340,9 +343,9 @@ class HoloScopeOpt:
         self.numSing=numSing #number of singular vectors we consider
         self.avgexponents=[]
         if len(ptype)==1:
-            self.initfastgreedy2D(numSing, rbd)
+            self.initfastgreedy2D(numSing, rbd, eps=eps)
         elif len(ptype) > 1:
-            self.initfastgreedyMD(numSing, rbd)
+            self.initfastgreedyMD(numSing, rbd, eps=eps)
 
         self.bestvx = -1
         self.qchop=False
@@ -436,7 +439,7 @@ class HoloScopeOpt:
             sm = sm * colDiag.tocsr()
         return sm, rindexcols
 
-    def initfastgreedyMD(self, numSing, rbd):
+    def initfastgreedyMD(self, numSing, rbd, eps = 1.6):
         '''
             use matricizationSVD instead of freq matrix svd
         '''
@@ -485,7 +488,7 @@ class HoloScopeOpt:
             'consider the # limit'
             if self.nU > 1e6:
                 e0 = self.e0
-                ep = max(1.6, 2.0/(3-e0))
+                ep = max(eps, 2.0/(3-e0))
                 nn = sm.shape[0] + sm.shape[1]
                 nlimit = int(math.ceil(nn**(1/ep)))
                 cutrows = rows[:min(jr,nlimit)]
@@ -498,7 +501,7 @@ class HoloScopeOpt:
         self.CV = np.array(CV)
         return
 
-    def initfastgreedy2D(self, numSing, rbd):
+    def initfastgreedy2D(self, numSing, rbd, eps=1.6):
         'rbd threshold that cut the singular vecotors, default is avg'
         'parameters for fastgreedy'
         u, s, vt = slin.svds(self.graphr.astype(np.float64), k=numSing, which='LM')
@@ -537,7 +540,7 @@ class HoloScopeOpt:
             self.avgexponents.append(math.log(jr, self.nU))
             if self.nU > 1e6:
                 e0=self.e0
-                ep = max(1.6, 2.0/(3-e0))
+                ep = max(eps, 2.0/(3-e0))
                 nn = self.nU + self.nV
                 nlimit = int(math.ceil(nn**(1.0/ep)))
                 cutrows = rows[:min(jr,nlimit)]
@@ -569,9 +572,9 @@ class HoloScopeOpt:
         else:
             greatbdidx = ratios >= self.suspbd
             lessbdidx = ratios < self.suspbd
-            'picewise q funciton if < suspbd, i.e. epsilon'
+            'picewise q funciton if < suspbd, i.e. epsilon1'
             ratios[lessbdidx] = 0.0
-        'picewise q funciton if >= suspbd, i.e. epsilon'
+        'picewise q funciton if >= suspbd, i.e. epsilon1'
         if scale == 'exp':
             ratios[greatbdidx] = self.expbase**(ratios[greatbdidx]-numratios)
         elif scale == 'pl':
@@ -667,13 +670,9 @@ def scoreLevelObjects( objscores ):
     return levelobjs
 
 
-class HoloScope( DMmodel ):
-    def __init__(self, tensor, params):
-
-
 
 def holoscope_interface(wmat, alg, ptype, qfun, b, ratefile=None, tsfile=None,
-              tunit='s', numSing=10, nblock=1):
+              tunit='s', numSing=10, nblock=1, eps=1.6):
     '''
     The interface of HoloScope algorithm for external use
     Parameters
@@ -708,6 +707,11 @@ def holoscope_interface(wmat, alg, ptype, qfun, b, ratefile=None, tsfile=None,
         The number of first left singular vectors used in our algorithm
     nblock: int
         The number of block we need from the algorithm
+    eps: float
+        It gives the approximate level cut for singular vectors, which
+        is a trade-off parameter for efficency and accuracy. Usually eps
+        is between (1.5, 2], and the complexity reduce from the quadratic in number of
+        nodes to the near linear in number of edges.
     Return
     ---------
     (gbestvx, (gsrows, gbscores)), opt
@@ -771,7 +775,7 @@ def holoscope_interface(wmat, alg, ptype, qfun, b, ratefile=None, tsfile=None,
         elif alg == 'fastgreedy':
             print("""alg: {}\n\t+ # of singlular vectors: {}\n""".format(alg, numSing))
             print('initial start')
-            opt.initfastgreedy(ptype, numSing)
+            opt.initfastgreedy( ptype, numSing, eps=eps )
             print("::::Finish Init @ ", time.clock() - start_time)
             print('fast greedy algorithm ...')
             opt.fastgreedy()
@@ -796,3 +800,30 @@ def holoscope_interface(wmat, alg, ptype, qfun, b, ratefile=None, tsfile=None,
     print('global best value ', gbestvx)
 
     return (gbestvx, (gsrows, levelcols)), gbscores, opt
+
+
+class HoloScope( DMmodel ):
+    def __init__(self, graph, params:dict = {}):
+        self.graph = graph
+
+    def run(self, k:int=1, eps:float = 1.6):
+        alg = 'fastgreedy'
+        qfun, b = 'exp', 32  # 10 #4 #8 # 32
+        tunit = 'd'
+        ptype = [Ptype.freq]
+        bdres = holoscope_interface(self.graph.sm.astype(float), alg, ptype, qfun, b,
+                tunit=tunit, nblock=k, eps=eps)
+
+        nres = []
+        opt = bdres[-1]
+        for nb in range(k):
+            res = opt.nbests[nb]
+            print('block{}: \n\tobjective value {}'.format(nb + 1, res[0]))
+            levelcols = scoreLevelObjects(res[1][1])
+            nres.append( ( (res[1][0], levelcols), res[0], res[1][1] ) )
+
+        return nres
+
+    def save(self, outpath):
+        pass
+

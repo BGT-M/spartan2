@@ -181,6 +181,7 @@ class STensor(np.lib.mixins.NDArrayOperatorsMixin):
         if type(data) is tuple:
             indices, values = data
             self._data = sparse.COO(indices, values, shape=shape)
+            #import ipdb; ipdb.set_trace()
         elif isinstance(data, DTensor):
             self._data = sparse.as_coo(data._data, shape=shape)
         elif isinstance(data, STensor):
@@ -221,6 +222,11 @@ class STensor(np.lib.mixins.NDArrayOperatorsMixin):
                 return self.__class__.from_sparse_array(result)
             else:
                 return result
+
+    def to_scipy_sparse(self, modes:tuple = (0,1) ):
+        m = len(self._data.shape)
+        cmodes = tuple(set(range(m)) - set(modes))
+        return self._data.sum(axis=cmodes).tocsc()
 
     def __repr__(self):
         return '%s(%r)' % (type(self).__name__, self._data)
@@ -346,3 +352,7 @@ class STensor(np.lib.mixins.NDArrayOperatorsMixin):
         t = cls.__new__(cls)
         t._data = x
         return t
+
+
+
+

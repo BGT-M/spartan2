@@ -40,5 +40,5 @@ class TensorData:
 
         ##assert(attr.dtypes[0] is int and  attr.dtypes[1] is int)
 
-        return STensor((attr, value))
+        return STensor((attr.to_numpy().T, value.to_numpy()))
 
