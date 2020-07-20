@@ -4,6 +4,7 @@ import warnings
 import numpy as np
 import sparse
 import scipy
+import scipy.sparse as ssp
 import torch
 import torch.sparse as tsparse
 
@@ -174,6 +175,44 @@ class DTensor(TorchArithmetic):
         Data of dense tensor.
     dtype : data-type, optional
         Data type of the tensor, by default None(inferred automatically)
+
+    Examples
+    --------
+    You can create a `DTensor` in many ways. For example, `numpy.ndarray`
+    `torch.Tensor` and `list of list`.
+
+    >>> x = np.random.rand(3, 4)
+    >>> A = st.DTensor.from_numpy(x)
+    >>> A
+    DTensor(
+    tensor([[0.9604, 0.9878, 0.4680, 0.0225],
+            [0.5677, 0.3412, 0.6834, 0.1586],
+            [0.6883, 0.5613, 0.8819, 0.2513]], device='cuda:0',
+        dtype=torch.float64)
+    )
+    >>> A = st.DTensor(x)
+    >>> A
+    DTensor(
+    tensor([[0.9604, 0.9878, 0.4680, 0.0225],
+            [0.5677, 0.3412, 0.6834, 0.1586],
+            [0.6883, 0.5613, 0.8819, 0.2513]], device='cuda:0',
+        dtype=torch.float64)
+    )
+    >>> x = torch.rand(3, 4)
+    >>> A = st.DTensor(x)
+    >>> A
+    DTensor(
+    tensor([[0.8155, 0.3988, 0.6346, 0.5665],
+            [0.2955, 0.8131, 0.0774, 0.7335],
+            [0.0919, 0.8163, 0.5959, 0.9401]], device='cuda:0')
+    )
+    >>> A = st.DTensor([[1, 2, 3, 4], [2, 1, 4, 3], [1, 3, 2, 4]])
+    >>> A
+    DTensor(
+    tensor([[1, 2, 3, 4],
+            [2, 1, 4, 3],
+            [1, 3, 2, 4]], device='cuda:0')
+    )
     """
 
     def __init__(self, data, dtype=None):
@@ -481,6 +520,16 @@ class DTensor(TorchArithmetic):
         """
         return self._data.type(dtype)
 
+    def to_numpy(self):
+        """Return the tensor as `numpy.ndarray`.
+
+        Returns
+        -------
+        numpy.ndarray
+            Returned numpy array.
+        """
+        return self._data.cpu().numpy()
+
     @classmethod
     def from_numpy(cls, x):
         """Construct a `DTensor` from a `numpy.ndarray`.
@@ -530,7 +579,7 @@ class STensor(TorchArithmetic):
             self._data = data._data
         else:
             self._data = tsparse.FloatTensor(data, shape=shape)
-        self._data = self._data.cuda()
+        self._data = self._data.cuda().coalesce()
 
     def __repr__(self):
         return '%s(\n%r\n)' % (type(self).__name__, self._data)
@@ -837,6 +886,42 @@ class STensor(TorchArithmetic):
         """
         raise NotImplementedError
 
+    def to_scipy(self, format='coo'):
+        """Return the sparse tensor as a `scipy.sparse.spmatrix`.
+
+        Parameters
+        ----------
+        format : str, optional, {'coo', 'csr', 'csc', 'lil', 'dok'}
+            Format of scipy sparse matrix, by default 'coo'
+
+        Returns
+        -------
+        scipy.sparse.spmatrix
+            Returned scipy sparse matrix.
+        """
+        if self._data.ndim != 2:
+            raise ValueError(
+                f"Only 2-dim sparse tensor can be converted to scipy sparse\
+                matrix, got {self._data.ndim}")
+        indices = self._data.indices().cpu().numpy()
+        row, col = indices[0], indices[1]
+        vals = self._data.values().cpu().numpy()
+        shape = tuple(self._data.shape)
+        return ssp.coo_matrix((vals, (row, col)), shape=shape).asformat(format)
+
+    def to_sparse_array(self):
+        """Return the sparse tensor as a `sparse.COO`.
+
+        Returns
+        -------
+        sparse.COO
+            Returned sparse array.
+        """
+        indices = self._data.indices().cpu().numpy()
+        vals = self._data.values().cpu().numpy()
+        shape = tuple(self._data.shape)
+        return sparse.COO(indices, vals, shape=shape)
+
     @classmethod
     def from_numpy(cls, x: np.ndarray):
         """Construct a `STensor` from a `numpy.ndarray`.
@@ -861,6 +946,7 @@ class STensor(TorchArithmetic):
                 f"Argument type should be `numpy.ndarray`, got {type(x)}")
         t = cls.__new__(cls)
         t._data = torch.from_numpy(x).to_sparse().cuda()
+        t._data = t._data.coalesce()
         return t
 
     @classmethod
@@ -892,6 +978,7 @@ class STensor(TorchArithmetic):
         shape = torch.Size(x.shape, dtype=torch.long)
         t = cls.__new__(cls)
         t._data = tsparse.FloatTensor(indices, values, shape).cuda()
+        t._data = t._data.coalesce()
         return t
 
     @classmethod
@@ -921,6 +1008,7 @@ class STensor(TorchArithmetic):
         shape = torch.Size(x.shape, dtype=torch.long)
         t = cls.__new__(cls)
         t._data = tsparse.FloatTensor(indices, values, shape).cuda()
+        t._data = t._data.coalesce()
         return t
 
     @classmethod
@@ -949,4 +1037,5 @@ class STensor(TorchArithmetic):
         if not x.is_sparse:
             x = x.to_sparse()
         t._data = x.cuda()
+        t._data = t._data.coalesce()
         return t

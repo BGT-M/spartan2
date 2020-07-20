@@ -45,6 +45,39 @@ class DTensor(np.lib.mixins.NDArrayOperatorsMixin):
         Data of dense tensor.
     dtype : data-type, optional
         Data type of the tensor, by default None(inferred automatically)
+
+    Examples
+    --------
+    You can create a `DTensor` in many ways. For example, `numpy.ndarray`
+    and `list of list`.
+
+    >>> x = np.random.rand(3, 4)
+    >>> x
+    array([[0.1535191 , 0.4655889 , 0.07610213, 0.178842  ],
+        [0.59293541, 0.74665444, 0.68131217, 0.38478126],
+        [0.66008434, 0.54528835, 0.21170162, 0.99398061]])
+    >>> A = st.DTensor(x)
+    >>> A
+    DTensor(
+    array([[0.1535191 , 0.4655889 , 0.07610213, 0.178842  ],
+        [0.59293541, 0.74665444, 0.68131217, 0.38478126],
+        [0.66008434, 0.54528835, 0.21170162, 0.99398061]])
+    )
+    >>> A = st.DTensor.from_numpy(x)
+    >>> A
+    DTensor(
+    array([[0.1535191 , 0.4655889 , 0.07610213, 0.178842  ],
+        [0.59293541, 0.74665444, 0.68131217, 0.38478126],
+        [0.66008434, 0.54528835, 0.21170162, 0.99398061]])
+    )
+    >>> A = st.DTensor([[1, 2, 3, 4], [2, 1, 4, 3], [1, 3, 2, 4]])
+    >>> A
+    DTensor(
+    array([[1, 2, 3, 4],
+        [2, 1, 4, 3],
+        [1, 3, 2, 4]])
+    )
+
     """
 
     def __init__(self, value, dtype=None):
@@ -360,6 +393,16 @@ class DTensor(np.lib.mixins.NDArrayOperatorsMixin):
         """
         return self._data.astype(dtype)
 
+    def to_numpy(self):
+        """Return the tensor as `numpy.ndarray`.
+
+        Returns
+        -------
+        numpy.ndarray
+            Returned numpy array.
+        """
+        return self._data
+
     @classmethod
     def from_numpy(cls, x: np.ndarray):
         """Construct a `DTensor` from a `numpy.ndarray`.
@@ -397,6 +440,38 @@ class STensor(np.lib.mixins.NDArrayOperatorsMixin):
         Data of sparse tensor.
     shape : tuple, optional
         Shape of sparse tensor, by default None (inferred automatically)
+
+    Examples
+    --------
+    You can create a `STensor` in many ways. For example, raw coordinates and
+    values array, numpy.ndarray`, `scipy.spmatrix` and `sparse.COO`.
+
+    >>> import numpy as np
+    >>> import scipy.sparse as ssp
+    >>> import sparse
+    >>> import spartan as st
+    >>> coords = np.array([[0, 1, 2], [2, 1, 0]])
+    >>> vals = np.array([1, 2, 3])
+    >>> A = st.STensor((coords, vals))
+    >>> A
+    STensor(<COO: shape=(3, 3), dtype=int32, nnz=3, fill_value=0>)
+    >>> A.todense()
+    DTensor(
+    array([[0, 0, 1],
+        [0, 2, 0],
+        [3, 0, 0]])
+    )
+    >>> x = np.random.rand(3, 4)
+    >>> x[x<0.8] = 0
+    >>> A = st.STensor.from_scipy_sparse(ssp.csr_matrix(x))
+    >>> A
+    STensor(<COO: shape=(3, 4), dtype=float64, nnz=1, fill_value=0.0>)
+    >>> A = st.STensor.from_numpy(x)
+    >>> A
+    STensor(<COO: shape=(3, 4), dtype=float64, nnz=1, fill_value=0.0>)
+    >>> A = st.STensor.from_sparse_array(sparse.COO.from_numpy(x))
+    >>> A
+    STensor(<COO: shape=(3, 4), dtype=float64, nnz=1, fill_value=0.0>)
     """
 
     def __init__(self, data, shape=None):
@@ -732,6 +807,31 @@ class STensor(np.lib.mixins.NDArrayOperatorsMixin):
             New sparse tensor with given data type.
         """
         return self._data.astype(dtype)
+
+    def to_scipy(self, format='coo'):
+        """Return the sparse tensor as a `scipy.sparse.spmatrix`.
+
+        Parameters
+        ----------
+        format : str, optional, {'coo', 'csr', 'csc', 'lil', 'dok'}
+            Format of scipy sparse matrix, by default 'coo'
+
+        Returns
+        -------
+        scipy.sparse.spmatrix
+            Returned scipy sparse matrix.
+        """
+        return self._data.to_scipy_sparse().asformat(format)
+
+    def to_sparse_array(self):
+        """Return the sparse tensor as a `sparse.COO`.
+
+        Returns
+        -------
+        sparse.COO
+            Returned sparse array.
+        """
+        return self._data
 
     @classmethod
     def from_numpy(cls, x: np.ndarray):
