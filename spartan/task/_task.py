@@ -35,6 +35,7 @@ class Task():
         self.tensor = None
         self.policy = None
         self.model_name = None
+        self.model = None
         self.params = None
 
     @classmethod
@@ -68,6 +69,7 @@ class Task():
         obj = cls()
         obj.tensor = tensor
         obj.model = model
+        obj.policy = policy
         obj.model_name = model_name
         obj.params = params
         return obj
@@ -80,4 +82,4 @@ class Task():
         NotImplementedError
             when called, return not implemented error
         '''
-        raise NotImplementedError("Run function not implemented.")
+        raise NotImplementedError(f"{self.policy} do not implement {__class__} function.")
