@@ -50,6 +50,9 @@ E.g. Beatlex realizes code for model.
 In `../model/__init__.py`
 
 ```python
+# Design a variable name: BeatLex
+# Subsititute the path of model: ".beatlex"
+# Keep others [partial, __call__, MODEL_PATH] unchanged
 BeatLex = partial(__call__, MODEL_PATH + ".beatlex")
-[model_variable_name = partial(__call__, model_path)]
+Holoscope = partial(__call__, MODEL_PATH + ".holoscope")
 ```
