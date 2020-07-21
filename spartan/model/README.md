@@ -24,7 +24,10 @@ class Beatlex(DMmodel):
 
 E.g. In `./beatlex/__init__.py`
 
-```python
+``` python
+# Import BeatLex class from file 
+from .Beatlex import BeatLex
+
 def __call__():
     return Beatlex
 ```
@@ -35,12 +38,12 @@ E.g. Beatlex realizes code for summarization task.
 
 In `../task/summarization.py`
 
-```python
+``` python
 # MODEL_PATH is a global variabel which refers to 'spartan.model
 class SumPolicy(Enum):
     '''Registration for path of models who can do summarization task.
     '''
-    Beatlex = MODEL_PATH + ".beatlex.Beatlex"
+    Beatlex = MODEL_PATH + ".beatlex"
 ```
 
 5. Register model path to `../model/__init__.py` file:
@@ -49,7 +52,18 @@ E.g. Beatlex realizes code for model.
 
 In `../model/__init__.py`
 
-```python
+``` python
+# Design a model_name: BeatLex
+# Subsititute the path of model: ".beatlex"
+# Keep others [partial, __call__, MODEL_PATH] unchanged
 BeatLex = partial(__call__, MODEL_PATH + ".beatlex")
-[model_variable_name = partial(__call__, model_path)]
+Holoscope = partial(__call__, MODEL_PATH + ".holoscope")
+```
+
+6. Add `model_name` to `__all__` in `../model/__init__.py`
+
+``` python
+__all__ = [
+    'BeatLex',
+]
 ```

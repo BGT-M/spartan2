@@ -20,7 +20,10 @@ class Forecast(Task):
     def run(self):
         '''Call forecast function of selected model.
         '''
-        return self.model.forecast(self.params)
+        if "forecast" in dir(self.model):
+            return self.model.forecast(self.params)
+        else:
+            return super().run()
 
     @classmethod
     def list_models(cls):

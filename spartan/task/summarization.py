@@ -20,7 +20,10 @@ class Summarization(Task):
     def run(self):
         '''Call summarization function of selected model.
         '''
-        return self.model.summarization(self.params)
+        if "summarization" in dir(self.model):
+            return self.model.summarization(self.params)
+        else:
+            return super().run()
 
     @classmethod
     def list_models(cls):
