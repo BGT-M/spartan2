@@ -7,12 +7,10 @@ from .basicutil import set_trace, TimeMapper, StringMapper,\
 MODEL_PATH = 'spartan.model'
 
 __all__ = [
-    'MODEL_PATH',
     'loadTensor',
     'set_trace',
     'TimeMapper',
     'StringMapper',
     'IntMapper',
     'ScoreMapper'
-
 ]

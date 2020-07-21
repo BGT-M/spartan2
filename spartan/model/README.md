@@ -39,10 +39,11 @@ E.g. Beatlex realizes code for summarization task.
 In `../task/summarization.py`
 
 ``` python
-# MODEL_PATH is a global variabel which refers to 'spartan.model
+# MODEL_PATH is a global variabel which is defined in 'spartan.model
 class SumPolicy(Enum):
     '''Registration for path of models who can do summarization task.
     '''
+    # Only need path of file, not class
     Beatlex = MODEL_PATH + ".beatlex"
 ```
 
