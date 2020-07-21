@@ -794,7 +794,7 @@ def holoscope_interface(wmat, alg, ptype, qfun, b, ratefile=None, tsfile=None,
 
 
 class HoloScope( DMmodel ):
-    def __init__(self, graph, params):
+    def __init__(self, graph, **params):
         self.graph = graph
 
     def run(self, k:int=1, eps:float = 1.6):
