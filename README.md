@@ -104,7 +104,7 @@ python -c 'import site; print(site.getsitepackages())'
 * [SpokEn](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/SVD_demo.ipynb): an implementation of [EigenSpokes](http://www.cs.cmu.edu/~christos/PUBLICATIONS/pakdd10-eigenspokes.pdf) by SVD.
 * [Eaglemine](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/Eaglemine_demo.ipynb)
 * [Fraudar](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/Fraudar_demo.ipynb): a wrapper of [Fraudar](https://bhooi.github.io/projects/fraudar/index.html) algorithm.
-* [Holoscope](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/Holoscope_demo.ipynb)
+* [Holoscope](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/Holoscope.ipynb)
 
 **Part 3: Time Series**
 * [time series start I](https://github.com/shenghua-liu/spartan2/blob/master/live-tutorials/TimeseriesData_demo%20-%20I.ipynb)
