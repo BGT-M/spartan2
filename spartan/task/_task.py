@@ -65,7 +65,7 @@ class Task():
         except Exception as e:
             print(e)
             raise Exception(f"{policy} Not Supported!")
-        model = model_cls.__create__(tensor, params)
+        model = model_cls.__create__(tensor, **params)
         obj = cls()
         obj.tensor = tensor
         obj.model = model
@@ -74,7 +74,7 @@ class Task():
         obj.params = params
         return obj
 
-    def run(self):
+    def run(self, __func__: str, **params):
         '''Interface of run function, overrided by subclasses.
 
         Raises
@@ -82,4 +82,4 @@ class Task():
         NotImplementedError
             when called, return not implemented error
         '''
-        raise NotImplementedError(f"{self.policy} do not implement {__class__} function.")
+        raise NotImplementedError(f"{self.policy} do not implement {__func__} function.")

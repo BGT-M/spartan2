@@ -661,15 +661,6 @@ class HoloScopeOpt:
             fig.savefig(outfig)
         return fig
 
-def scoreLevelObjects( objscores ):
-    sortscores = sorted(objscores, reverse=True)
-    sortobjs = np.argsort(objscores)[::-1]
-    diffscores = - np.diff(sortscores)
-    levelid = np.argmax(diffscores)
-    levelobjs = sortobjs[ : levelid+1]
-    return levelobjs
-
-
 
 def holoscope_interface(wmat, alg, ptype, qfun, b, ratefile=None, tsfile=None,
               tunit='s', numSing=10, nblock=1, eps=1.6):
@@ -803,7 +794,7 @@ def holoscope_interface(wmat, alg, ptype, qfun, b, ratefile=None, tsfile=None,
 
 
 class HoloScope( DMmodel ):
-    def __init__(self, graph, params):
+    def __init__(self, graph, **params):
         self.graph = graph
 
     def run(self, k:int=1, eps:float = 1.6):

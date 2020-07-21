@@ -17,13 +17,15 @@ class Train(Task):
     '''Implementation for training task.
     '''
 
-    def run(self):
+    def run(self, **params):
         '''Call train function of selected model.
+
+        If not implemented, raise an exception by calling parent run.
         '''
         if "train" in dir(self.model):
-            return self.model.train(self.params)
+            return self.model.train(**params)
         else:
-            return super().run()
+            return super().run("train")
 
     @classmethod
     def list_models(cls):
