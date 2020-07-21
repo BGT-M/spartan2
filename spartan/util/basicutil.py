@@ -7,12 +7,15 @@
 
 # here put the import lib
 from datetime import datetime
+from bisect import bisect_left
 import time
 import numpy as np
 
-def set_trace( isset = True ):
+
+def set_trace(isset=True):
     if isset is True:
-        import ipdb; ipdb.set_trace()
+        import ipdb
+        ipdb.set_trace()
     else:
         pass
 
@@ -20,10 +23,13 @@ def set_trace( isset = True ):
 class _Mapper:
     def __init__(self):
         pass
+
     def map(self, attrs):
         pass
+
     def revert(self, indices):
         pass
+
 
 class TimeMapper(_Mapper):
     def __init__(self, timeformat='%Y-%m-%d', timebin=24*3600, mints=None):
@@ -37,7 +43,7 @@ class TimeMapper(_Mapper):
         for t in attrs:
             da = datetime.strptime(t, self.timeformat)
             ts = time.mktime(da.timetuple())
-            tindices.append( int(ts) )
+            tindices.append(int(ts))
 
         tindices = np.array(tindices)
         if self.mints is None:
@@ -69,27 +75,60 @@ class ScoreMapper(_Mapper):
     [0, 2.0, 3.0]
 
     '''
+
     def __init__(self, scorebin):
         self.scorebin = scorebin
+        self.residules = None
 
     def map(self, attrs):
-        pass
+        sindices = []
+        residules = []
+        scorebin = self.scorebin
+        if isinstance(scorebin, int):
+            scorebin = [attrs.min(), scorebin, attrs.max()]
+        elif isinstance(scorebin, list):
+            _min, _max = min(attrs), max(attrs)
+            if _min not in scorebin:
+                scorebin.append(_min)
+            if _max not in scorebin:
+                scorebin.append(_max)
+            scorebin.sort()
+        for score in attrs:
+            if score in scorebin:
+                sindices.append(scorebin.index(score))
+                residules.append(0)
+            else:
+                pos = bisect_left(scorebin, score)
+                if scorebin[pos] > score:
+                    pos -= 1
+                    sindices.append(pos)
+                else:
+                    sindices.append(pos)
+                residules.append(score-scorebin[pos])
+        self.residules = residules
+        self.scorebin = scorebin
+        return sindices
 
     def revert(self, indices):
-        pass
-
+        residules = self.residules
+        scorebin = self.scorebin
+        scores = []
+        for ind, val in enumerate(indices):
+            scores.append(scorebin[val] + residules[ind])
+        return scores
 
 class StringMapper(_Mapper):
     '''mapping the names or complex string ids of users and objects into
     indices. Note that if the matrix is homogenous, i.e. user-to-user
     relations, then use the same StringMapper instance for both
-    user-to-user colums. The two mappers will share the same strdict, so
-    mapping their ids into the sampe space.
+    user-to-user columns. The two mappers will share the same strdict, so
+    mapping their ids into the sample space.
     '''
-    def __init__(self, strdict: dict ={}):
+
+    def __init__(self, strdict: dict = {}):
         self.strdict = strdict
         self.strids = []
-        if len(self.strdict) >= 0 :
+        if len(self.strdict) >= 0:
             self._append_string_ids()
         pass
 
@@ -102,7 +141,7 @@ class StringMapper(_Mapper):
         for s in attrs:
             if s not in self.strdict:
                 self.strdict[s] = len(self.strdict)
-                self.strids.append(s) # add new ids
+                self.strids.append(s)  # add new ids
             indices = self.strdict[s]
 
         return indices
@@ -119,6 +158,7 @@ class StringMapper(_Mapper):
 class IntMapper(_Mapper):
     '''Shift the ints starting from zero
     '''
+
     def __init__(self, minint=None):
         self.minint = minint
         pass
@@ -132,4 +172,3 @@ class IntMapper(_Mapper):
     def revert(self, indices):
         attrs = indices + self.minint
         return attrs
-
