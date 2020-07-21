@@ -20,7 +20,10 @@ class AnomalyDetection(Task):
     def run(self):
         '''Call anomaly detection function of selected model.
         '''
-        return self.model.anomaly_detection()
+        if "anomaly_detection" in dir(self.model):
+            return self.model.anomaly_detection(self.params)
+        else:
+            return super().run()
 
     @classmethod
     def list_models(cls):

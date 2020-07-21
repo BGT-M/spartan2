@@ -20,7 +20,10 @@ class Train(Task):
     def run(self):
         '''Call train function of selected model.
         '''
-        return self.model.train(self.params)
+        if "train" in dir(self.model):
+            return self.model.train(self.params)
+        else:
+            return super().run()
 
     @classmethod
     def list_models(cls):
