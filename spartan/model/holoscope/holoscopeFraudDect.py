@@ -803,7 +803,7 @@ def holoscope_interface(wmat, alg, ptype, qfun, b, ratefile=None, tsfile=None,
 
 
 class HoloScope( DMmodel ):
-    def __init__(self, graph, params:dict = {}):
+    def __init__(self, graph, params):
         self.graph = graph
 
     def run(self, k:int=1, eps:float = 1.6):
@@ -823,6 +823,9 @@ class HoloScope( DMmodel ):
             nres.append( ( (res[1][0], levelcols), res[0], res[1][1] ) )
 
         return nres
+
+    def anomaly_detection(self, k:int=1, eps:float = 1.6):
+        return self.run(k=k, eps=eps)
 
     def save(self, outpath):
         pass

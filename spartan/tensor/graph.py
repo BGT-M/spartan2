@@ -18,7 +18,7 @@ class Graph:
         self.weighted = weighted
         self.bipartite = bipartite
 
-        self.sm = graph_tensor.to_scipy_sparse(modes=(0,1))
+        self.sm = graph_tensor.sum_to_scipy_sparse(modes=(0,1))
         if not weighted:
             self.sm = (self.sm > 0).astype(int)
         if not bipartite:

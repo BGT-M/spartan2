@@ -20,7 +20,7 @@ class AnomalyDetection(Task):
     def run(self):
         '''Call anomaly detection function of selected model.
         '''
-        return self.model.anomaly_detection(self.params)
+        return self.model.anomaly_detection()
 
     @classmethod
     def list_models(cls):
@@ -33,5 +33,5 @@ class AnomalyDetection(Task):
 class ADPolicy(Enum):
     '''Registration for path of models who can do anomaly detection task.
     '''
-    HoloScope = MODEL_PATH + ".holoscope.HoloScope"
+    HoloScope = MODEL_PATH + ".holoscope"
     pass

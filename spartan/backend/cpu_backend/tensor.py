@@ -223,10 +223,10 @@ class STensor(np.lib.mixins.NDArrayOperatorsMixin):
             else:
                 return result
 
-    def to_scipy_sparse(self, modes:tuple = (0,1) ):
+    def sum_to_scipy_sparse(self, modes:tuple = (0,1) ):
         m = len(self._data.shape)
         cmodes = tuple(set(range(m)) - set(modes))
-        return self._data.sum(axis=cmodes).tocsc()
+        return self._data.sum(axis=cmodes).to_scipy_sparse()
 
     def __repr__(self):
         return '%s(%r)' % (type(self).__name__, self._data)
