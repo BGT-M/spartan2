@@ -19,6 +19,8 @@ class AnomalyDetection(Task):
 
     def run(self, **params):
         '''Call anomaly detection function of selected model.
+
+        If not implemented, raise an exception by calling parent run.
         '''
         if "anomaly_detection" in dir(self.model):
             return self.model.anomaly_detection(**params)

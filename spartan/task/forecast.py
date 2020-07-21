@@ -19,6 +19,8 @@ class Forecast(Task):
 
     def run(self, **params):
         '''Call forecast function of selected model.
+
+        If not implemented, raise an exception by calling parent run.
         '''
         if "forecast" in dir(self.model):
             return self.model.forecast(**params)

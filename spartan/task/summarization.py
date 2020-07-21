@@ -19,6 +19,8 @@ class Summarization(Task):
 
     def run(self, **params):
         '''Call summarization function of selected model.
+
+        If not implemented, raise an exception by calling parent run.
         '''
         if "summarization" in dir(self.model):
             return self.model.summarization(**params)

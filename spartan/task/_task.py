@@ -74,7 +74,7 @@ class Task():
         obj.params = params
         return obj
 
-    def run(self, __func__, **params):
+    def run(self, __func__: str, **params):
         '''Interface of run function, overrided by subclasses.
 
         Raises

@@ -19,6 +19,8 @@ class Train(Task):
 
     def run(self, **params):
         '''Call train function of selected model.
+
+        If not implemented, raise an exception by calling parent run.
         '''
         if "train" in dir(self.model):
             return self.model.train(**params)
