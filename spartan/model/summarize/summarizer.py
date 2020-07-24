@@ -14,6 +14,7 @@ from .neiminhash import NeiMinHash
 from .union_find import UnionFind
 
 from .._model import DMmodel
+from spartan import STensor
 
 logger = logging.getLogger('summarize')
 logger.setLevel(logging.DEBUG)
@@ -50,12 +51,12 @@ class Summarize(DMmodel):
     # Maximum size of each group
     C = 500
 
-    def __init__(self, sm: ssp.spmatrix):
-        self.sm = sm.tolil()
+    def __init__(self, st):
+        self.sm = st.to_scipy(format='lil')
         self.sm.maximum(self.sm.T)
         self.sm.setdiag(0)
         N = self.N = self.sm.shape[0]
-        self.es = sm.nnz // 2
+        self.es = self.sm.nnz // 2
         self.minhashes = [None] * N
         self.deleted = set()
         self.adj = [Counter(self.sm.rows[n]) for n in range(N)]
@@ -292,4 +293,4 @@ class Summarize(DMmodel):
 
         self.nodes_dict = nodes_dict
         self.sm_s = sm_s
-        return nodes_dict, sm_s
+        return nodes_dict, STensor.from_scipy_sparse(sm_s)
