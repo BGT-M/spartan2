@@ -36,6 +36,7 @@ BeatLex = partial(__call__, MODEL_PATH + ".beatlex")
 HoloScope = partial(__call__, MODEL_PATH + ".holoscope")
 BeatGAN = partial(__call__, MODEL_PATH + ".beatgan")
 Summarize = partial(__call__, MODEL_PATH + ".summarize")
+BeatGAN = partial(__call__, MODEL_PATH + ".beatgan")
 
 __all__ = [
     'BeatLex',
