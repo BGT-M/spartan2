@@ -12,6 +12,9 @@ import time
 import numpy as np
 
 
+def param_default(params:dict, key:str, default ):
+    return params[str] if str in params else default
+
 def set_trace(isset=True):
     if isset is True:
         import ipdb
