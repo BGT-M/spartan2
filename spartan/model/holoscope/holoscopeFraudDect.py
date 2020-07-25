@@ -9,6 +9,7 @@ from .mytools.ioutil import loadedge2sm
 from .edgepropertyAnalysis import MultiEedgePropBiGraph
 import math
 from .._model import DMmodel
+from spartan.util.basicutil import param_default
 
 def scoreLevelObjects( objscores ):
     '''todo: implement with Perato distribution, given significant value
@@ -794,16 +795,81 @@ def holoscope_interface(wmat, alg, ptype, qfun, b, ratefile=None, tsfile=None,
 
 
 class HoloScope( DMmodel ):
+    '''Anomaly detection base on contrastively dense subgraphs, considering
+    topological, temporal, and categorical (e.g. rating scores) signals, or
+    any supported combinations.
+
+    Parameters
+    ----------
+    graph: Graph
+        Graph instance contains adjency matrix, and possible multiple signals.
+    alg: string options ['fastgreedy' | 'greedy' ]
+        The algorithm used for detect dense blocks. You can choose 'greedy' for
+        synthetic data (#rows+#cols<10000); or 'fastgreedy' for any size of data
+        sets.
+        Default is 'fastgreedy' which
+        uses main (with first several large singular values) truncated singular vectors
+        to find dense blocks. alg is used with eps as truncation factor, and
+        numSing as number of first large singular vectors.
+    eps: float
+        It gives the approximate level cut for singular vectors, which
+        is a trade-off parameter for efficency and accuracy. Usually eps
+        is between (1.5, 2], and the complexity reduce from the quadratic in number of
+        nodes to the near linear in number of edges.
+        Larger eps gives faster detection, but may miss the denser blocks.
+        Default is 1.6.
+    numSing: int
+        The number of first large left singular vectors used in our algorithm
+    qfun: string options ['exp' | 'pl' | 'lin']
+        which kind of qfun the algorithm uses, choosing from 'exp' for
+        exponential (recommended), 'pl' for power-law, 'lin' for linear
+        Default is 'exp'.
+    b: float
+        The base of exponetial qfun, or the exponent of power-law qfun, or
+        absolute slope of linear qfun
+        Default is 32.
+    level: int
+        The level of signals used for anomaly detection. Choose in [0 | 1 | 2 |
+        3]. 0: topology only. 1: topology with time. 2: topology with category
+        (e.g. rating score). 3: all three.
+        Default is 0.
+    '''
     def __init__(self, graph, **params):
         self.graph = graph
+        self.alg = param_default(params, 'alg', 'fastgreedy')
+        self.eps = param_default(params, 'eps', 1.6)
+        self.numSing = param_default(params, 'numSing', 10)
+        self.qfun = param_default(params, 'qfun', 'exp')
+        self.b = param_default(params,'b', 32)
+        self.level = param_default(params, 'level', 0)
+
 
     def run(self, k:int=1, eps:float = 1.6):
-        alg = 'fastgreedy'
-        qfun, b = 'exp', 32  # 10 #4 #8 # 32
-        tunit = 'd'
-        ptype = [Ptype.freq]
-        bdres = holoscope_interface(self.graph.sm.astype(float), alg, ptype, qfun, b,
-                tunit=tunit, nblock=k, eps=eps)
+        '''run with how many blocks are output.
+        Parameters:
+        --------
+            nblock: int
+                The number of block we need from the algorithm
+        '''
+        if eps != 1.6:
+            epsuse=1.6
+        else:
+            epsuse = self.eps
+        if self.level == 0:
+            ptype=[Ptype.freq]
+        elif self.level ==1:
+            ptype=[Ptype.freq, Ptype.ts]
+        elif self.level == 2:
+            ptype = [Ptype.freq, Ptype.rate]
+        elif self.level == 3:
+            ptype = [Ptype.freq, Ptype.ts, Ptype.rate]
+        else:
+            print("Warning: no run level ",self.level,", use level 0 instead!")
+            ptype=[Ptype.freq]
+
+        bdres = holoscope_interface(self.graph.sm.astype(float),
+                self.alg, ptype, self.qfun, self.b,
+                nblock=k, eps=epsuse, numSing=self.numSing)
 
         nres = []
         opt = bdres[-1]
