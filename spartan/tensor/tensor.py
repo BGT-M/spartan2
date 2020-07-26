@@ -25,20 +25,33 @@ class TensorData:
             val_tensor = DTensor(self.data)
         return time_tensor, val_tensor
 
-    def toSTensor( self, hasvalue: bool = True, mappers:dict = {}):
+    def toSTensor(self, hasvalue: bool = True, mappers: dict = {}):
         if hasvalue:
             value = self.data.iloc[:, -1]
             attr = self.data.iloc[:, :-1]
         else:
-            value = 1
+            value = pd.Series([1] * len(self.data))
             attr = self.data
 
         for i in attr.columns:
             if i in mappers:
-                colind = mappers[i].map(self.data.iloc[:,i])
-                attr.iloc[:,i] = colind
+                colind = mappers[i].map(self.data.iloc[:, i])
+                attr.iloc[:, i] = colind
 
         ##assert(attr.dtypes[0] is int and  attr.dtypes[1] is int)
-
         return STensor((attr.to_numpy().T, value.to_numpy()))
 
+    def do_map(self, hasvalue=True, mappers={}):
+        if hasvalue:
+            value = self.data.iloc[:, -1]
+            attr = self.data.iloc[:, :-1]
+        else:
+            value = pd.Series([1] * len(self.data))
+            attr = self.data
+
+        for i in attr.columns:
+            if i in mappers:
+                colind = mappers[i].map(self.data.iloc[:, i])
+                attr.iloc[:, i] = colind
+
+        return attr.to_numpy(), value.to_numpy()
