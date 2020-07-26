@@ -10,7 +10,7 @@ from . import STensor
 
 
 class Graph:
-    def __init__(self, graph_tensor:STensor, weighted:bool = True, bipartite:bool = True):
+    def __init__(self, graph_tensor: STensor, weighted: bool = False, bipartite: bool = False):
         '''Construct a graph from sparse tensor.
         If the sparse tensor has more than 2 modes, then it is a rich graph.
         '''
@@ -18,13 +18,12 @@ class Graph:
         self.weighted = weighted
         self.bipartite = bipartite
 
-        self.sm = graph_tensor.sum_to_scipy_sparse(modes=(0,1))
+        self.sm = graph_tensor.sum_to_scipy_sparse(modes=(0, 1))
         if not weighted:
             self.sm = (self.sm > 0).astype(int)
         if not bipartite:
-            pass #to be implemented
+            self.sm = self.sm.maximum(self.sm.T)
 
     def degrees(self):
         rowdegs, coldegs = self.sm.sum(axis=1), self.sm.sum(axis=0)
         return rowdegs, coldegs.T
-

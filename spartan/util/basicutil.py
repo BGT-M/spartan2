@@ -6,6 +6,7 @@
 '''
 
 # here put the import lib
+from collections import defaultdict
 from datetime import datetime
 from bisect import bisect_left
 import time
@@ -117,6 +118,7 @@ class ScoreMapper(_Mapper):
             scores.append(scorebin[val] + residules[ind])
         return scores
 
+
 class StringMapper(_Mapper):
     '''mapping the names or complex string ids of users and objects into
     indices. Note that if the matrix is homogenous, i.e. user-to-user
@@ -172,3 +174,26 @@ class IntMapper(_Mapper):
     def revert(self, indices):
         attrs = indices + self.minint
         return attrs
+
+
+class IntRemapper(_Mapper):
+    """Remapp irregular integers starting from zero
+    """
+
+    def __init__(self):
+        self.id2int = dict()
+        self.int2id = dict()
+        self._idx = 0
+
+    def map(self, attrs):
+        rets = [None] * len(attrs)
+        for i, attr in enumerate(attrs):
+            if not (attr in self.int2id):
+                self.int2id[attr] = self._idx
+                self.id2int[self._idx] = attr
+                self._idx += 1
+            rets[i] = self.int2id[attr]
+        return rets
+
+    def revert(self, indices):
+        return [self.id2int[idx] for idx in indices]

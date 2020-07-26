@@ -31,7 +31,8 @@ class File():
         sep = None
         with self._open() as fp:
             for line in fp:
-                line = line.decode('utf-8') if isinstance(line, bytes) else line
+                line = line.decode(
+                    'utf-8') if isinstance(line, bytes) else line
                 if (line.startswith("%") or line.startswith("#")):
                     continue
                 line = line.strip()
@@ -70,11 +71,12 @@ class TensorFile(File):
                     continue
                 coords = line.split(self.sep)
                 tline = []
-                try:
-                    for i, tp in self.idxtypes:
+                for i, tp in self.idxtypes:
+                    try:
                         tline.append(tp(coords[i]))
-                except Exception:
-                    raise Exception(f"The {i}-th col does not match the given type {tp} in line:\n{line}")
+                    except Exception:
+                        raise Exception(
+                            f"The {i}-th col does not match the given type {tp} in line:\n{line}")
                 tensorlist.append(tline)
         tensorlist = pd.DataFrame(tensorlist)
         return tensorlist
@@ -149,7 +151,8 @@ def _read_data(filename: str, idxtypes: list) -> object:
         _filename = filename
         _class = CSVFile
     else:
-        raise FileNotFoundError(f"Error: Can not find file {filename}, please check the file path!\n")
+        raise FileNotFoundError(
+            f"Error: Can not find file {filename}, please check the file path!\n")
     _obj = _class(_filename, 'r', idxtypes)
     _data = _obj._read()
     return _data

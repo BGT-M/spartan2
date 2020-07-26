@@ -249,7 +249,6 @@ class Summarize(DMmodel):
             start_time2 = time.time()
             groups = self._update_lsh(threshold)
             elapsed = time.time() - start_time2
-            logger.info(f"LSH costs {elapsed} seconds.")
             merge_cnt = 0
             for group in groups:
                 tmp1, tmp2 = self._merge_group(group)
