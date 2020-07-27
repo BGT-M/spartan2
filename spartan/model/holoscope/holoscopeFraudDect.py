@@ -10,8 +10,9 @@ from .edgepropertyAnalysis import MultiEedgePropBiGraph
 import math
 from .._model import DMmodel
 from spartan.util.basicutil import param_default
+from spartan.backend import STensor
 
-def scoreLevelObjects( objscores ):
+def score_level_objects( objscores ):
     '''todo: implement with Perato distribution, given significant value
     '''
     sortscores = sorted(objscores, reverse=True)
@@ -20,6 +21,14 @@ def scoreLevelObjects( objscores ):
     levelid = np.argmax(diffscores)
     levelobjs = sortobjs[ : levelid+1]
     return levelobjs
+
+def nonzero_objects( objscores ):
+    objects = np.argwhere( objscores > 0 )
+    return objects
+
+def nedges_subgraph(sm, gsrows, nnzcols):
+    smc = sm.tocsc()
+    return int(smc[gsrows, nnzcols].sum())
 
 class Ptype(object):
     freq =0
@@ -48,7 +57,7 @@ class Ptype(object):
 class HoloScopeOpt:
     def __init__(self, graphmat, qfun='exp', b=32,
                  aggmethod='sum', sdrop=True, mbd=0.5, sdropscale='linear',
-                 tsfile=None, tunit='s', ratefile=None):
+                 tsprop=None, tunit='s', rateprop=None):
         'how many times of a user rates costumers if he get the cost balance'
         self.coe = 0
         'the larger expbase can give a heavy penalty to the power-law curve'
@@ -69,27 +78,51 @@ class HoloScopeOpt:
         print('matrix size: {} x {}\t#edges: {}'.format(self.nU, self.nV,
                                                           self.indegrees.sum()))
 
-        self.tsfile, self.ratefile, self.tunit = tsfile, ratefile, tunit
+        # tunit is only used for files input
+        self.tsprop, self.rateprop, self.tunit = tsprop, rateprop, tunit
         self.tspim, self.ratepim = None, None
+
         'field for multiple property graph'
-        if tsfile is not None or ratefile is not None:
+        if tsprop is not None or rateprop is not None:
             if self.priordropslop:
                 self.orggraph = self.graphr.copy()
             else:
                 self.orggraph = self.graphr
-        if tsfile is not None:
+        if tsprop is not None:
             self.mbd = mbd #multiburst bound
             self.tspim = MultiEedgePropBiGraph(self.orggraph)
-            self.tspim.load_from_edgeproperty(tsfile, mtype=csr_matrix, dtype=np.int64)
-            self.tspim.setup_ts4all_sinks(tunit)
+            """
+            since the data is cut by the end of time, so we need to see
+            whether there is enough time twait from end of retweet to end of the
+            whole data to judge if it is a sudden drop or cut by the end of time.
+            twaits:
+            """
+            if isinstance(tsprop, str) and os.path.isfile(tsprop):
+                self.tspim.load_from_edgeproperty(tsprop, mtype=coo_matrix,
+                        dtype=np.int64)
+                twaits = {'s':12*3600, 'h':24, 'd':30, None:0}
+                twait = twaits[tunit]
+            elif isinstance(tsprop, STensor):
+                self.tspim.trans_array_to_edgeproperty(tsprop,
+                        mtype=coo_matrix, dtype=np.int64)
+                twait = 12
+            else:
+                raise Exception('Error: incorrect time stamp property')
+            self.tspim.setup_ts4all_sinks(twait)
             if self.priordropslop:
                 'slops weighted with max burst value'
                 self.weightWithDropslop(weighted=True, scale=sdropscale)
         else:
             self.priordropslop = False #no input of time attribute
-        if ratefile is not None:
+        if rateprop is not None:
             self.ratepim = MultiEedgePropBiGraph(self.orggraph)
-            self.ratepim.load_from_edgeproperty(ratefile, mtype=csr_matrix, dtype=float)
+            if isinstance(rateprop, str) and os.path.isfile(rateprop):
+                self.ratepim.load_from_edgeproperty(rateprop, mtype=coo_matrix, dtype=float)
+            elif isinstance(rateprop, STensor):
+                self.ratepim.trans_array_to_edgeproperty(rateprop,
+                        mtype=coo_matrix, dtype=float)
+            else:
+                raise Exception('Error: incorrect rate property')
             self.ratepim.setup_rate4all_sinks()
 
         'weighed with idf prior from Fraudar'
@@ -212,8 +245,10 @@ class HoloScopeOpt:
     def evalsusp4rate(self, suspusers, neutral=False, scale='max'):
         susprates = self.ratepim.suspratedivergence(neutral, delta=True)
         if scale == 'max':
-            assert(self.ratepim.maxratediv > 0)
-            nsusprates = susprates/self.ratepim.maxratediv
+            if self.ratepim.maxratediv > 0:
+                nsusprates = susprates/self.ratepim.maxratediv
+            else:
+                nsusprates = susprates
         elif scale=='minmax':
             #need a copy, and do not change susprates' value for delta
             from sklearn import preprocessing
@@ -384,7 +419,7 @@ class HoloScopeOpt:
                 v = tscm.col[i]
                 for t1, r1 in zip(tspim.eprop[tscm.data[i]],
                                 ratepim.eprop[rtcm.data[i]]):
-                    t = t1/int(tbindic[self.tunit])
+                    t = t1//int(tbindic[self.tunit])
                     r = rbins(r1)
                     strcol = ' '.join(map(str,[v,t,r]))
                     if strcol not in matcols:
@@ -398,7 +433,7 @@ class HoloScopeOpt:
                 u = tscm.row[i]
                 v = tscm.col[i]
                 for t1 in tspim.eprop[tscm.data[i]]:
-                    t = t1/int(tbindic[self.tunit])
+                    t = t1//int(tbindic[self.tunit])
                     strcol = ' '.join(map(str,[v,t]))
                     if strcol not in matcols:
                         idx = len(matcols)
@@ -444,14 +479,19 @@ class HoloScopeOpt:
         '''
             use matricizationSVD instead of freq matrix svd
         '''
-        afile = self.tsfile if self.tsfile is not None else self.ratefile
-        ipath =  os.path.dirname(os.path.abspath(afile))
-        tbindic={'s':24*3600, 'd':30}
+        #afile = self.tsprop if self.tsprop is not None else self.rateprop
+        #ipath =  os.path.dirname(os.path.abspath(afile))
+        tbindic={}
+        if isinstance(self.tsprop, str) and os.path.isfile(self.tsprop):
+            tbindic={'s':24*3600, 'd':30}
+            print('Generate tensorfile with tunit:{}, tbins:{}'.format(self.tunit,
+                                                                   tbindic[self.tunit]))
+        elif isinstance(self.tsprop, STensor):
+            tbindic={'s':1, 'd':1}
+            print('Generate tensorfile with time rescale: ', tbindic[self.tunit] )
+
         'edgepropertyAnalysis has already digitized the ratings'
         rbins = lambda x: int(x) #lambda x: 0 if x<2.5 else 1 if x<=3.5 else 2
-        tunit = self.tunit
-        print('generate tensorfile with tunit:{}, tbins:{}'.format(tunit,
-                                                                   tbindic[tunit]))
         if self.matricizetenor is None:
             matricize_start = time.clock()
             sm, rindexcol = self.tenormatricization(self.tspim, self.ratepim,
@@ -663,7 +703,7 @@ class HoloScopeOpt:
         return fig
 
 
-def holoscope_interface(wmat, alg, ptype, qfun, b, ratefile=None, tsfile=None,
+def holoscope_interface(wmat, alg, ptype, qfun, b, rateprop=None, tsprop=None,
               tunit='s', numSing=10, nblock=1, eps=1.6):
     '''
     The interface of HoloScope algorithm for external use
@@ -685,16 +725,20 @@ def holoscope_interface(wmat, alg, ptype, qfun, b, ratefile=None, tsfile=None,
     b: float
         The base of exponetial qfun, or the exponent of power-law qfun, or
         absolute slope of linear qfun
-    ratefile: str or None
+    rateprop: str or STensor or None
         The file name with path for user-object rating sequences. The file
-        format is that each line looks like 'userid-objectid:#star1 #star2 ...\n'
-    tsfile: str or None
+        format is that each line looks like 'userid-objectid:#star1 #star2
+        ...\n'.
+        If it is STensor, then rateprop contains (userid, objectid, #star) --> freq
+    tsprop: str or None
         The file name with path for user-object timestamp sequences. The file
         format is that each line looks like 'userid-objectid:t1 t2 ...\n'
+        If it is STensor, then rateprop contains (userid, objectid, tsbin) --> freq
     tunit: str (only support 's' or 'd') or None
         The time unit of input time
         e.g. in amazon and yelp data, the time is date, i.e. tunit='d'.
              We use # of days (integer) from the earlest date as input
+        It does not need if tsprop is STensor
     numSing: int
         The number of first left singular vectors used in our algorithm
     nblock: int
@@ -734,21 +778,19 @@ def holoscope_interface(wmat, alg, ptype, qfun, b, ratefile=None, tsfile=None,
     if Ptype.freq in ptype:
         inprop += '+[topology] '
     if Ptype.ts in ptype:
-        assert(os.path.isfile(tsfile))
         inprop += '+[timestamps] '
-    #elif tsfile is not None:
         #consider sdrop by default when Ptype.ts
         inprop += '+[sudden drop]'
     else:
-        tsfile=None
+        tsprop=None
     if Ptype.rate in ptype:
-        assert(os.path.isfile(ratefile))
         inprop += '+[rating i.e. # of stars] '
     else:
-        ratefile = None
+        rateprop = None
     print(inprop)
 
-    opt = HoloScopeOpt(sm, qfun=qfun, b=b, tsfile=tsfile, tunit=tunit, ratefile=ratefile)
+    opt = HoloScopeOpt(sm, qfun=qfun, b=b, tsprop=tsprop, tunit=tunit,
+            rateprop=rateprop)
     opt.nbests=[]
     opt.nlocalbests=[] #mainly used for fastgreedy
     gsrows,gbscores,gbestvx = 0,0,0
@@ -786,12 +828,16 @@ def holoscope_interface(wmat, alg, ptype, qfun, b, ratefile=None, tsfile=None,
         if k < nblock-1:
             opt.removecurrentblock(srows)
 
-    levelcols = scoreLevelObjects( gbscores )
-    print('global best size ', len(gsrows), len(levelcols))
+    #levelcols = score_level_objects( gbscores )
+    nnzcols = nonzero_objects( gbscores )
+    edges = nedges_subgraph(sm, gsrows, nnzcols)
+
+    print('global best size: nodes', len(gsrows), len(nnzcols), ', edges',
+            edges,  'with camouflage.')
 
     print('global best value ', gbestvx)
 
-    return (gbestvx, (gsrows, levelcols)), gbscores, opt
+    return ((gsrows, nnzcols), edges, gbestvx), gbscores, opt
 
 
 class HoloScope( DMmodel ):
@@ -828,11 +874,6 @@ class HoloScope( DMmodel ):
         The base of exponetial qfun, or the exponent of power-law qfun, or
         absolute slope of linear qfun
         Default is 32.
-    level: int
-        The level of signals used for anomaly detection. Choose in [0 | 1 | 2 |
-        3]. 0: topology only. 1: topology with time. 2: topology with category
-        (e.g. rating score). 3: all three.
-        Default is 0.
     '''
     def __init__(self, graph, **params):
         self.graph = graph
@@ -841,34 +882,61 @@ class HoloScope( DMmodel ):
         self.numSing = param_default(params, 'numSing', 10)
         self.qfun = param_default(params, 'qfun', 'exp')
         self.b = param_default(params,'b', 32)
-        self.level = param_default(params, 'level', 0)
+
+    def __str__(self):
+        return str(vars(self))
 
 
-    def run(self, k:int=1, eps:float = 1.6):
+    def run(self, k:int=1, level:int=0, eps:float = 1.6):
         '''run with how many blocks are output.
         Parameters:
         --------
-            nblock: int
-                The number of block we need from the algorithm
+        nblock: int
+            The number of block we need from the algorithm
+        level: int
+            The level of signals used for anomaly detection. Choose in [0 | 1 | 2 |
+            3]. 0: topology only. 1: topology with time. 2: topology with category
+            (e.g. rating score). 3: all three.
+            Default is 0.
         '''
+
         if eps != 1.6:
             epsuse=1.6
         else:
             epsuse = self.eps
+        self.level = level
+        nprop = self.graph.nprop
+        graph = self.graph
+
+        tsprop, rateprop = None, None
         if self.level == 0:
             ptype=[Ptype.freq]
         elif self.level ==1:
             ptype=[Ptype.freq, Ptype.ts]
+            if nprop < 1:
+                raise Exception("Error: at least 3-mode graph tensor is needed for level 1")
+            tsprop = graph.get_time_tensor()
         elif self.level == 2:
             ptype = [Ptype.freq, Ptype.rate]
+            if nprop < 1:
+                raise Exception("Error: at least 3-mode graph tensor is needed for level 2")
+            "The order of mode in graph tensor for categorical bins if exit, start from zero."
+            modec = 3 if nprop > 1 else 2
+            rateprop = graph.get_one_prop_tensor(modec)
         elif self.level == 3:
             ptype = [Ptype.freq, Ptype.ts, Ptype.rate]
+            if nprop < 2:
+                raise Exception("Error: at least 4-mode graph tensor is needed for level 3")
+            tsprop = graph.get_time_tensor()
+            modec=3
+            rateprop = graph.get_one_prop_tensor(3)
         else:
             print("Warning: no run level ",self.level,", use level 0 instead!")
             ptype=[Ptype.freq]
 
-        bdres = holoscope_interface(self.graph.sm.astype(float),
+        bdres = holoscope_interface(graph.sm.astype(float),
                 self.alg, ptype, self.qfun, self.b,
+                tsprop=tsprop, rateprop=rateprop,
                 nblock=k, eps=epsuse, numSing=self.numSing)
 
         nres = []
@@ -876,8 +944,13 @@ class HoloScope( DMmodel ):
         for nb in range(k):
             res = opt.nbests[nb]
             print('block{}: \n\tobjective value {}'.format(nb + 1, res[0]))
-            levelcols = scoreLevelObjects(res[1][1])
-            nres.append( ( (res[1][0], levelcols), res[0], res[1][1] ) )
+            levelcols = score_level_objects(res[1][1])
+            rows = res[1][0]
+            nnzcols = nonzero_objects(res[1][1])
+            nedges = nedges_subgraph(graph.sm, rows, nnzcols)
+            print( '\tnode size: {} {}, edge size: {}, with camouflage.'.format(
+                len(rows), len(nnzcols), nedges) )
+            nres.append( ( (rows, nnzcols), res[0], levelcols, res[1][1] ) )
 
         return nres
 
@@ -886,4 +959,5 @@ class HoloScope( DMmodel ):
 
     def save(self, outpath):
         pass
+
 
