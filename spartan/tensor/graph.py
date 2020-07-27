@@ -10,6 +10,7 @@ from . import STensor
 
 
 class Graph:
+
     def __init__(self, graph_tensor:STensor, weighted:bool = False,
             bipartite:bool = False, modet=None):
         '''Construct a graph from sparse tensor.
@@ -26,11 +27,11 @@ class Graph:
         self.modet = modet # which mode is time dimension
         self.nprop = graph_tensor.ndim - 2 # num of edge properties
 
-        self.sm = graph_tensor.sum_to_scipy_sparse(modes=(0,1))
+        self.sm = graph_tensor.sum_to_scipy_sparse(modes=(0, 1))
         if not weighted:
             self.sm = (self.sm > 0).astype(int)
         if not bipartite:
-            pass #to be implemented
+            self.sm = self.sm.maximum(self.sm.T)
 
     def get_time_tensor(self):
         '''Get the tensor only have time dimension.
@@ -57,4 +58,3 @@ class Graph:
     def degrees(self):
         rowdegs, coldegs = self.sm.sum(axis=1), self.sm.sum(axis=0)
         return rowdegs, coldegs.T
-

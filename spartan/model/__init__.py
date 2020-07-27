@@ -25,7 +25,7 @@ def __call__(policy: str, *args, **kwargs) -> object:
     Returns
     ----------
     model_obj
-        object for model    
+        object for model
     '''
     import importlib
     model_cls = importlib.import_module(policy).__call__()
@@ -34,8 +34,10 @@ def __call__(policy: str, *args, **kwargs) -> object:
 
 BeatLex = partial(__call__, MODEL_PATH + ".beatlex")
 HoloScope = partial(__call__, MODEL_PATH + ".holoscope")
+Summarize = partial(__call__, MODEL_PATH + ".summarize")
 
 __all__ = [
     'BeatLex',
-    'HoloScope'
+    'HoloScope',
+    'Summarize'
 ]
