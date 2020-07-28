@@ -10,10 +10,9 @@
 from spartan.backend import STensor, DTensor
 
 from .tensor import TensorData
-from .tensor import TensorData, TensorStream
 from .timeseries import Timeseries
 from .graph import Graph
 
 __all__ = [
-    'TensorData', 'TensorStream', 'Timeseries', 'Graph'
+    'TensorData', 'Timeseries', 'Graph'
 ]
