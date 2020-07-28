@@ -117,6 +117,7 @@ class ScoreMapper(_Mapper):
             scores.append(scorebin[val] + residules[ind])
         return scores
 
+
 class StringMapper(_Mapper):
     '''mapping the names or complex string ids of users and objects into
     indices. Note that if the matrix is homogenous, i.e. user-to-user
@@ -137,13 +138,12 @@ class StringMapper(_Mapper):
             self.strids.append(k)
 
     def map(self, attrs):
-        indices = {}
+        indices = []
         for s in attrs:
             if s not in self.strdict:
                 self.strdict[s] = len(self.strdict)
                 self.strids.append(s)  # add new ids
-            indices = self.strdict[s]
-
+            indices.append(self.strdict[s])
         return indices
 
     def revert(self, indices):
@@ -151,7 +151,6 @@ class StringMapper(_Mapper):
 
         for i in indices:
             attrs.append(self.strids[i])
-
         return attrs
 
 

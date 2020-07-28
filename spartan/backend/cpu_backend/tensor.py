@@ -917,6 +917,19 @@ class STensor(np.lib.mixins.NDArrayOperatorsMixin):
         t = cls.__new__(cls)
         t._data = x
         return t
+    
+
+        
+        
+            
+            
+            
+                    
+                    
+        
+        
+        
+        
 
 
 
