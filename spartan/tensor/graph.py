@@ -10,9 +10,8 @@ from . import STensor
 
 
 class Graph:
-
-    def __init__(self, graph_tensor:STensor, weighted:bool = False,
-            bipartite:bool = False, modet=None):
+    def __init__(self, graph_tensor: STensor, weighted: bool = False,
+                 bipartite: bool = False, modet=None):
         '''Construct a graph from sparse tensor.
         If the sparse tensor has more than 2 modes, then it is a rich graph.
         Parameters:
@@ -24,8 +23,8 @@ class Graph:
         self.graph_tensor = graph_tensor
         self.weighted = weighted
         self.bipartite = bipartite
-        self.modet = modet # which mode is time dimension
-        self.nprop = graph_tensor.ndim - 2 # num of edge properties
+        self.modet = modet  # which mode is time dimension
+        self.nprop = graph_tensor.ndim - 2  # num of edge properties
 
         self.sm = graph_tensor.sum_to_scipy_sparse(modes=(0, 1))
         if not weighted:
@@ -49,11 +48,10 @@ class Graph:
             return graph_tensor
         elif self.nprop > 1 and mode is not None and\
                 mode < self.nprop + 2:
-            return STensor( (self.graph_tensor.coords[(0,1,mode),:],
-                    self.graph_tensor.data) )
+            return STensor((self.graph_tensor.coords[(0, 1, mode), :],
+                            self.graph_tensor.data))
         else:
             return None
-
 
     def degrees(self):
         rowdegs, coldegs = self.sm.sum(axis=1), self.sm.sum(axis=0)

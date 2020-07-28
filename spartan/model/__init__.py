@@ -35,9 +35,11 @@ def __call__(policy: str, *args, **kwargs) -> object:
 BeatLex = partial(__call__, MODEL_PATH + ".beatlex")
 HoloScope = partial(__call__, MODEL_PATH + ".holoscope")
 Summarize = partial(__call__, MODEL_PATH + ".summarize")
+BeatGAN = partial(__call__, MODEL_PATH + ".beatgan")
 
 __all__ = [
     'BeatLex',
     'HoloScope',
-    'Summarize'
+    'BeatGAN',
+    'Summarize',
 ]
