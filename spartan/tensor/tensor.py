@@ -42,3 +42,73 @@ class TensorData:
 
         return STensor((attr.to_numpy().T, value.to_numpy()))
 
+
+class TensorStream():
+    def __init__(self, f, idxtypes, sep: str = ' ', mappers: dict = {}):
+        '''
+        :param filename: input data file
+        :param tcolid: the column index of time
+        :param mode: r/rb
+        '''
+        self.f = f
+        self.sep = sep
+        self.idxtypes = idxtypes
+        self.mappers = mappers
+        self.next_window_start_pos = self.f.tell()
+        self.mappers = mappers
+
+    def _get_file_end_pos(self):
+        cur_pos = self.f.tell()
+        self.f.seek(0, 2)
+        end_pos = self.f.tell()
+        self.f.seek(cur_pos, 0)
+        return end_pos
+
+    def fetch_slide_window(self, window: int = 10, stride: int = 5, ts_colidx: int = 0):
+        end_pos = self._get_file_end_pos()
+        if self.f.tell() == end_pos:
+            raise Exception('all data has been processed')
+        else:
+            self.f.seek(self.next_window_start_pos, 0)
+        self.next_window_start_pos = None
+
+        tensorlist = []
+        lineid = 0
+        while True:
+            cur_pos = self.f.tell()
+            line = self.f.readline()
+            coords = line.strip().split(self.sep)
+            tline = []
+            try:
+                for i, tp in self.idxtypes:
+                    if i == ts_colidx:
+                        ts = tp(coords[i])
+                        'map time during reading data'
+                        if i in self.mappers:
+                            ts = self.mappers[i].map([ts])[0]
+                    tline.append(tp(coords[i]))
+                tensorlist.append(tline)
+            except Exception:
+                raise Exception(f"The {i}-th col does not match the given type {tp} in line:\n{line}")
+            if lineid == 0:
+                start_ts = ts
+                lineid += 1
+                continue
+            else:
+                if ts - start_ts >= stride:
+                    if self.next_window_start_pos is None:
+                        self.next_window_start_pos = cur_pos
+                    if ts - start_ts >= window:
+                        tensorlist.pop(-1)
+                        self.f.seek(self.next_window_start_pos, 0)
+                        break
+                if self.f.tell() == end_pos:
+                    break
+        tensorlist = pd.DataFrame(tensorlist)
+
+        'map other columns, e.g. user, item'
+        for i in tensorlist.columns:
+            if i in self.mappers:
+                colind = self.mappers[i].map(tensorlist.iloc[:, i])
+                tensorlist.iloc[:, i] = colind
+        return tensorlist
