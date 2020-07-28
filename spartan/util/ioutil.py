@@ -93,8 +93,12 @@ class TensorFile(File):
     def _read(self, **kwargs):
         tensorlist = []
         self.get_sep_of_file()
-        tensorlist = self._open(**kwargs)
-        tensorlist = pd.DataFrame(tensorlist)
+        _file = self._open(**kwargs)
+        if not self.idxtypes is None:
+            idx = [i[0] for i in self.idxtypes]
+            tensorlist = _file[idx]
+        else:
+            tensorlist = _file
         return tensorlist
 
 
@@ -214,6 +218,9 @@ def _aggregate(data_list):
 
 
 def loadTensor(path: str, col_idx: list = None, col_types: list = None, **kwargs):
+    if not "header" in kwargs.keys():
+        kwargs["header"] = None
+    print(kwargs)
     if path is None:
         raise FileNotFoundError('Path is missing.')
     path = _check_compress_file(path)
