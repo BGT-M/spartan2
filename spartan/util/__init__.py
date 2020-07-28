@@ -7,9 +7,9 @@
 
 # here put the import lib
 
-from spartan.tensor import TensorData
+from spartan.tensor import TensorData, TensorStream
 
-from .ioutil import loadTensor
+from .ioutil import loadTensor, File, loadTensorStream
 from .basicutil import set_trace, TimeMapper, StringMapper,\
     IntMapper, ScoreMapper
 
@@ -17,6 +17,8 @@ MODEL_PATH = 'spartan.model'
 
 __all__ = [
     'loadTensor',
+    'File',
+    'loadTensorStream',
     'set_trace',
     'TimeMapper',
     'StringMapper',
