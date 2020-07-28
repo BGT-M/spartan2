@@ -34,10 +34,8 @@ def __call__(policy: str, *args, **kwargs) -> object:
 
 BeatLex = partial(__call__, MODEL_PATH + ".beatlex")
 HoloScope = partial(__call__, MODEL_PATH + ".holoscope")
-EigenPulse = partial(__call__, MODEL_PATH + ".eigenpulse")
 
 __all__ = [
     'BeatLex',
-    'HoloScope',
-    'EigenPulse'
+    'HoloScope'
 ]
