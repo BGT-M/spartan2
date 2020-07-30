@@ -1,23 +1,35 @@
 import numpy as np
 from .drawer import Drawer
 from .._model import DMmodel
+from . import param_default
 
+param_default_dict = {
+    'signal_freq': 360,
+    'Smin': 180,
+    'Smax': 300,
+    'max_dist': 250,
+    'prediction_length': 0,
+    'model_momentum': 0,
+    'max_vocab': 100,
+    'termination_threshold': 0,
+    'new_cluster_threshold': 0.3
+}
 
 class BeatLex(DMmodel):
     def __init__(self, data_mat, model_name='my_beatlex_model', *args, **para_dict):
         super(BeatLex, self).__init__(data_mat, model_name, *args, **para_dict)
         self.data_mat = data_mat.val_tensor._data
 
-        self.signal_freq = para_dict['signal_freq']
-        self.Smin = para_dict['Smin']
-        self.Smax = para_dict['Smax']
-        self.max_dist = para_dict['max_dist']
-        self.prediction_length = para_dict['prediction_length']
+        self.signal_freq = param_default(para_dict, 'signal_freq', param_default_dict)
+        self.Smin = param_default(para_dict, 'Smin', param_default_dict)
+        self.Smax = param_default(para_dict, 'Smax', param_default_dict)
+        self.max_dist = param_default(para_dict, 'max_dist', param_default_dict)
+        self.prediction_length = param_default(para_dict, 'prediction_length', param_default_dict)
 
-        self.model_momentum = para_dict['model_momentum']
-        self.max_vocab = para_dict['max_vocab']
-        self.termination_threshold = para_dict['termination_threshold']
-        self.new_cluster_threshold = para_dict['new_cluster_threshold']
+        self.model_momentum = param_default(para_dict, 'model_momentum', param_default_dict)
+        self.max_vocab = param_default(para_dict, 'max_vocab', param_default_dict)
+        self.termination_threshold = param_default(para_dict, 'termination_threshold', param_default_dict)
+        self.new_cluster_threshold = param_default(para_dict, 'new_cluster_threshold', param_default_dict)
 
         if 'models' in para_dict.keys():
             self.models = para_dict['models']
