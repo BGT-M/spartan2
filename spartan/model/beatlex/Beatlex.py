@@ -4,7 +4,8 @@ from .._model import DMmodel
 
 
 class BeatLex(DMmodel):
-    def __init__(self, data_mat, **para_dict):
+    def __init__(self, data_mat, model_name='my_beatlex_model', *args, **para_dict):
+        super(BeatLex, self).__init__(data_mat, model_name, *args, **para_dict)
         self.data_mat = data_mat.val_tensor._data
 
         self.signal_freq = para_dict['signal_freq']

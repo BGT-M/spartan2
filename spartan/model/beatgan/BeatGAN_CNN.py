@@ -8,48 +8,61 @@ import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
 from .metric import evaluate
-from .._model import MLmodel
 from .preprocess import preprocess_data
+from .._model import MLmodel
 
-os.environ["CUDA_VISIBLE_DEVICES"] ="0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 
 class Generator(nn.Module):
     def __init__(self, nc=25, nz=100, seq_len=128, device=None):
         super(Generator, self).__init__()
         self.device = device
-        self.nc = nc
+        self.nc = nc  # in channels
         self.nz = nz
-        self.ndf = 32
+        self.ndf = 32  # out channels
 
         encoder_modules = []
+        # in channels: default is 25
+        # out channels: default is 32
+        # kenel size: 4
+        # stride: 2
+        # padding: 0
+        # bias: learnable bias False
         encoder_modules.append(nn.Conv1d(self.nc, self.ndf, 4, 2, 1, bias=False))
+        # negative_slope: 0.2
+        # inplace: do operation in place
         encoder_modules.append(nn.LeakyReLU(0.2, inplace=True))
 
-        cur_len = seq_len//2
+        cur_len = seq_len // 2
         i = 1
         while cur_len > 5:
-            encoder_modules.append(nn.Conv1d(self.ndf*i, self.ndf * i*2, 4, 2, 1, bias=False))
-            encoder_modules.append(nn.BatchNorm1d(self.ndf * i*2))
+            # (25, 32) -> (32, 64) -> (64, 128) for default
+            encoder_modules.append(nn.Conv1d(self.ndf * i, self.ndf * i * 2, 4, 2, 1, bias=False))
+            encoder_modules.append(nn.BatchNorm1d(self.ndf * i * 2))
             encoder_modules.append(nn.LeakyReLU(0.2, inplace=True))
-            i = i*2
-            cur_len = cur_len//2
+            i = i * 2
+            cur_len = cur_len // 2
 
+        # 128, 100
         encoder_modules.append(nn.Conv1d(self.ndf * i, self.nz, cur_len, 1, 0, bias=False))
 
         self.encoder = nn.Sequential(*encoder_modules)
 
         decoder_modules = []
+        # 100, 128
         decoder_modules.append(nn.ConvTranspose1d(self.nz, self.ndf * i, 4, 1, 0, bias=False))
         decoder_modules.append(nn.BatchNorm1d(self.ndf * i))
         decoder_modules.append(nn.ReLU(True))
-        i = i//2
+        i = i // 2
 
         while i >= 1:
+            # (128, 64) -> (64, 32) -> (32, 16)
             decoder_modules.append(nn.ConvTranspose1d(self.ndf*(i*2), self.ndf * i, 4, 2, 1, bias=False))
             decoder_modules.append(nn.BatchNorm1d(self.ndf * i))
             decoder_modules.append(nn.ReLU(True))
-            i = i//2
+            i = i // 2
         decoder_modules.append(nn.ConvTranspose1d(self.ndf, self.nc, 4, 2, 1, bias=False))
         decoder_modules.append(nn.Tanh())
 
@@ -59,6 +72,7 @@ class Generator(nn.Module):
         print(decoder_modules)
 
     def forward(self, input):
+        # dim 1 and dim 2 are swapped
         input = torch.transpose(input, 1, 2)
         z = self.encoder(input)
         out = self.decoder(z)
@@ -73,6 +87,7 @@ class Discriminator(nn.Module):
         self.nc = nc
         self.ndf = 32
 
+        # same as encoder in generator
         modules = []
         modules.append(nn.Conv1d(self.nc, self.ndf, 4, 2, 1, bias=False))
         modules.append(nn.LeakyReLU(0.2, inplace=True))
@@ -124,8 +139,8 @@ def weights_init(mod):
 
 
 class BeatGAN(MLmodel):
-    def __init__(self):
-        super(BeatGAN, self).__init__(None)
+    def __init__(self, *args, **kwargs):
+        super(BeatGAN, self).__init__(*args, **kwargs)
         self.dataloader = None
         self.device = None
         self.lamda_value = None
@@ -149,7 +164,7 @@ class BeatGAN(MLmodel):
         with open(os.path.join(output_dir, filename), "wb") as f:
             pickle.dump(score, f)
 
-    def fit(self):
+    def train(self):
         self.generator.apply(weights_init)
         self.discriminator.apply(weights_init)
         self.generator.train()
@@ -250,7 +265,7 @@ class BeatGAN(MLmodel):
                 self.discriminator.apply(weights_init)
                 print('Reloading dis net')
 
-    def predict(self, intrain=False, scale=True):
+    def test(self, intrain=False, scale=True):
         # if not intrain:
         #     self.load_model(self.out_dir, "cur_w.pth")
         self.generator.eval()
@@ -308,9 +323,9 @@ class BeatGAN(MLmodel):
 
 
 class BeatGAN_CNN(BeatGAN):
-    def __init__(self, data, **param):
-        super(BeatGAN_CNN, self).__init__()
-        dataloader=preprocess_data(data,False,param)
+    def __init__(self, data, *args, **param):
+        super(BeatGAN_CNN, self).__init__(data, *args, **param)
+        dataloader = preprocess_data(data, False, param)
         self.dataloader = dataloader
         self.device = device
         self.lamda_value = param["lambda"]
@@ -334,3 +349,13 @@ class BeatGAN_CNN(BeatGAN):
 
         self.fix_input = None
         self.fix_data_cond = None
+
+    def fit(self):
+        return self.train()
+
+    def predict(self):
+        return self.test()
+
+    def train(self):
+        super().train()
+        return self
