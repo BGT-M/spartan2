@@ -220,7 +220,6 @@ def _aggregate(data_list):
 def loadTensor(path: str, col_idx: list = None, col_types: list = None, **kwargs):
     if not "header" in kwargs.keys():
         kwargs["header"] = None
-    print(kwargs)
     if path is None:
         raise FileNotFoundError('Path is missing.')
     path = _check_compress_file(path)
