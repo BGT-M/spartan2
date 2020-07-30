@@ -15,7 +15,7 @@ class Timeseries:
         self.val_tensor = val_tensor.T
         self.dimension, self.length = self.val_tensor.shape
         if labels is None:
-            self.labels = ['dim_' + str(i) for i in range(self.length)]
+            self.labels = ['dim_' + str(i) for i in range(self.dimension)]
         else:
             self.labels = labels
         if time_tensor is None:

@@ -9,7 +9,10 @@ import torch.optim as optim
 from tqdm import tqdm
 from .metric import evaluate
 from .preprocess import preprocess_data
+
 from .._model import MLmodel
+from .import param_default
+
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -175,7 +178,7 @@ class BeatGAN(MLmodel):
         best_f1 = 0
         best_f1_epo = 0
 
-        for epoch in tqdm(range(self.param["max_epoch"])):
+        for epoch in tqdm(range(self.max_epoch)):
             self.train_epoch()
             # val_auc = self.val_epoch()
             # test_auc, test_th, test_f1 = self.test(intrain=True)
@@ -328,18 +331,25 @@ class BeatGAN_CNN(BeatGAN):
         dataloader = preprocess_data(data, False, param)
         self.dataloader = dataloader
         self.device = device
-        self.lamda_value = param["lambda"]
+        self.lamda_value = param_default(param, "lambda", 1)
 
-        self.param = param
-        self.generator = Generator(nc=param["input_size"], nz=param["rep_size"], seq_len=param["seq_len"], device=device).to(device)
-        self.discriminator = Discriminator(nc=param["input_size"], seq_len=param["seq_len"], device=device).to(device)
+        self.max_epoch = param_default(param, "max_epoch", 5)
+        self.generator = Generator(nc=param_default(param, "input_size", 2),\
+            nz=param_default(param, "rep_size", 20),\
+                seq_len=param_default(param, "seq_len", 64),\
+                     device=device).to(device)
+        self.discriminator = Discriminator(nc=param_default(param, "input_size", 2),\
+            seq_len=param_default(param, "seq_len", 64),\
+                device=device).to(device)
 
         self.mse = nn.MSELoss()
         self.bce = nn.BCELoss()
 
-        self.optimizerG = optim.Adam(self.generator.parameters(), lr=param["lr"])
+        self.optimizerG = optim.Adam(self.generator.parameters(), \
+            lr=param_default(param, "lr", 0.01))
 
-        self.optimizerD = optim.Adam(self.discriminator.parameters(), lr=param["lr"])
+        self.optimizerD = optim.Adam(self.discriminator.parameters(), \
+            lr=param_default(param, "lr", 0.01))
 
         self.out_dir = './beatgan_result'
         if not os.path.exists(self.out_dir):

@@ -8,6 +8,8 @@ from .metric import evaluate
 from .preprocess import preprocess_data
 from .._model import MLmodel
 
+from .import param_default
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 class Encoder(nn.Module):
@@ -240,20 +242,28 @@ class BeatGAN(MLmodel):
         super(BeatGAN, self).__init__(data, *args, **param)
         self.dataloader = preprocess_data(data, False, param)
         self.device = device
-        self.lamda_value = param["lambda"]
+        self.lamda_value = param_default(param, "lambda", 1)
+        self.seq_len = param_default(param, "seq_len", 64)
+        self.max_epoch = param_default(param, "max_epoch", 5)
+        self.lr = param_default(param, "lr", 0.01)
 
-        self.param = param
-        self.encoder = Encoder(param["layers"], param["input_size"], param["hidden_size"], 0, param["rep_size"], device, cell=param["net_type"]).to(device)
-        self.decoder = Decoder(param["layers"], param["input_size"], param["hidden_size"], 0, param["rep_size"], device, cell=param["net_type"]).to(device)
-        self.discriminator = Discriminator(param["layers"], param["input_size"], param["hidden_size"], 0, device, cell=param["net_type"]).to(device)
+        self.encoder = Encoder(param_default(param, "layers", 1), \
+            param_default(param, "input_size", 2), param_default(param, "hidden_size", 100), \
+                0, param_default(param, "rep_size", 20), device, cell=param_default(param, "net_type", "gru")).to(device)
+        self.decoder = Decoder(param_default(param, "layers", 1), \
+            param_default(param, "input_size", 2), param_default(param, "hidden_size", 100), \
+                0, param_default(param, "rep_size", 20), device, cell=param_default(param, "net_type", "gru")).to(device)
+        self.discriminator = Discriminator(param_default(param, "layers", 1), \
+            param_default(param, "input_size", 2), param_default(param, "hidden_size", 100), \
+                0, device, cell=param_default(param, "net_type", "gru")).to(device)
 
         self.mse = nn.MSELoss()
         self.bce = nn.BCELoss()
         self.l1loss = nn.L1Loss()
 
         params = list(self.encoder.parameters()) + list(self.decoder.parameters())
-        self.optimizerG = optim.Adam(params, lr=param["lr"])
-        self.optimizerD = optim.Adam(self.discriminator.parameters(), lr=param["lr"])
+        self.optimizerG = optim.Adam(params, lr=self.lr)
+        self.optimizerD = optim.Adam(self.discriminator.parameters(), lr=self.lr)
 
         self.out_dir = os.path.join("output", self.model_name)
         if not os.path.exists(self.out_dir):
@@ -277,7 +287,7 @@ class BeatGAN(MLmodel):
         best_f1 = 0
         best_f1_epo = 0
 
-        for epoch in tqdm(range(self.param["max_epoch"])):
+        for epoch in tqdm(range(self.max_epoch)):
             self.train_epoch()
 
             self.save_cur_model(self.out_dir, "cur_w.pth")
@@ -322,7 +332,7 @@ class BeatGAN(MLmodel):
 
             # train with fake
             z = self.encoder(data_X, data_cond)
-            rec_x = self.decoder(self.param["seq_len"], z, data_cond)
+            rec_x = self.decoder(self.seq_len, z, data_cond)
             d_fake_prob, d_fake_logit, d_fake_feat = self.discriminator(rec_x, data_cond)
 
             loss_d_real = self.bce(d_real_prob, torch.full((d_real_prob.size(0),), 1, device=self.device))
@@ -339,7 +349,7 @@ class BeatGAN(MLmodel):
             self.optimizerG.zero_grad()
 
             z = self.encoder(data_X, data_cond)
-            rec_x = self.decoder(self.param["seq_len"], z, data_cond)
+            rec_x = self.decoder(self.seq_len, z, data_cond)
             d_real_prob, d_real_logit, d_real_feat = self.discriminator(data_X, data_cond)
             d_fake_prob, d_fake_logit, d_fake_feat = self.discriminator(rec_x, data_cond)
 
@@ -354,7 +364,7 @@ class BeatGAN(MLmodel):
             if (i % 100) == 0:
                 print("{}:loss_g(rec/adv):{}/{},loss_d(real/fake):{}/{}".format(i, loss_g_rec, loss_g_adv*self.lamda_value, loss_d_real, loss_d_fake))
                 # z = self.encoder(self.fix_input, self.fix_data_cond)
-                # rec_x = self.decoder(self.param["seq_len"],z, self.fix_data_cond)
+                # rec_x = self.decoder(self.seq_len,z, self.fix_data_cond)
                 # show_num=8
                 # img_tensor=multi_ts2image(rec_x.detach().cpu().numpy()[:show_num],self.fix_input.cpu().numpy()[:show_num])
                 # for img_idx in range(show_num):
@@ -367,7 +377,7 @@ class BeatGAN(MLmodel):
         self.decoder.eval()
         self.discriminator.eval()
 
-        rec_diff = self.get_diff(self.dataloader, self.param, save_pic=False)
+        rec_diff = self.get_diff(self.dataloader, save_pic=False)
         print(rec_diff)
         return rec_diff
 
@@ -398,7 +408,7 @@ class BeatGAN(MLmodel):
         self.decoder.load_state_dict(state["decoder"])
         self.discriminator.load_state_dict(state["discriminator"])
 
-    def get_diff(self, dataloader, config, save_pic=False):
+    def get_diff(self, dataloader, save_pic=False):
 
         rec_diff = []
         data_cond = None
@@ -409,7 +419,7 @@ class BeatGAN(MLmodel):
                 data_X = data_X.to(self.device)
 
                 z = self.encoder(data_X, data_cond)
-                rec_x = self.decoder(self.param["seq_len"], z, data_cond)
+                rec_x = self.decoder(self.seq_len, z, data_cond)
 
                 mse_metric = torch.mean(torch.sum(torch.pow(data_X - rec_x, 2), dim=2),
                                         dim=1).detach().cpu().numpy()

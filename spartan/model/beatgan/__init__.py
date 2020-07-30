@@ -1,3 +1,5 @@
+from spartan.util.basicutil import param_default
+
 from .BeatGAN_CNN import BeatGAN_CNN
 from .BeatGAN_RNN import BeatGAN_RNN
 
