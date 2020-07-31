@@ -25,19 +25,24 @@ def __call__(policy: str, *args, **kwargs) -> object:
     Returns
     ----------
     model_obj
-        object for model    
+        object for model
     '''
     import importlib
     model_cls = importlib.import_module(policy).__call__()
-    return model_cls(*args, **kwargs)
+    return model_cls.__create__(*args, **kwargs)
 
 
 BeatLex = partial(__call__, MODEL_PATH + ".beatlex")
 HoloScope = partial(__call__, MODEL_PATH + ".holoscope")
-HoloScope = partial(__call__, MODEL_PATH + ".eigenpulse")
+EigenPulse = partial(__call__, MODEL_PATH + ".eigenpulse")
+Summarize = partial(__call__, MODEL_PATH + ".summarize")
+BeatGAN = partial(__call__, MODEL_PATH + ".beatgan")
+
 
 __all__ = [
     'BeatLex',
     'HoloScope',
     'EigenPulse'
+    'BeatGAN',
+    'Summarize',
 ]

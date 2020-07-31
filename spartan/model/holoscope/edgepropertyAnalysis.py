@@ -5,6 +5,7 @@ from scipy.sparse import coo_matrix, csc_matrix
 # from gendenseblock import *
 from .mytools.ioutil import myreadfile
 import math
+from spartan.backend import STensor, DTensor
 
 class MultiEedgePropBiGraph:
     def __init__(self, wadjm):
@@ -12,11 +13,6 @@ class MultiEedgePropBiGraph:
         self.nU , self.nV = wadjm.shape
         self.indegrees = self.wadjm.sum(0).getA1()
         self.inbd=2 # the objects that has at least 2 edges are considered
-        """
-        since the data is cut by the end of time, so we need to leave a twait
-        to see if it is a sudden drop or cut by the end of time
-        """
-        self.twaits = {'s':12*3600, 'h':24, 'd':30, None:0}
 
     #@profile
     def load_from_edgeproperty(self, profnm, mtype=coo_matrix,
@@ -47,7 +43,33 @@ class MultiEedgePropBiGraph:
             self.edgeidxml = self.edgeidxm.tolil()
             self.edgeidxmlt = self.edgeidxm.transpose().tolil()
             self.eprop = np.array(self.eprop)
-        return
+        pass
+
+    def trans_array_to_edgeproperty(self, arr:STensor, mtype=coo_matrix, dtype=int):
+        ''' transform the ndarray arr to a pmi matrix.
+        Do not support idstartzero. Use id as it is.
+        '''
+        'index of (v, v, attribute), and frequency of it '
+        coords, freqs = arr.coords, arr.data
+        # todo: it is better to have reduce func to have all prop combine
+        uvdict = {}
+        eprop=[[]] # make the first start from 1
+        for i in range(len(freqs)):
+            u,v,p = coords[:, i]
+            if (u,v) not in uvdict:
+                uvdict[(u,v)] = len(uvdict) + 1 #start from 1
+                eprop.append([])
+            eprop[ uvdict[(u,v)] ] += [p]*freqs[i]
+
+        x,y = np.array(list(uvdict.keys())).T
+        data = list(uvdict.values())
+        self.edgeidxm = mtype((data, (x,y)), shape=(max(x)+1, max(y)+1) )
+        self.edgeidxmr = self.edgeidxm.tocsr()
+        self.edgeidxmc = self.edgeidxm.tocsc()
+        self.edgeidxml = self.edgeidxm.tolil()
+        self.edgeidxmlt = self.edgeidxm.transpose().tolil()
+        self.eprop = np.array(eprop)
+        pass
 
     #@profile
     def setup_rate4all_sinks(self):
@@ -89,11 +111,11 @@ class MultiEedgePropBiGraph:
         return
 
     #@profile
-    def setup_ts4all_sinks(self, tunit, bins='auto'):
+    def setup_ts4all_sinks(self, twait, bins='auto'):
         'calculate the one-time values for every sink, like bursting, dying, drop'
         maxts = [np.max(t) for t in self.eprop[1:]]
         self.endt = max(maxts)
-        self.twait = self.twaits[tunit]
+        self.twait = twait
         allmlt = self.edgeidxmlt #all susp msg matrix
         'effect sinks'
         cols = np.argwhere(self.indegrees>=self.inbd).flatten()
@@ -132,17 +154,6 @@ class MultiEedgePropBiGraph:
                 awakburstpt, burstvals, burstslops, ainbursts
         self.dyingpt, self.dropslops, self.dropfalls = \
                 dyingpt, dropslops, dropfalls
-        return
-
-    def load_from_userobjrates(self, uoratefn, mtype=csc_matrix, dtype=float):
-        'if inject load and setup need to be called separately'
-        self.load_from_edgeproperty(uoratefn, mtype, dtype)
-        self.setup_rate4all_sinks()
-        return
-
-    def load_from_usermsgtimes(self, umtsfn, tunit, mtype=csc_matrix, dtype=int):
-        self.load_from_edgeproperty(umtsfn, mtype=mtype, dtype=int)
-        self.setup_ts4all_sinks(tunit=tunit)
         return
 
     'this is only called once, always put into the init/start func'
@@ -360,6 +371,7 @@ def recurFindAwakePt(xs, ys, start=0, abptidxs=[]):
 
 def burstmaxdying_recur(ts, endt, twait=12*3600, bins='auto'):
     'endt is used to judge if the dying is caused by observation window'
+    #todo consider weights
     hts = np.histogram(ts, bins=bins)
     xs = hts[1]
     ys = hts[0].astype(np.float64)
@@ -412,6 +424,8 @@ def recurFindMaxFallDying(xs, ys, maxdying):
         recurFindMaxFallDying(xs[:subdyingidx], ys[:subdyingidx], maxdying)
     return
 
+
+# assistant function. check tunit when is called
 def pim2tensorformat(tsfile, ratefile, tensorfile, tunit='s', tbins='h'):
     'convert the pim files: tsfile, ratefile into tensor file, i.e. tuples'
     rbins = lambda x: 0 if x<2.5 else 1 if x<=3.5 else 2 #lambda x: x
@@ -432,13 +446,13 @@ def pim2tensorformat(tsfile, ratefile, tensorfile, tunit='s', tbins='h'):
                 'time unit is second'
                 if tbins == 'h':
                     'time bin size is hour'
-                    tss = np.array(tss, dtype=int)/3600
+                    tss = np.array(tss, dtype=int)//3600
                 elif tbins == 'd':
                     'time bin size is day'
-                    tss = np.array(tss, dtype=int)/(3600*24)
+                    tss = np.array(tss, dtype=int)//(3600*24)
             'no matter what the tunit is'
             if type(tbins) is int:
-                tss = np.array(tss, dtype=int)/tbins
+                tss = np.array(tss, dtype=int)//tbins
             tss = list(map(str, tss))
             'process ts'
             rts = vs[1].strip().split(' ')
@@ -457,6 +471,7 @@ def pim2tensorformat(tsfile, ratefile, tensorfile, tunit='s', tbins='h'):
         fte.close()
     return
 
+# assistant function. check tunit when is called
 def tspim2tensorformat(tsfile, tensorfile, tunit='s', tbins='h',
                        idstartzero=True):
     offset = 0 if idstartzero else -1
@@ -476,12 +491,12 @@ def tspim2tensorformat(tsfile, tensorfile, tunit='s', tbins='h',
                 'time unit is second'
                 if tbins == 'h':
                     'time bin size is hour'
-                    tss = np.array(tss, dtype=int)/3600
+                    tss = np.array(tss, dtype=int)//3600
                 elif tbins == 'd':
                     'time bin size is day'
-                    tss = np.array(tss, dtype=int)/(3600*24)
+                    tss = np.array(tss, dtype=int)//(3600*24)
             if type(tbins) is int:
-                tss = np.array(tss, dtype=int)/tbins
+                tss = np.array(tss, dtype=int)//tbins
             tss = list(map(str, tss))
             for i in range(len(tss)):
                 fte.write(','.join((u, b, tss[i], '1')))

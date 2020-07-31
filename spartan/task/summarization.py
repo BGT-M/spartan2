@@ -17,13 +17,13 @@ class Summarization(Task):
     '''Implementation for summarization task.
     '''
 
-    def run(self, **params):
+    def run(self, *args, **kwargs):
         '''Call summarization function of selected model.
 
         If not implemented, raise an exception by calling parent run.
         '''
         if "summarization" in dir(self.model):
-            return self.model.summarization(**params)
+            return self.model.summarization(*args, **kwargs)
         else:
             return super().run("summarization")
 
@@ -39,3 +39,4 @@ class SumPolicy(Enum):
     '''Registration for path of models who can do summarization task.
     '''
     Beatlex = MODEL_PATH + ".beatlex"
+    Summarize = MODEL_PATH + ".summarize"

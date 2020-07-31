@@ -17,13 +17,13 @@ class AnomalyDetection(Task):
     '''Implementation for anomaly detection task.
     '''
 
-    def run(self, **params):
+    def run(self, *args, **kwargs):
         '''Call anomaly detection function of selected model.
 
         If not implemented, raise an exception by calling parent run.
         '''
         if "anomaly_detection" in dir(self.model):
-            return self.model.anomaly_detection(**params)
+            return self.model.anomaly_detection(*args, **kwargs)
         else:
             return super().run("anomaly_detection")
 

@@ -17,12 +17,12 @@ class Model():
         name of model
     '''
 
-    def __init__(self, model_name: str = "my_model"):
+    def __init__(self, model_name: str = "my_model", *args, **kwargs):
         '''Initialization function.'''
         self.model_name = model_name
 
     @classmethod
-    def __create__(cls, data: object, **params):
+    def __create__(cls, data: object, *args, **kwargs):
         '''Interface of creation by class, overrided by subclasses.
 
         Raises
@@ -37,13 +37,13 @@ class DMmodel(Model):
     '''Interface for data mining model.
     '''
 
-    def __init__(self, tensor: object, **params):
+    def __init__(self, tensor: object, *args, **kwargs):
         '''Only support construction by classmethod.
         '''
-        pass
+        super(DMmodel, self).__init__(*args, **kwargs)
 
     @classmethod
-    def __create__(cls, tensor: object, **params) -> object:
+    def __create__(cls, tensor: object, *args, **kwargs) -> object:
         '''Interface of creation by class, overrided by subclasses.
 
         Parameters
@@ -58,10 +58,10 @@ class DMmodel(Model):
         _obj
             object for specific model
         '''
-        _obj = cls(tensor, **params)
+        _obj = cls(tensor, *args, **kwargs)
         return _obj
 
-    def run(self, **params):
+    def run(self, *args, **kwargs):
         '''Interface of run function, overrided by subclasses.
 
         Raises
@@ -76,13 +76,13 @@ class MLmodel(Model):
     '''Interface for machine learning model.
     '''
 
-    def __init__(self, tensor: object, **params):
+    def __init__(self, tensor: object, *args, **kwargs):
         '''Only support construction by classmethod.
         '''
-        pass
+        super(MLmodel, self).__init__(*args, **kwargs)
 
     @classmethod
-    def __create__(cls, tensor: object, **params) -> object:
+    def __create__(cls, tensor: object, *args, **kwargs) -> object:
         '''Interface of creation by class, overrided by subclasses.
 
         Parameters
@@ -97,10 +97,10 @@ class MLmodel(Model):
         _obj
             object for specific model
         '''
-        _obj = cls(tensor, **params)
+        _obj = cls(tensor, *args, **kwargs)
         return _obj
 
-    def fit(self, **params):
+    def fit(self, *args, **kwargs):
         '''Interface of fit function, overrided by subclasses.
 
         Raises
@@ -110,7 +110,7 @@ class MLmodel(Model):
         '''
         raise Exception("Fit function not implemented.")
 
-    def predict(self, **params):
+    def predict(self, *args, **kwargs):
         '''Interface of predict function, overrided by subclasses.
 
         Raises
