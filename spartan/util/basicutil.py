@@ -13,8 +13,12 @@ import time
 import numpy as np
 
 
-def param_default(params:dict, key:str, default ):
-    return params[str] if str in params else default
+def param_default(params: dict, key: str, default):
+    if type(default) is dict:
+        return params[key] if params.__contains__(key) else default[key]
+    else:
+        return params[key] if params.__contains__(key) else default
+
 
 def set_trace(isset=True):
     if isset is True:
