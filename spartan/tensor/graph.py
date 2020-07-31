@@ -7,6 +7,7 @@
 
 # here put the import lib
 from . import STensor
+import spartan as st
 
 
 class Graph:
@@ -53,6 +54,43 @@ class Graph:
         else:
             return None
 
+    def get_sub_tuples(self, rows, cols):
+        pass
+
+    def get_subgraph_nedges(self, rows, cols):
+        """
+        Pulls out an arbitrary i.e. non-contiguous submatrix out of
+        a sparse.coo_matrix.
+
+        Returns
+        ------
+        tuples of org_row_id, org_col_id, value
+        """
+        matr = self.sm.tocoo()
+
+        gr = -1 * st.ones(matr.shape[0])
+        gc = -1 * st.ones(matr.shape[1])
+
+        lr = len(rows)
+        lc = len(cols)
+
+        ar = st.arange(0, lr, 1)
+        ac = st.arange(0, lc, 1)
+        gr[rows[ar]] = ar
+        gc[cols[ac]] = ac
+        mrow = matr.row
+        mcol = matr.col
+        newelem = (gr[mrow] > -1) & (gc[mcol] > -1)
+        subvalues = matr.data[newelem]
+
+        if self.weighted:
+            nedges = len(subvalues)
+        else:
+            nedges = subvalues.sum()
+
+        return nedges
+
     def degrees(self):
         rowdegs, coldegs = self.sm.sum(axis=1), self.sm.sum(axis=0)
         return rowdegs, coldegs.T
+

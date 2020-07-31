@@ -446,13 +446,13 @@ def pim2tensorformat(tsfile, ratefile, tensorfile, tunit='s', tbins='h'):
                 'time unit is second'
                 if tbins == 'h':
                     'time bin size is hour'
-                    tss = np.array(tss, dtype=int)/3600
+                    tss = np.array(tss, dtype=int)//3600
                 elif tbins == 'd':
                     'time bin size is day'
-                    tss = np.array(tss, dtype=int)/(3600*24)
+                    tss = np.array(tss, dtype=int)//(3600*24)
             'no matter what the tunit is'
             if type(tbins) is int:
-                tss = np.array(tss, dtype=int)/tbins
+                tss = np.array(tss, dtype=int)//tbins
             tss = list(map(str, tss))
             'process ts'
             rts = vs[1].strip().split(' ')
@@ -491,12 +491,12 @@ def tspim2tensorformat(tsfile, tensorfile, tunit='s', tbins='h',
                 'time unit is second'
                 if tbins == 'h':
                     'time bin size is hour'
-                    tss = np.array(tss, dtype=int)/3600
+                    tss = np.array(tss, dtype=int)//3600
                 elif tbins == 'd':
                     'time bin size is day'
-                    tss = np.array(tss, dtype=int)/(3600*24)
+                    tss = np.array(tss, dtype=int)//(3600*24)
             if type(tbins) is int:
-                tss = np.array(tss, dtype=int)/tbins
+                tss = np.array(tss, dtype=int)//tbins
             tss = list(map(str, tss))
             for i in range(len(tss)):
                 fte.write(','.join((u, b, tss[i], '1')))

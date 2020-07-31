@@ -1,6 +1,7 @@
 import sys, os, time
 import numpy as np
 import scipy as sci
+import scipy.stats as ss
 import scipy.sparse.linalg as slin
 import copy
 from .mytools.MinTree import MinTree
@@ -12,7 +13,31 @@ from .._model import DMmodel
 from spartan.util.basicutil import param_default
 from spartan.backend import STensor
 
-def score_level_objects( objscores ):
+def score_level_objects( objscores, p=0.90):
+    '''implement with Perato distribution, given significant value
+    '''
+    sortscores = sorted(objscores)
+    sortobjs = np.argsort(objscores)
+    alpha = 0.9
+    tail_fir_score = np.percentile(sortscores, [alpha*100])[0]
+    if tail_fir_score == 0:
+        'remove 0 if the number of percentile 90% is 0'
+        firindex = np.argwhere(sortscores > 0)[0]
+        sortscores = sortscores[firindex:]
+        sortobjs = sortobjs[firindex:]
+    'fit generalized pareto distribution using 10% upper tail data'
+    tailidx = int(alpha * len(sortscores))
+    tailscores = sortscores[tailidx:]
+    tailobjs = sortobjs[tailidx:]
+
+    shape, pos, scale = ss.pareto.fit(tailscores)
+    cdfs = ss.pareto.cdf(tailscores, shape, pos, scale)
+
+    levelidxs = np.argwhere(cdfs >= p)
+    levelobjs = tailobjs[levelidxs].T[0]
+    return levelobjs
+
+def score_heristic_level_objects( objscores ):
     '''todo: implement with Perato distribution, given significant value
     '''
     sortscores = sorted(objscores, reverse=True)
@@ -23,12 +48,8 @@ def score_level_objects( objscores ):
     return levelobjs
 
 def nonzero_objects( objscores ):
-    objects = np.argwhere( objscores > 0 )
+    objects = np.where( objscores > 0 )[0]
     return objects
-
-def nedges_subgraph(sm, gsrows, nnzcols):
-    smc = sm.tocsc()
-    return int(smc[gsrows, nnzcols].sum())
 
 class Ptype(object):
     freq =0
@@ -317,7 +338,7 @@ class HoloScopeOpt:
     #@profile
     def greedyshaving(self):
         '''greedy algorithm'''
-        maxint = np.iinfo(np.int64).max/2
+        maxint = np.iinfo(np.int64).max//2
         delscores = np.array([maxint]*self.nU)
         delcands = self.A.nonzero()[0]
         deluserCredit = self.graphr[delcands,:].dot(self.bsusps)
@@ -364,7 +385,7 @@ class HoloScopeOpt:
             self.bsusps = self.ybsusps
             self.vx = vy
             self.vxs.append(self.vx)
-            if i % (sizeA0/100 + 1) == 0:
+            if i % (sizeA0//100 + 1) == 0:
                 sys.stdout.write('.')
                 sys.stdout.flush()
             i+=1
@@ -579,7 +600,7 @@ class HoloScopeOpt:
                 if ui[r] <= rbdrow:
                     break
             self.avgexponents.append(math.log(jr, self.nU))
-            if self.nU > 1e6:
+            if self.nU > 5e5:
                 e0=self.e0
                 ep = max(eps, 2.0/(3-e0))
                 nn = self.nU + self.nV
@@ -830,14 +851,12 @@ def holoscope_interface(wmat, alg, ptype, qfun, b, rateprop=None, tsprop=None,
 
     #levelcols = score_level_objects( gbscores )
     nnzcols = nonzero_objects( gbscores )
-    edges = nedges_subgraph(sm, gsrows, nnzcols)
 
-    print('global best size: nodes', len(gsrows), len(nnzcols), ', edges',
-            edges,  'with camouflage.')
+    #print('global best size: nodes', len(gsrows), len(nnzcols), 'with camouflage.')
 
-    print('global best value ', gbestvx)
+    #print('global best value ', gbestvx)
 
-    return ((gsrows, nnzcols), edges, gbestvx), gbscores, opt
+    return ((gsrows, nnzcols), gbestvx), gbscores[nnzcols], opt
 
 
 class HoloScope( DMmodel ):
@@ -945,12 +964,17 @@ class HoloScope( DMmodel ):
             res = opt.nbests[nb]
             print('block{}: \n\tobjective value {}'.format(nb + 1, res[0]))
             levelcols = score_level_objects(res[1][1])
-            rows = res[1][0]
             nnzcols = nonzero_objects(res[1][1])
-            nedges = nedges_subgraph(graph.sm, rows, nnzcols)
-            print( '\tnode size: {} {}, edge size: {}, with camouflage.'.format(
+            rows = res[1][0]
+            nleveledges = graph.get_subgraph_nedges( rows, levelcols )
+            nedges = graph.get_subgraph_nedges( rows, nnzcols )
+            print( '\tNode size: {} x {}, edge size {}'.format(len(rows),
+                len(levelcols), nleveledges) )
+            print( '\tRow and nonzero columns {} x {}, edge size: {} with camouflage.'.format(
                 len(rows), len(nnzcols), nedges) )
-            nres.append( ( (rows, nnzcols), res[0], levelcols, res[1][1] ) )
+            nres.append( ( (rows, levelcols), res[0], nnzcols, res[1][1][nnzcols] ) )
+
+        self.nres = nres
 
         return nres
 
@@ -958,6 +982,9 @@ class HoloScope( DMmodel ):
         return self.run(k=k, eps=eps)
 
     def save(self, outpath):
+        import pickle
+        out = open(outpath,'wb')
+        pickle.dump(self.nres, out)
         pass
 
 

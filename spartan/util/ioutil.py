@@ -45,6 +45,8 @@ class File():
                 sep = ';'
             if ("\t" in line):
                 sep = "\t"
+            if ("\x01" in line):
+                sep = "\x01"
             break
         self.sep = sep
 
@@ -126,7 +128,7 @@ class NPFile(File):
     def _open(self, **kwargs):
         f = np.load(self.filename)
         return f
-    
+
     def _read(self, **kwargs):
         f = self._open(**kwargs)
         if self.filename.endswith('.npy'):
@@ -213,12 +215,22 @@ def _aggregate(data_list):
         pass
 
 
-def loadTensor(path: str, col_idx: list = None, col_types: list = None, **kwargs):
+def loadTensor(path:str,  col_idx: list = None, col_types: list = None, **kwargs):
+    '''
+    Parameters
+    ------
+        path:
+            file-like object
+    '''
     if path is None:
         raise FileNotFoundError('Path is missing.')
+    #if hasattr(path, 'read'):
+    #    files = [path]
+
     path = _check_compress_file(path)
     import glob
     files = glob.glob(path)
+
     if col_types is None:
         if col_idx is None:
             idxtypes = None
@@ -237,3 +249,4 @@ def loadTensor(path: str, col_idx: list = None, col_types: list = None, **kwargs
         data_list.append(_read_data(_file, idxtypes, **kwargs))
     data = _aggregate(data_list)
     return TensorData(data)
+
