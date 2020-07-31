@@ -17,13 +17,13 @@ class Forecast(Task):
     '''Implementation for forecast task.
     '''
 
-    def run(self, **params):
+    def run(self, *args, **kwargs):
         '''Call forecast function of selected model.
 
         If not implemented, raise an exception by calling parent run.
         '''
         if "forecast" in dir(self.model):
-            return self.model.forecast(**params)
+            return self.model.forecast(*args, **kwargs)
         else:
             return super().run("forecast")
 
