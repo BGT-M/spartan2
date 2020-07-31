@@ -17,13 +17,13 @@ class Train(Task):
     '''Implementation for training task.
     '''
 
-    def run(self, **params):
+    def run(self, *args, **kwargs):
         '''Call train function of selected model.
 
         If not implemented, raise an exception by calling parent run.
         '''
         if "train" in dir(self.model):
-            return self.model.train(**params)
+            return self.model.train(*args, **kwargs)
         else:
             return super().run("train")
 
@@ -38,4 +38,4 @@ class Train(Task):
 class TrainPolicy(Enum):
     '''Registration for path of models who can do train task.
     '''
-    pass
+    BeatGAN = MODEL_PATH + '.beatgan'

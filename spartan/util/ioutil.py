@@ -105,7 +105,7 @@ class TensorFile(File):
 class CSVFile(File):
     def _open(self, **kwargs):
         f = pd.read_csv(self.filename, **kwargs)
-        column_names = f.columns
+        column_names = list(f.columns)
         self.dtypes = {}
         if not self.idxtypes is None:
             for idx, typex in self.idxtypes:
@@ -119,7 +119,7 @@ class CSVFile(File):
         tensorlist = pd.DataFrame()
         _file = self._open(**kwargs)
         if not self.idxtypes is None:
-            idx = [i[0] for i in self.idxtypes]
+            idx = list(self.dtypes.keys())
             tensorlist = _file[idx]
         else:
             tensorlist = _file
@@ -130,7 +130,7 @@ class NPFile(File):
     def _open(self, **kwargs):
         f = np.load(self.filename)
         return f
-    
+
     def _read(self, **kwargs):
         f = self._open(**kwargs)
         if self.filename.endswith('.npy'):
@@ -148,6 +148,7 @@ class NPFile(File):
         else:
             df = df
         return df
+
 
 def _read_data(filename: str, idxtypes: list, **kwargs) -> object:
     """Check format of file and read data from file.
@@ -220,7 +221,6 @@ def _aggregate(data_list):
 def loadTensor(path: str, col_idx: list = None, col_types: list = None, **kwargs):
     if not "header" in kwargs.keys():
         kwargs["header"] = None
-    print(kwargs)
     if path is None:
         raise FileNotFoundError('Path is missing.')
     path = _check_compress_file(path)
@@ -235,7 +235,7 @@ def loadTensor(path: str, col_idx: list = None, col_types: list = None, **kwargs
         if col_idx is None:
             col_idx = [i for i in range(len(col_types))]
         if len(col_idx) == len(col_types):
-            idxtypes = [(x, col_types[i]) for i, x in enumerate(col_idx)]
+            idxtypes = [[x, col_types[i]] for i, x in enumerate(col_idx)]
         else:
             raise Exception(f"Error: input same size of col_types and col_idx")
 

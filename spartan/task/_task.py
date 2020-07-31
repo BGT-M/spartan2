@@ -30,7 +30,7 @@ class Task():
 
     '''
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         '''Initialization function.'''
         self.tensor = None
         self.policy = None
@@ -39,7 +39,7 @@ class Task():
         self.params = None
 
     @classmethod
-    def create(cls, tensor: object, policy: str, model_name: str, **params) -> object:
+    def create(cls, tensor: object, policy: str, model_name: str, *args, **kwargs) -> object:
         '''Create function, called by class.
 
         Instantiation of policy from string and creation of Task from other parameters.
@@ -65,16 +65,16 @@ class Task():
         except Exception as e:
             print(e)
             raise Exception(f"{policy} Not Supported!")
-        model = model_cls.__create__(tensor, **params)
+        model = model_cls.__create__(tensor, *args, **kwargs)
         obj = cls()
         obj.tensor = tensor
         obj.model = model
         obj.policy = policy
         obj.model_name = model_name
-        obj.params = params
+        obj.params = kwargs
         return obj
 
-    def run(self, __func__: str, **params):
+    def run(self, __func__: str, *args, **kwargs):
         '''Interface of run function, overrided by subclasses.
 
         Raises

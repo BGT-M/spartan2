@@ -29,7 +29,7 @@ def __call__(policy: str, *args, **kwargs) -> object:
     '''
     import importlib
     model_cls = importlib.import_module(policy).__call__()
-    return model_cls(*args, **kwargs)
+    return model_cls.__create__(*args, **kwargs)
 
 
 BeatLex = partial(__call__, MODEL_PATH + ".beatlex")
