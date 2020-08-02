@@ -11,7 +11,7 @@ from spartan.tensor import TensorData
 
 from .ioutil import loadTensor
 from .basicutil import set_trace, TimeMapper, StringMapper,\
-    IntMapper, ScoreMapper, IntRemapper
+    IntMapper, ScoreMapper, DenseIntMapper
 from .drawutil import plot_graph
 
 MODEL_PATH = 'spartan.model'
@@ -23,6 +23,6 @@ __all__ = [
     'StringMapper',
     'IntMapper',
     'ScoreMapper',
-    'IntRemapper',
+    'DenseIntMapper',
     'plot_graph'
 ]
