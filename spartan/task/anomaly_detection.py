@@ -39,4 +39,5 @@ class ADPolicy(Enum):
     '''Registration for path of models who can do anomaly detection task.
     '''
     HoloScope = MODEL_PATH + ".holoscope"
+    EigenPulse = MODEL_PATH + ".eigenpulse"
     pass

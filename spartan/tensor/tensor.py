@@ -40,3 +40,87 @@ class TensorData:
 
         ##assert(attr.dtypes[0] is int and  attr.dtypes[1] is int)
         return STensor((attr.to_numpy().T, value.to_numpy()))
+
+class TensorStream():
+    def __init__(self, f, col_idx: list = None, col_types: list = None, sep: str = ' ', 
+                 mappers: dict = {}, hasvalue: bool = True):
+        self.f = f
+        
+        if col_types is None:
+            if col_idx is None:
+                self.idxtypes = None
+            else:
+                self.idxtypes = [(x, str) for x in col_idx]
+        else:
+            if col_idx is None:
+                col_idx = [i for i in range(len(col_types))]
+            if len(col_idx) == len(col_types):
+                self.idxtypes = [(x, col_types[i]) for i, x in enumerate(col_idx)]
+            else:
+                raise Exception(f"Error: input same size of col_types and col_idx")
+        self.sep = sep
+        self.mappers = mappers
+        self.mappers = mappers
+        self.hasvalue = hasvalue
+
+        self.lastwindow = []  # data of last window (lines)
+        self.laststrides = []  # indices of strides of last window
+        
+    def _get_file_end_pos(self):
+        cur_pos = self.f.tell()
+        self.f.seek(0, 2)
+        end_pos = self.f.tell()
+        self.f.seek(cur_pos, 0)
+        return end_pos
+    
+    def fetch_slide_window(self, window: int = 10, stride: int = 5, ts_colidx: int = 0):
+        end_pos = self._get_file_end_pos()
+        if self.f.tell() == end_pos:
+            raise Exception('all data has been processed')
+        
+        tensorlist = []
+        lineid = 0
+        
+        while True:
+            line = self.f.readline()
+            coords = line.strip().split(self.sep)
+            tline = []
+            try:
+                for i, tp in self.idxtypes:
+                    if i == ts_colidx:
+                        ts = tp(coords[i])
+                        'map time during reading data'
+                        if i in self.mappers:
+                            ts = self.mappers[i].map([ts])[0]
+                    tline.append(tp(coords[i]))
+            except Exception:
+                raise Exception(f"The {i}-th col does not match the given type {tp} in line:\n{line}")
+            if lineid == 0:
+                start_ts = ts
+            else:
+                if ts - start_ts >= stride:
+                    if len(self.lastwindow) == 0:  # first window
+                        self.laststrides.append(lineid)
+                        if ts - start_ts >= window:  
+                            self.lastwindow = tensorlist
+                            break
+                    else:
+                        win_start_lineid = self.laststrides.pop(0)
+                        for i in range(len(self.laststrides)):
+                            self.laststrides[i] -= win_start_lineid
+                        curwindow = []
+                        curwindow.extend(self.lastwindow[win_start_lineid:])
+                        curwindow.extend(tensorlist)
+                        self.lastwindow = curwindow
+                        self.laststrides.append(len(curwindow))
+                        break
+            tensorlist.append(tline)
+            lineid += 1
+        tensorlist = pd.DataFrame(tensorlist)
+        
+        'map other columns, e.g. user, item'
+        for i in tensorlist.columns:
+            if i in self.mappers:
+                colind = self.mappers[i].map(tensorlist.iloc[:, i])
+                tensorlist.iloc[:, i] = colind
+        return tensorlist

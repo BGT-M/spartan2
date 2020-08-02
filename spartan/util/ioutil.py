@@ -12,6 +12,7 @@ import sys
 import pandas as pd
 import numpy as np
 from . import TensorData
+import csv
 from .basicutil import set_trace
 
 
@@ -256,4 +257,39 @@ def loadTensor(path:str,  col_idx: list = None, col_types: list = None, **kwargs
         data_list.append(_read_data(_file, idxtypes, **kwargs))
     data = _aggregate(data_list)
     return TensorData(data)
+
+
+def loadTensorStream(filename: str, col_idx: list = None, col_types: list = None):
+    if not os.path.exists(filename):
+        raise FileNotFoundError(f"File {filename} does not exist!")
+    if col_types is None:
+        if col_idx is None:
+            idxtypes = None
+        else:
+            idxtypes = [(x, str) for x in col_idx]
+    else:
+        if col_idx is None:
+            col_idx = [i for i in range(len(col_types))]
+        if len(col_idx) == len(col_types):
+            idxtypes = [(x, col_types[i]) for i, x in enumerate(col_idx)]
+        else:
+            raise Exception(f"Error: input same size of col_types and col_idx")
+    postfix = os.path.splitext(filename)[-1]
+    if postfix == ".csv":
+        f = open(filename, 'r')
+        has_header = csv.Sniffer().has_header(f.read(1024))
+        f.seek(0)
+        if has_header:
+            next(f)
+    elif postfix == ".tensor":
+        f = open(filename, 'r')
+    elif postfix in ['.gz', '.bz2', '.zip', '.xz']:
+        f = open(filename, 'r')
+        has_header = csv.Sniffer().has_header(f.read(1024))
+        f.seek(0)
+        if has_header:
+            next(f)
+    else:
+        raise FileNotFoundError(f"Error: Can not find file {filename}, please check the file!\n")
+    return f, idxtypes
 
