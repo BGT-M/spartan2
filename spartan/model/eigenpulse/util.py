@@ -13,7 +13,7 @@ def filterEigenvec(A, u, v, k=0):
     list_j = [j for j, x in enumerate(list_v[k]) if abs(x) >= num2]
     B1 = A[list_i, :]
     B = B1[:, list_j]
-    return B
+    return B, list_i, list_j
 
 
 def calDensity(mat):
@@ -34,5 +34,13 @@ def findSuspWins(densities):
     return burst_wins
 
 
-
+def getKeys(vs, dict):
+    items, times = [], []
+    for k in dict:
+        v = dict[k]
+        if v in vs:
+            items.append(k[0])
+            times.append(k[1])
+    return items, times
+        
 

@@ -42,7 +42,7 @@ BeatGAN = partial(__call__, MODEL_PATH + ".beatgan")
 __all__ = [
     'BeatLex',
     'HoloScope',
-    'EigenPulse'
+    'EigenPulse',
     'BeatGAN',
     'Summarize',
 ]
