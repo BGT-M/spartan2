@@ -3,6 +3,7 @@ import numbers
 
 import numpy as np
 import scipy.sparse as ssp
+from scipy import signal
 import sparse
 
 
@@ -121,6 +122,7 @@ class DTensor(np.lib.mixins.NDArrayOperatorsMixin):
     def __len__(self):
         return self._data.__len__()
 
+    @_wrap_ret
     def __copy__(self):
         return self._data.__copy__()
 
@@ -429,6 +431,77 @@ class DTensor(np.lib.mixins.NDArrayOperatorsMixin):
         t._data = np.asarray(x)
         return t
 
+    @_wrap_ret
+    def resample(self, new_len: int, inplace: bool = False):
+        """Resample DTensor to a new length.
+
+        Parameters
+        ----------
+        new_len : int
+            length of resampled tensor
+
+        inplace : bool
+            whether change on origin data
+
+        Returns
+        -------
+        None or DTensor
+            If not inplace, return resampled tensor.
+        """
+        _data = self._data
+        if inplace:
+            self._data = signal.resample(_data, new_len, axis=1)
+        else:
+            resampled_data = signal.resample(_data, new_len, axis=1)
+            return resampled_data
+
+    @_wrap_ret
+    def concatenate(self, tensor: "DTensor" or np.ndarray, axis: int = 0, inplace: bool = False):
+        """Concatenate DTensors together.
+
+        Parameters
+        ----------
+        tensor : DTensor
+            tensor to be concatenated
+
+        axis : int
+            dimension on which tenson will be concatenated
+
+        inplace : bool
+            whether change on origin data
+
+        Returns
+        ----------
+        None or DTensor
+            If not inplace, return concatenated tensor.
+        """
+        _type = type(tensor)
+        if _type == self.__class__:
+            _data = tensor._data
+        elif _type == np.ndarray:
+            _data = tensor
+        if len(_data.shape) == 1:
+            _data = [_data]
+        if inplace:
+            self._data = np.concatenate((self._data, _data), axis=axis)
+        else:
+            concatenated_data = np.concatenate((self._data, _data), axis=axis)
+            return concatenated_data
+
+    @_wrap_ret
+    def cut(self, start: int, end: int, inplace: bool = True):
+        if inplace:
+            if len(self._data.shape) == 1:
+                self._data = self._data[start: end]
+            else:
+                self._data = self._data[:, start: end]
+        else:
+            if len(self._data.shape) == 1:
+                cut_data = self._data[start: end]
+            else:
+                cut_data = self._data[:, start: end]
+            return cut_data
+
 
 class STensor(np.lib.mixins.NDArrayOperatorsMixin):
     """A sparse multi-dimensional tensor on CPU (based on sparse).
@@ -520,7 +593,7 @@ class STensor(np.lib.mixins.NDArrayOperatorsMixin):
             else:
                 return result
 
-    def sum_to_scipy_sparse(self, modes:tuple = (0,1) ):
+    def sum_to_scipy_sparse(self, modes: tuple = (0, 1)):
         m = len(self._data.shape)
         cmodes = tuple(set(range(m)) - set(modes))
         return self._data.sum(axis=cmodes).to_scipy_sparse()
@@ -917,7 +990,3 @@ class STensor(np.lib.mixins.NDArrayOperatorsMixin):
         t = cls.__new__(cls)
         t._data = x
         return t
-
-
-
-
