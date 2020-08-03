@@ -6,7 +6,6 @@
 '''
 
 # here put the import lib
-from collections import defaultdict
 from datetime import datetime
 from bisect import bisect_left
 import time
@@ -183,7 +182,7 @@ class IntMapper(_Mapper):
         return attrs
 
 
-class IntRemapper(_Mapper):
+class DenseIntMapper(_Mapper):
     """Remapp irregular integers starting from zero
     """
 

@@ -41,7 +41,6 @@ class TensorData:
         ##assert(attr.dtypes[0] is int and  attr.dtypes[1] is int)
         return STensor((attr.to_numpy().T, value.to_numpy()))
 
-
 class TensorStream():
     def __init__(self, f, col_idx: list = None, col_types: list = None, sep: str = ' ', 
                  mappers: dict = {}, hasvalue: bool = True):
@@ -125,4 +124,3 @@ class TensorStream():
                 colind = self.mappers[i].map(tensorlist.iloc[:, i])
                 tensorlist.iloc[:, i] = colind
         return tensorlist
-
