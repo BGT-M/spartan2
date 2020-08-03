@@ -26,6 +26,6 @@ __all__ = [
     'IntMapper',
     'ScoreMapper',
     'DenseIntMapper',
-    'plot_graph'
+    'plot_graph',
     'drawEigenPulse'
 ]

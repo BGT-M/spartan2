@@ -100,15 +100,15 @@ python -c 'import site; print(site.getsitepackages())'
 
 
 **Part 2: Big Graphs**
-* [graph start](./live-tutorials/ioutil_demo.ipynb)
+* [Graph start](./live-tutorials/graph_start.ipynb)
 * [SpokEn](./live-tutorials/SVD_demo.ipynb): an implementation of [EigenSpokes](http://www.cs.cmu.edu/~christos/PUBLICATIONS/pakdd10-eigenspokes.pdf) by SVD.
 * [Eaglemine](./live-tutorials/Eaglemine_demo.ipynb)
 * [Fraudar](./live-tutorials/Fraudar_demo.ipynb): a wrapper of [Fraudar](https://bhooi.github.io/projects/fraudar/index.html) algorithm.
 * [Holoscope](./live-tutorials/Holoscope.ipynb): based on [HoloScope](https://shenghua-liu.github.io/papers/cikm2017-holoscope.pdf)
 
 **Part 3: Time Series**
-* [time series start I](./live-tutorials/TimeseriesData_demo%20-%20I.ipynb)
-* [time series start II](./live-tutorials/TimeseriesData_demo%20-%20II.ipynb)
+* [Time Series start](./live-tutorials/timeseries_start.ipynb)
+* [Basic operations](./live-tutorials/TimeseriesData_demo%20-%20II.ipynb)
 * [Beatlex](./live-tutorials/Beatlex_demo.ipynb): based on [BeatLex](https://shenghua-liu.github.io/papers/pkdd2017-beatlex.pdf)
 
 ## References

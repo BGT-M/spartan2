@@ -54,8 +54,35 @@ class Graph:
         else:
             return None
 
-    def get_sub_tuples(self, rows, cols):
-        pass
+    def get_sub_graph(self, rows, cols):
+
+        cootensor = self.graph_tensor
+
+        gr = -1 * st.ones(cootensor.shape[0], dtype=int)
+        gc = -1 * st.ones(cootensor.shape[1], dtype=int)
+
+        lr = len(rows)
+        lc = len(cols)
+
+        ar = st.arange(0, lr, 1)
+        ac = st.arange(0, lc, 1)
+        gr[rows[ar]] = ar
+        gc[cols[ac]] = ac
+        mrow = cootensor.coords[0]
+        mcol = cootensor.coords[1]
+        newelem = (gr[mrow] > -1) & (gc[mcol] > -1)
+
+        newrows = mrow[newelem]
+        newcols = mcol[newelem]
+
+        subcoords = st.stack((gr[newrows], gc[newcols],
+            *cootensor.coords[2:,newelem]), axis=0)
+        subvalues = cootensor.data[newelem]
+
+        subtensor = st.STensor((subcoords, subvalues),
+                shape=(lr,lc,*cootensor.shape[2:]) )
+
+        return st.Graph(subtensor, self.weighted, self.bipartite, self.modet)
 
     def get_subgraph_nedges(self, rows, cols):
         """
@@ -68,8 +95,8 @@ class Graph:
         """
         matr = self.sm.tocoo()
 
-        gr = -1 * st.ones(matr.shape[0])
-        gc = -1 * st.ones(matr.shape[1])
+        gr = -1 * st.ones(matr.shape[0], dtype=int)
+        gc = -1 * st.ones(matr.shape[1], dtype=int)
 
         lr = len(rows)
         lc = len(cols)

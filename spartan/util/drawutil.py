@@ -35,12 +35,12 @@ def drawEigenPulse(densities: list = [], figpath: str = None):
     plt.plot(xs, densities, label='density')
     plt.xlabel('window idx')
     plt.ylabel('density')
-    
+
     thres = np.mean(densities) + 3 * np.std(densities)
     plt.hlines(thres, min(xs), max(xs), linestyles='dashed', colors='yellow', label='threshold')
     plt.legend()
     if figpath is None:
         plt.show()
     else:
-        plt.savefig(figpath)    
+        plt.savefig(figpath)
 
