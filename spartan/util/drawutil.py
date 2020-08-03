@@ -28,14 +28,35 @@ def plot_graph(graph: Graph, layout=None, bipartite=False, labels=None,
         'spring': nx.spring_layout,
         'bipartite': nx.bipartite_layout
     }
+
+    nrow, ncol = graph.sm.shape
     if bipartite:
         g = from_biadjacency_matrix(graph.sm)
+        # bipartite graph can use other layout, but default is bipartite
+        layout = 'bipartite' if layout is None else layout
     else:
         g = nx.from_scipy_sparse_matrix(graph.sm)
-    pos = nx_layout[layout](g)
-    nx.draw_networkx(g, pos=pos)
+
+    if layout is 'bipartite':
+        pos = nx.bipartite_layout(g, nodes=range(nrow))
+    else:
+        pos = nx_layout[layout](g)
+
+    fig = plt.figure()
+    if bipartite:
+        nx.draw_networkx(g, pos=pos,
+                node_color=('r'*nrow+'b'*ncol), alpha=0.8)
+    else:
+        nx.draw_networkx(g, pos=pos, node_color='r', alpha=0.8)
+
     if labels is not None:
-        nx.draw_networkx_labels(g, pos=pos, labels=labels)
+        if isinstance(labels, dict):
+            nx.draw_networkx_labels(g, pos=pos, labels=labels)
+        else:
+            ldict = dict(zip( range(len(labels)), labels ))
+            nx.draw_networkx_labels(g, pos=pos, labels=ldict)
+
+    return fig
 
 
 def drawEigenPulse(densities: list = [], figpath: str = None):
