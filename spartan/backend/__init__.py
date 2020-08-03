@@ -15,9 +15,9 @@ __all__ = [
 _APIS = [
     'add', 'all', 'angle', 'any', 'arange', 'argmax', 'argmin', 'argsort',
     'bincount', 'bitwise_and', 'bitwise_not', 'bitwise_or', 'bitwise_xor',
-    'can_cast', 'ceil', 'complex128', 'complex64', 'conj', 'cos', 'cosh',
-    'cumprod', 'cumsum', 'diag', 'diagflat', 'diagonal', 'dot',
-    'empty', 'empty_like', 'equal', 'exp', 'expm1', 'eye', 'flip',
+    'can_cast', 'ceil', 'complex128', 'complex64', 'conj', 'concatenate',
+    'cos', 'cosh', 'cumprod', 'cumsum', 'diag', 'diagflat', 'diagonal',
+    'dot', 'empty', 'empty_like', 'equal', 'exp', 'expm1', 'eye', 'flip',
     'float16', 'float32', 'float64', 'floor', 'floor_divide', 'fmod', 'full',
     'full_like', 'imag', 'int16', 'int32', 'int64', 'int8', 'isfinite',
     'isinf', 'isnan', 'linspace', 'log', 'log10', 'log1p', 'log2',
