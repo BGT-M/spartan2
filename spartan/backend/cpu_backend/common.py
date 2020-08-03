@@ -298,6 +298,21 @@ def ceil(input_):
 
 
 @_wrap_ret
+@_dispatch(np.concatenate, sparse.concatenate)
+def concatenate(inputs, axis=None):
+    """Wrapper of `numpy.concatenate` and `sparse.concatenate`
+
+    Parameters
+    ----------
+    inputs : sequence of STensor/DTensor
+        Tensor to be concatenated.
+    axis : int or None, optional
+        Axis to operate on, by default None
+    """
+    pass
+
+
+@_wrap_ret
 @_dispatch(np.conj, sparse.COO.conj)
 def conj(input_):
     """Wrapper of `numpy.conj` and `sparse.COO.conj`.

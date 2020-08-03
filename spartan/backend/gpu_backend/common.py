@@ -298,6 +298,20 @@ def ceil(input_):
 
 
 @_wrap_ret
+def concatenate(inputs, axis=None):
+    """Wrapper of `torch.stack`
+
+    Parameters
+    ----------
+    inputs : sequence of DTensor
+        Dense tensor to be concatenated.
+    axis : int or None, optional
+        Axis to operate on, by default None
+    """
+    return torch.stack((x._data for x in inputs), dim=axis)
+
+
+@_wrap_ret
 def conj(input_):
     """Wrapper of `torch.conj`.
 
@@ -1087,16 +1101,16 @@ def squeeze(input_, axis=None):
 
 @_wrap_ret
 def stack(inputs, axis=0):
-    """Wrapper of `torch.stack`.
+    """Wrapper of `torch.cat`.
 
     Parameters
     ----------
-    inputs : DTensor
-        Input tensor.
+    inputs : Sequence of DTensors.
+        Dense tensors to be stacked, must have same shape.
     axis : int, optional
         Axis to operate on, by default 0
     """
-    return torch.stack(inputs, axis)
+    return torch.cat((x._data for x in inputs), dim=axis)
 
 
 @_wrap_ret
