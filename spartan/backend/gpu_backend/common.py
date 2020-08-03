@@ -299,7 +299,7 @@ def ceil(input_):
 
 @_wrap_ret
 def concatenate(inputs, axis=None):
-    """Wrapper of `torch.stack`
+    """Wrapper of `torch.cat`
 
     Parameters
     ----------
@@ -308,7 +308,7 @@ def concatenate(inputs, axis=None):
     axis : int or None, optional
         Axis to operate on, by default None
     """
-    return torch.stack((x._data for x in inputs), dim=axis)
+    return torch.cat((x._data for x in inputs), dim=axis)
 
 
 @_wrap_ret
@@ -1101,7 +1101,7 @@ def squeeze(input_, axis=None):
 
 @_wrap_ret
 def stack(inputs, axis=0):
-    """Wrapper of `torch.cat`.
+    """Wrapper of `torch.stack`.
 
     Parameters
     ----------
@@ -1110,7 +1110,7 @@ def stack(inputs, axis=0):
     axis : int, optional
         Axis to operate on, by default 0
     """
-    return torch.cat((x._data for x in inputs), dim=axis)
+    return torch.stack((x._data for x in inputs), dim=axis)
 
 
 @_wrap_ret
