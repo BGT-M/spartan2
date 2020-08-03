@@ -1101,7 +1101,7 @@ def squeeze(input_, axis=None):
 
 @_wrap_ret
 def stack(inputs, axis=0):
-    """Wrapper of `torch.cat`.
+    """Wrapper of `torch.stack`.
 
     Parameters
     ----------
