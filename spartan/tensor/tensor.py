@@ -130,6 +130,8 @@ class TensorStream():
                         self.lastwindow = curwindow
                         self.laststrides.append(len(curwindow))
                         break
+                if self.f.tell() == end_pos:
+                    break
             tensorlist.append(tline)
             lineid += 1
         tensorlist = pd.DataFrame(tensorlist)

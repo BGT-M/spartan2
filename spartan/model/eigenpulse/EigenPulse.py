@@ -20,10 +20,10 @@ class EigenPulse(DMmodel):
         self.stringMapper = StringMapper()
         self.mappers = {self.item_colidx: self.stringMapper}
 
-    def anomaly_detection(self, figpath: str = None):
-        return self.run(figpath)
+    def anomaly_detection(self):
+        return self.run()
 
-    def run(self, figpath: str = None):
+    def run(self):
         densities, submats = [], []
         winidx = 0
         while True:
@@ -52,8 +52,6 @@ class EigenPulse(DMmodel):
                 winidx += 1
             except:
                 break
-        if figpath is not None:
-            drawEigenPulse(densities, figpath)
         
         susp_wins = findSuspWins(densities)
         print('suspicious windows:', susp_wins)
@@ -62,4 +60,10 @@ class EigenPulse(DMmodel):
             submat, rowids, colids = submats[susp_win]
             items, tss = getKeys(colids, self.mappers[1].strdict)
             res.append((susp_win, rowids, items, tss, densities[susp_win]))
-        return res
+        for block in res:
+            print('suspicious window:', block[0])
+            print('user list of dense block:', block[1])
+            print('item list of dense block:', block[2])
+            print('time list of dense block:', block[3])
+            print('density of dense block:', block[4])
+        return res, densities
