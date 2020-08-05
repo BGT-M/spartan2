@@ -17,19 +17,19 @@ class Timeseries:
         ----------
         val_tensor : DTensor
             value tensor
-        
+
         time_tensor : DTensor
             time tensor, default is None
 
         labels : list
             list of column names, default is None
-        
+
         freq : int
             frequency of this series, default is 1
-        
+
         startts : int
             start timetick, default is 0
-        
+
         Examples
         ----------
         Timeseries can be constructed in many styles. Among all parameters, only val_tensor is necessary.
@@ -44,7 +44,7 @@ class Timeseries:
         >>> Timeseries(val_tensor, time_tensor)
 
         If time tensor is missed, program will automatically create a time tensor with parameter freq and startts.
-        
+
         >>> Timeseries(val_tensor, freq=2, startts=100)
         """
         self.freq = freq
@@ -92,8 +92,8 @@ class Timeseries:
             Start Timestamp: {round(self.startts, 3)}
             Labels: {', '.join([str(x) for x in self.labels])}
         """
-        print(pd.DataFrame(DTensor([self.time_tensor]).concatenate(self.val_tensor, axis=0)._data.T,\
-             columns=['Time'] + self.labels))
+        print(pd.DataFrame(DTensor([self.time_tensor]).concatenate(self.val_tensor, axis=0)._data.T,
+                           columns=['Time'] + self.labels))
         return _str
 
     def __copy__(self):
@@ -126,11 +126,14 @@ class Timeseries:
         None or Timeseries object
             self or a new resampled object    
         """
+        _ori_tensor = DTensor.from_numpy(self.val_tensor._data.copy())
+        _ori_freq = self.freq
         _self = self.__handle_inplace(inplace)
         new_len = int(_self.length / _self.freq * resampled_freq)
         _self.val_tensor.resample(new_len, inplace=True)
         _self.__update_time(_self.val_tensor, resampled_freq, _self.startts)
         _self.__update_info(_self.labels, _self.time_tensor, _self.val_tensor)
+        _self.show_resample(self.length, _self.length, _ori_freq, resampled_freq, _ori_tensor._data, _self.val_tensor._data)
         if not inplace:
             return _self
 
@@ -392,7 +395,7 @@ class Timeseries:
             if 'point', start and end stand for positions of points
             if 'time', start and end stand for timeticks of points
             default is 'point'
-            
+
         inplace : bool
             update origin object or return a new object, default is False
 
@@ -605,10 +608,54 @@ class Timeseries:
         assert len(_labels) == len(_tensor)
         self.labels, self.time_tensor = _labels, _time
         self.val_tensor, self.dimension = _tensor, len(_tensor)
-        self.startts, self.length = self.time_tensor[0], len(self.time_tensor)
+        self.startts = self.time_tensor[0]
+        self.length = self.val_tensor.shape[1]
 
     def __update_time(self, val_tensor, freq, startts):
         import numpy as np
         _len = val_tensor.shape[1]
+        self.length = _len
         self.time_tensor = DTensor.from_numpy(np.linspace(startts, 1 / freq * _len + startts, _len))
         self.freq = freq
+
+    def show(self, chosen_labels: list = None):
+        ''' draw series data with matplotlib.pyplot
+
+        Args:
+            chosen_labels: if not provided, draw all the attrs in subgraph;
+                else treat all 1-dimen array as subgraphs and entries in each array as lines in each subgraph
+        '''
+        import matplotlib.pyplot as plt
+        plt.figure()
+        if chosen_labels is None:
+            sub_dimension = self.dimension
+            actual_dimension = 1
+            for index, label in enumerate(self.labels):
+                plt.subplot(sub_dimension, 1, actual_dimension)
+                plt.title(label)
+                plt.plot(self.time_tensor._data, self.val_tensor._data[index], label=label)
+                plt.legend(loc="best")
+                actual_dimension += 1
+        plt.xlabel('time/s')
+        plt.show()
+
+    def show_resample(self, origin_length: int, resampled_length: int, origin_freq: int, resampled_freq: int, origin_list, resampled_list):
+        ''' draw resampled time series figure
+        '''
+        import matplotlib.pyplot as plt
+        import numpy as np
+        plt.figure()
+        sub_dimension = len(resampled_list)
+        actual_dimension = 1
+        for label in self.labels:
+            x_origin = np.arange(0, origin_length/origin_freq, 1/origin_freq)
+            x_resampled = np.arange(0, resampled_length/resampled_freq, 1/resampled_freq)
+            plt.subplot(sub_dimension, 1, actual_dimension)
+            index = self.labels.index(label)
+            plt.title(label)
+            plt.plot(x_origin, origin_list[index], 'r-', label='origin')
+            plt.plot(x_resampled, resampled_list[index], 'g.', label='resample')
+            plt.legend(loc="best")
+            actual_dimension += 1
+        plt.xlabel('time/s')
+        plt.show()
