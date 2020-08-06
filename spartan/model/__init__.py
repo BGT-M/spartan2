@@ -8,8 +8,11 @@
 # here put the import lib
 
 from spartan.util import MODEL_PATH
+
 from enum import Enum
 from functools import partial
+
+from ._model import PipeLine
 
 
 def __call__(policy: str, *args, **kwargs) -> object:
@@ -44,6 +47,7 @@ Summarize = partial(__call__, MODEL_PATH + ".summarize")
 
 
 __all__ = [
+    'PipeLine',
     'BeatLex',
     'BeatGAN',
     'EagleMine',    

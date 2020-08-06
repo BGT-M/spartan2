@@ -7,8 +7,6 @@
 
 # here put the import lib
 
-from . import Model
-
 import importlib
 
 
