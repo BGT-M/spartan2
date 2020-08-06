@@ -110,7 +110,7 @@ class Timeseries:
         labels = copy.copy(self.labels)
         return Timeseries(val_tensor, time_tensor, labels)
 
-    def resample(self, resampled_freq: int, inplace: bool = False):
+    def resample(self, resampled_freq: int, inplace: bool = False, show: bool = False):
         """Resample series data with a new frequency, acomplished on the basis of scipy.signal.sample.
 
         Parameters
@@ -120,6 +120,9 @@ class Timeseries:
 
         inplace : bool
             update origin object or return a new object, default is False
+
+        show : bool
+            if True, draw plot
 
         Returns
         ----------
@@ -133,11 +136,13 @@ class Timeseries:
         _self.val_tensor.resample(new_len, inplace=True)
         _self.__update_time(_self.val_tensor, resampled_freq, _self.startts)
         _self.__update_info(_self.labels, _self.time_tensor, _self.val_tensor)
-        _self.show_resample(self.length, _self.length, _ori_freq, resampled_freq, _ori_tensor._data, _self.val_tensor._data, _self.startts)
+        if show:
+            from spartan.util.drawutil import plot_resampled_series
+            plot_resampled_series(self, self.length, _self.length, _ori_freq, resampled_freq, _ori_tensor._data, _self.val_tensor._data, _self.startts)
         if not inplace:
             return _self
 
-    def add_columns(self, attrs: list or str, values: [int, float, DTensor, list] = None, inplace: bool = False):
+    def add_columns(self, attrs: list or str, values: [int, float, DTensor, list] = None, inplace: bool = False, show: bool = False):
         """Add new equal-length columns to Time series object.
 
         Parameters
@@ -152,6 +157,9 @@ class Timeseries:
 
         inplace : bool
             update origin object or return a new object, default is False
+
+        show : bool
+            if True, draw plot
 
         Returns
         ----------
@@ -181,6 +189,7 @@ class Timeseries:
                 _value_type = type(values[0])
                 if _value_type in [int, float]:
                     _self.__add_multi_columns(attrs, values, _type='number')
+        _self.__handle_plot(show)
         if not inplace:
             return _self
 
@@ -232,7 +241,7 @@ class Timeseries:
         self.labels.append(attr)
         self.dimension += 1
 
-    def concat(self, series: list or "Timeseries", inplace: bool = False):
+    def concat(self, series: list or "Timeseries", inplace: bool = False, show: bool = False):
         """Concatenate self with another timeseries object with the same dimension.
 
         Parameters
@@ -242,6 +251,9 @@ class Timeseries:
 
         inplace : bool
             update origin object or return a new object, default is False
+
+        show : bool
+            if True, draw plot
 
         Returns
         ----------
@@ -262,6 +274,7 @@ class Timeseries:
             _self.__concat_one(series.__copy__())
         _self.__update_time(_self.val_tensor, _self.freq, _self.startts)
         _self.__update_info(_self.labels, _self.time_tensor, _self.val_tensor)
+        _self.__handle_plot(show)
         if not inplace:
             return _self
 
@@ -291,7 +304,7 @@ class Timeseries:
         for serie in concated_series:
             self.__concat_one(serie)
 
-    def combine(self, series: "Timeseries" or list, inplace: bool = False):
+    def combine(self, series: "Timeseries" or list, inplace: bool = False, show: bool = False):
         """Combine self with columns of other timeseries objects which have the same length.
 
         Parameters
@@ -301,6 +314,9 @@ class Timeseries:
 
         inplace : bool
             update origin object or return a new object, default is False
+
+        show : bool
+            if True, draw plot
 
         Returns
         ----------
@@ -319,6 +335,7 @@ class Timeseries:
             _self.__combine_several(_series)
         elif _type == Timeseries:
             _self.__combine_one(series.__copy__())
+        _self.__handle_plot(show)
         if not inplace:
             return _self
 
@@ -354,7 +371,7 @@ class Timeseries:
         for serie in combined_series:
             self.__combine_one(serie)
 
-    def extract(self, attrs: list or str = None, inplace: bool = False):
+    def extract(self, attrs: list or str = None, inplace: bool = False, show: bool = False):
         """Extract specific columns from self.
 
         Parameters
@@ -365,6 +382,9 @@ class Timeseries:
         inplace : bool
             update origin object or return a new object, default is False
 
+        show : bool
+            if True, draw plot
+
         Returns
         ----------
         None or Timeseries object
@@ -373,10 +393,11 @@ class Timeseries:
         _self = self.__handle_inplace(inplace)
         _labels, _tensor = _self.__handle_attrs(attrs)
         _self.__update_info(_labels, _self.time_tensor, _tensor)
+        _self.__handle_plot(show)
         if not inplace:
             return _self
 
-    def cut(self, start: int = None, end: int = None, attrs: list = None, form: str = 'point', inplace: bool = False):
+    def cut(self, start: int = None, end: int = None, attrs: list = None, form: str = 'point', inplace: bool = False, show: bool = False):
         """Cut sub sequence from chosen attribute columns.
 
         Parameters
@@ -398,6 +419,9 @@ class Timeseries:
 
         inplace : bool
             update origin object or return a new object, default is False
+
+        show : bool
+            if True, draw plot
 
         Returns
         ----------
@@ -425,10 +449,11 @@ class Timeseries:
         _self.time_tensor.cut(start, end, inplace=True)
         _tensor.cut(start, end, inplace=True)
         _self.__update_info(_labels, _self.time_tensor, _tensor)
+        _self.__handle_plot(show)
         if not inplace:
             return _self
 
-    def normalize(self, attrs: list or str = None, strategy: str = 'minmax', inplace: bool = False):
+    def normalize(self, attrs: list or str = None, strategy: str = 'minmax', inplace: bool = False, show: bool = False):
         """Normalize data in value_tensor.
 
         Parameters
@@ -444,6 +469,9 @@ class Timeseries:
         inplace : bool
             update origin object or return a new object, default is False
 
+        show : bool
+            if True, draw plot
+
         Returns
         ----------
         None or Timeseries object
@@ -456,6 +484,7 @@ class Timeseries:
         else:
             raise TypeError(f'strategy: {strategy} is not supported.')
         _self.__update_info(_labels, _self.time_tensor, _tensor)
+        _self.__handle_plot(show)
         if not inplace:
             return _self
 
@@ -479,9 +508,20 @@ class Timeseries:
         _tensor = (_tensor - _middle) / (_max - _min) * 2
         return _tensor
 
+    def __handle_plot(self, show: bool):
+        """Private function for plotting.
+
+        Parameters
+        ----------
+        show : bool
+            if True, call plot function in drawutils
+        """
+        from spartan.util.drawutil import plot_timeseries
+        if show:
+            plot_timeseries(self)
 
     def __handle_attrs(self, attrs: str or list):
-        """Private function for checking labels and tensor of column names in attrs
+        """Private function for checking labels and tensor of column names in attrs.
 
         Parameters
         ----------
@@ -581,47 +621,3 @@ class Timeseries:
         self.length = _len
         self.time_tensor = DTensor.from_numpy(np.linspace(startts, 1 / freq * _len + startts, _len))
         self.freq = freq
-
-    def show(self, chosen_labels: list = None):
-        ''' draw series data with matplotlib.pyplot
-
-        Args:
-            chosen_labels: if not provided, draw all the attrs in subgraph;
-                else treat all 1-dimen array as subgraphs and entries in each array as lines in each subgraph
-        '''
-        import matplotlib.pyplot as plt
-        plt.figure()
-        if chosen_labels is None:
-            sub_dimension = self.dimension
-            actual_dimension = 1
-            for index, label in enumerate(self.labels):
-                plt.subplot(sub_dimension, 1, actual_dimension)
-                plt.title(label)
-                plt.plot(self.time_tensor._data, self.val_tensor._data[index], label=label)
-                plt.legend(loc="best")
-                actual_dimension += 1
-        plt.xlabel('time/s')
-        plt.show()
-
-    def show_resample(self, origin_length: int, resampled_length: int, origin_freq: int, resampled_freq: int, origin_list, resampled_list, start):
-        ''' draw resampled time series figure
-        '''
-        import matplotlib.pyplot as plt
-        import numpy as np
-        plt.figure()
-        sub_dimension = len(resampled_list)
-        actual_dimension = 1
-        for label in self.labels:
-            x_origin = np.arange(0, origin_length/origin_freq, 1/origin_freq)
-            x_resampled = np.arange(0, resampled_length/resampled_freq, 1/resampled_freq)
-            x_origin += start
-            x_resampled += start
-            plt.subplot(sub_dimension, 1, actual_dimension)
-            index = self.labels.index(label)
-            plt.title(label)
-            plt.plot(x_origin, origin_list[index], 'r-', label='origin')
-            plt.plot(x_resampled, resampled_list[index], 'g.', label='resample')
-            plt.legend(loc="best")
-            actual_dimension += 1
-        plt.xlabel('time/s')
-        plt.show()

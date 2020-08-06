@@ -9,7 +9,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from spartan.tensor import Graph
+from spartan.tensor import Graph, Timeseries
 
 # TODO do not import matplotlib function in model file
 
@@ -58,6 +58,56 @@ def plot_graph(graph: Graph, layout=None, bipartite=False, labels=None,
 
     return fig
 
+def show_resample():
+    ''' draw resampled time series figure
+    '''
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+
+def plot_timeseries(series: Timeseries, chosen_labels: list = None):
+    plt.figure()
+    if chosen_labels is None:
+        sub_dimension = series.dimension
+        actual_dimension = 1
+        for index, label in enumerate(series.labels):
+            plt.subplot(sub_dimension, 1, actual_dimension)
+            plt.title(label)
+            plt.plot(series.time_tensor._data, series.val_tensor._data[index], label=label)
+            plt.legend(loc="best")
+            actual_dimension += 1
+    else:
+        sub_dimension = len(chosen_labels)
+        actual_dimension = 1
+        for chosen_label in chosen_labels:
+            plt.subplot(sub_dimension, 1, actual_dimension)
+            for label in chosen_label:
+                index = series.labels.index(label)
+                plt.plot(series.time_tensor._data, series.val_tensor._data[index], label=label)
+            plt.legend(loc="best")
+            plt.title(', '.join(chosen_label))
+            actual_dimension += 1
+    plt.xlabel('time/s')
+    plt.show()
+
+def plot_resampled_series(series: Timeseries, origin_length: int, resampled_length: int, origin_freq: int, resampled_freq: int, origin_list, resampled_list, start):
+    plt.figure()
+    sub_dimension = len(resampled_list)
+    actual_dimension = 1
+    for label in series.labels:
+        x_origin = np.arange(0, origin_length/origin_freq, 1/origin_freq)
+        x_resampled = np.arange(0, resampled_length/resampled_freq, 1/resampled_freq)
+        x_origin += start
+        x_resampled += start
+        plt.subplot(sub_dimension, 1, actual_dimension)
+        index = series.labels.index(label)
+        plt.title(label)
+        plt.plot(x_origin, origin_list[index], 'r-', label='origin')
+        plt.plot(x_resampled, resampled_list[index], 'g.', label='resample')
+        plt.legend(loc="best")
+        actual_dimension += 1
+    plt.xlabel('time/s')
+    plt.show()
 
 def drawEigenPulse(densities: list = [], figpath: str = None):
     xs = range(len(densities))
