@@ -2,8 +2,6 @@
 import torch
 import os
 import numpy as np
-import pickle
-import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
@@ -11,61 +9,63 @@ from .metric import evaluate
 from .preprocess import preprocess_data
 
 from .._model import MLmodel
-from .import param_default
-
+from . import param_default
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+param_default_dict = {
+    'network': 'CNN',
+    'net_type': 'gru',
+    'layers': 1,
+    'seq_len': 256,
+    'input_size': 1,
+    'hidden_size': 100,
+    'rep_size': 20,
+    'batch_size': 64,
+    'max_epoch': 5,
+    'lr': 0.01,
+    'lambda': 1,
+    'out_path': './output'
+}
 
 
 class Generator(nn.Module):
     def __init__(self, nc=25, nz=100, seq_len=128, device=None):
         super(Generator, self).__init__()
         self.device = device
-        self.nc = nc  # in channels
+        self.nc = nc
         self.nz = nz
-        self.ndf = 32  # out channels
+        self.ndf = 32
 
         encoder_modules = []
-        # in channels: default is 25
-        # out channels: default is 32
-        # kenel size: 4
-        # stride: 2
-        # padding: 0
-        # bias: learnable bias False
         encoder_modules.append(nn.Conv1d(self.nc, self.ndf, 4, 2, 1, bias=False))
-        # negative_slope: 0.2
-        # inplace: do operation in place
         encoder_modules.append(nn.LeakyReLU(0.2, inplace=True))
 
-        cur_len = seq_len // 2
+        cur_len = seq_len//2
         i = 1
         while cur_len > 5:
-            # (25, 32) -> (32, 64) -> (64, 128) for default
-            encoder_modules.append(nn.Conv1d(self.ndf * i, self.ndf * i * 2, 4, 2, 1, bias=False))
-            encoder_modules.append(nn.BatchNorm1d(self.ndf * i * 2))
+            encoder_modules.append(nn.Conv1d(self.ndf*i, self.ndf * i*2, 4, 2, 1, bias=False))
+            encoder_modules.append(nn.BatchNorm1d(self.ndf * i*2))
             encoder_modules.append(nn.LeakyReLU(0.2, inplace=True))
-            i = i * 2
-            cur_len = cur_len // 2
+            i = i*2
+            cur_len = cur_len//2
 
-        # 128, 100
         encoder_modules.append(nn.Conv1d(self.ndf * i, self.nz, cur_len, 1, 0, bias=False))
 
         self.encoder = nn.Sequential(*encoder_modules)
 
         decoder_modules = []
-        # 100, 128
         decoder_modules.append(nn.ConvTranspose1d(self.nz, self.ndf * i, 4, 1, 0, bias=False))
         decoder_modules.append(nn.BatchNorm1d(self.ndf * i))
         decoder_modules.append(nn.ReLU(True))
-        i = i // 2
+        i = i//2
 
         while i >= 1:
-            # (128, 64) -> (64, 32) -> (32, 16)
             decoder_modules.append(nn.ConvTranspose1d(self.ndf*(i*2), self.ndf * i, 4, 2, 1, bias=False))
             decoder_modules.append(nn.BatchNorm1d(self.ndf * i))
             decoder_modules.append(nn.ReLU(True))
-            i = i // 2
+            i = i//2
         decoder_modules.append(nn.ConvTranspose1d(self.ndf, self.nc, 4, 2, 1, bias=False))
         decoder_modules.append(nn.Tanh())
 
@@ -75,7 +75,6 @@ class Generator(nn.Module):
         print(decoder_modules)
 
     def forward(self, input):
-        # dim 1 and dim 2 are swapped
         input = torch.transpose(input, 1, 2)
         z = self.encoder(input)
         out = self.decoder(z)
@@ -90,7 +89,6 @@ class Discriminator(nn.Module):
         self.nc = nc
         self.ndf = 32
 
-        # same as encoder in generator
         modules = []
         modules.append(nn.Conv1d(self.nc, self.ndf, 4, 2, 1, bias=False))
         modules.append(nn.LeakyReLU(0.2, inplace=True))
@@ -142,13 +140,12 @@ def weights_init(mod):
 
 
 class BeatGAN(MLmodel):
-    def __init__(self, *args, **kwargs):
-        super(BeatGAN, self).__init__(*args, **kwargs)
+    def __init__(self, dataloader):
+        super(BeatGAN, self).__init__(dataloader)
         self.dataloader = None
         self.device = None
         self.lamda_value = None
 
-        self.param = None
         self.generator = None
         self.discriminator = None
 
@@ -162,10 +159,6 @@ class BeatGAN(MLmodel):
         self.iteration = None
 
         self.fix_input = None
-
-    def save_pred_score(self, score, output_dir, filename="pred_score.pkl"):
-        with open(os.path.join(output_dir, filename), "wb") as f:
-            pickle.dump(score, f)
 
     def train(self):
         self.generator.apply(weights_init)
@@ -212,7 +205,7 @@ class BeatGAN(MLmodel):
         for i, data in enumerate(self.dataloader):
             self.iteration += 1
 
-            data_X = data
+            data_X, y = data
 
             data_X = data_X.to(self.device)
 
@@ -275,7 +268,7 @@ class BeatGAN(MLmodel):
         self.discriminator.eval()
 
         rec_diff = self.get_diff(self.dataloader)
-        print(rec_diff)
+        # print(rec_diff)
         return rec_diff
 
     def save_cur_model(self, outdir, filename):
@@ -294,21 +287,24 @@ class BeatGAN(MLmodel):
         torch.save(state, path)
 
     def load_model(self, outdir, filename):
-        state = torch.load(os.path.join(outdir, filename))
+        state = torch.load(os.path.join(outdir, filename), map_location=self.device)
         self.generator.load_state_dict(state["generator"])
         self.discriminator.load_state_dict(state["discriminator"])
 
     def load_model_from(self, path):
-        state = torch.load(path)
+        state = torch.load(path, map_location=self.device)
         self.generator.load_state_dict(state["generator"])
         self.discriminator.load_state_dict(state["discriminator"])
 
     def get_diff(self, dataloader):
 
         rec_diff = []
+        ori_ts = []
+        rec_ts = []
+        rec_err = []
         with torch.no_grad():
             for i, data in enumerate(dataloader):
-                data_X = data
+                data_X, y = data
 
                 data_X = data_X.to(self.device)
                 # data_cond = data_cond.to(self.device)
@@ -319,39 +315,44 @@ class BeatGAN(MLmodel):
                                         dim=1).detach().cpu().numpy()
 
                 rec_diff.append(mse_metric)
+                ori_ts.append(data_X.detach().cpu().numpy())
+                rec_ts.append(rec_x.detach().cpu().numpy())
+                rec_err.append(torch.sum(torch.pow(data_X - rec_x, 2), dim=2).detach().cpu().numpy())
 
         rec_diff = np.concatenate(rec_diff)
+        ori_ts = np.concatenate(ori_ts)
+        rec_ts = np.concatenate(rec_ts)
+        rec_err = np.concatenate(rec_err)
 
-        return rec_diff
+        ori_ts = np.transpose(ori_ts, axes=(0, 2, 1))
+        rec_ts = np.transpose(rec_ts, axes=(0, 2, 1))
+
+        return rec_diff, ori_ts, rec_ts, rec_err
 
 
 class BeatGAN_CNN(BeatGAN):
-    def __init__(self, data, *args, **param):
-        super(BeatGAN_CNN, self).__init__(data, *args, **param)
-        dataloader = preprocess_data(data, False, param)
-        self.dataloader = dataloader
+    def __init__(self, tensor, *args, **kwargs):
+        super(BeatGAN_CNN, self).__init__(tensor)
+        self.dataloader = preprocess_data(tensor, labels=None, param=kwargs, is_train=True)
         self.device = device
-        self.lamda_value = param_default(param, "lambda", 1)
+        self.lamda_value = param_default(kwargs, "lambda", param_default_dict)
 
-        self.max_epoch = param_default(param, "max_epoch", 5)
-        self.generator = Generator(nc=param_default(param, "input_size", 2),\
-            nz=param_default(param, "rep_size", 20),\
-                seq_len=param_default(param, "seq_len", 64),\
-                     device=device).to(device)
-        self.discriminator = Discriminator(nc=param_default(param, "input_size", 2),\
-            seq_len=param_default(param, "seq_len", 64),\
-                device=device).to(device)
+        self.max_epoch = param_default(kwargs, "max_epoch", param_default_dict)
+
+        self.generator = Generator(nc=param_default(kwargs, "input_size", param_default_dict),
+                                   nz=param_default(kwargs, "rep_size", param_default_dict),
+                                   seq_len=param_default(kwargs, "seq_len", param_default_dict), device=device).to(device)
+        self.discriminator = Discriminator(nc=param_default(kwargs, "input_size", param_default_dict),
+                                           seq_len=param_default(kwargs, "seq_len", param_default_dict), device=device).to(device)
 
         self.mse = nn.MSELoss()
         self.bce = nn.BCELoss()
 
-        self.optimizerG = optim.Adam(self.generator.parameters(), \
-            lr=param_default(param, "lr", 0.01))
+        self.optimizerG = optim.Adam(self.generator.parameters(), lr=param_default(kwargs, "lr", param_default_dict))
 
-        self.optimizerD = optim.Adam(self.discriminator.parameters(), \
-            lr=param_default(param, "lr", 0.01))
+        self.optimizerD = optim.Adam(self.discriminator.parameters(), lr=param_default(kwargs, "lr", param_default_dict))
 
-        self.out_dir = './beatgan_result'
+        self.out_dir = param_default(kwargs, "out_path", param_default_dict)
         if not os.path.exists(self.out_dir):
             os.makedirs(self.out_dir)
 
@@ -359,6 +360,9 @@ class BeatGAN_CNN(BeatGAN):
 
         self.fix_input = None
         self.fix_data_cond = None
+
+        if kwargs.__contains__("model_path"):
+            self.load_model_from(kwargs["model_path"])
 
     def fit(self):
         return self.train()

@@ -1,5 +1,4 @@
 import numpy as np
-from .drawer import Drawer
 from .._model import DMmodel
 from . import param_default
 
@@ -14,6 +13,7 @@ param_default_dict = {
     'termination_threshold': 0,
     'new_cluster_threshold': 0.3
 }
+
 
 class BeatLex(DMmodel):
     def __init__(self, data_mat, model_name='my_beatlex_model', *args, **para_dict):
@@ -92,7 +92,7 @@ class BeatLex(DMmodel):
                 print('best prefix found {} {} {}'.format(min_k, best_cost, best_prefix_cost))
                 if best_prefix_cost < best_cost:
                     print('ending with prefix {}'.format(best_prefix_k))
-                    end_pos_list.append(len(self.data_mat))
+                    end_pos_list.append(self.data_mat.shape[1])
                     idx.append(best_prefix_k)
                     break
             print('cluster cost {}'.format(ave_costs[:, best_size]))
@@ -132,6 +132,7 @@ class BeatLex(DMmodel):
                     self.models[min_k] = self.model_momentum * self.models[min_k] + (1 - self.model_momentum) * trace_aves
         tot_err = tot_err / np.std(self.data_mat, ddof=1) ** 2 + (len(idx) - 1) * np.log2(len(self.data_mat)) + len(idx) * np.log2(len(self.models))
         result = {
+            'signal_freq': self.signal_freq,
             'tot_err': tot_err,
             'starts': start_pos_list,
             'ends': end_pos_list,
@@ -139,8 +140,7 @@ class BeatLex(DMmodel):
             'best_prefix_length': best_prefix_length,
             'models': self.models,
         }
-        drawer = self.init_drawer(self.data_mat, result)
-        return drawer, result
+        return result
 
     def get_new_segement_size(self, cur_pos):
         num_models = len(self.models)
@@ -227,19 +227,8 @@ class BeatLex(DMmodel):
             ans += np.abs(plus1 + plus2 - 2*ab)
         return ans
 
-    def init_drawer(self, data_mat, result):
-        return Drawer(data_mat, result)
-
     def summarization(self, params=None):
-        self._summarize_sequence()
+        return self._summarize_sequence()
 
-    def run(self, task='summarization', params=None):
-        func = None
-        func_dict = {
-            'summarization': self.summarization
-        }
-        if func_dict.__contains__(task):
-            func = func_dict[task]
-            func()
-        else:
-            raise KeyError(f'{task} Not Supported!')
+    def run(self):
+        return self.summarization()
