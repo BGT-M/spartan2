@@ -133,7 +133,7 @@ class Timeseries:
         _self.val_tensor.resample(new_len, inplace=True)
         _self.__update_time(_self.val_tensor, resampled_freq, _self.startts)
         _self.__update_info(_self.labels, _self.time_tensor, _self.val_tensor)
-        _self.show_resample(self.length, _self.length, _ori_freq, resampled_freq, _ori_tensor._data, _self.val_tensor._data)
+        _self.show_resample(self.length, _self.length, _ori_freq, resampled_freq, _ori_tensor._data, _self.val_tensor._data, _self.startts)
         if not inplace:
             return _self
 
@@ -472,62 +472,13 @@ class Timeseries:
         _tensor : DTensor
             normalized tensor
         """
-        _min = _tensor.min()
-        _max = _tensor.max()
+        import numpy as np
+        _min = np.tile(_tensor.min(axis=1).reshape((self.dimension, 1)), self.length)
+        _max = np.tile(_tensor.max(axis=1).reshape((self.dimension, 1)), self.length)
         _middle = (_min + _max) / 2
         _tensor = (_tensor - _middle) / (_max - _min) * 2
         return _tensor
 
-    def aggregate(self, attrs: list or str = None, strategy: str = 'sum', inplace: bool = False):
-        """Aggregate specific columns and apply strategy operations on other columns.
-
-        Parameters
-        ----------
-        attrs : list or str
-            list or string of column names, default is None
-
-        strategy : str
-            if 'sum', summarize target column
-            if 'average', calculate average of target column
-            if 'count', count apperance of each entry in target column
-            default is 'sum'
-
-        inplace : bool
-            update origin object or return a new object, default is False
-
-        Returns
-        ----------
-        None or Timeseries object
-            self or a new object with tensor normalized
-        """
-        _self = self.__handle_inplace(inplace)
-        _labels, _tensor = _self.__handle_attrs(attrs)
-        names = ['__time__']
-        names.extend(_self.labels)
-        import pandas as pd
-        _data = DTensor([_self.time_tensor]).concatenate(_self.val_tensor, axis=0)._data.T
-        dtypes = []
-        for _da in _data[0]:
-            dtypes.append(type(_da))
-        _df = pd.DataFrame(_data, columns=names)
-        for i, name in enumerate(names):
-            _df[name] = _df[name].astype(dtypes[i])
-        names = ['__time__']
-        names.extend(attrs)
-        if strategy == 'sum':
-            _df = pd.DataFrame(_df.groupby(names).sum())
-        elif strategy == 'average':
-            _df = pd.DataFrame(_df.groupby(names).mean())
-        elif strategy == 'count':
-            _df = pd.DataFrame(_df.groupby(names).count())
-        _df = _df.iloc[:, 0]
-        for i in range(len(attrs)):
-            _df = _df.unstack(level=-1).fillna(0)
-        _labels, _time = list(_df.columns), DTensor(list(_df.index))
-        _value = DTensor.from_numpy(_df.T.to_numpy())
-        _self.__update_info(_labels, _time, _value)
-        if not inplace:
-            return _self
 
     def __handle_attrs(self, attrs: str or list):
         """Private function for checking labels and tensor of column names in attrs
@@ -611,7 +562,20 @@ class Timeseries:
         self.startts = self.time_tensor[0]
         self.length = self.val_tensor.shape[1]
 
-    def __update_time(self, val_tensor, freq, startts):
+    def __update_time(self, val_tensor: DTensor, freq: int, startts: int):
+        """Update infomation of self from newly updated tensors.
+
+        Parameters
+        ----------
+        val_tensor : DTensor
+            value tensor
+
+        freq : int
+            frequency of series
+
+        startts : int
+            start time tick
+        """
         import numpy as np
         _len = val_tensor.shape[1]
         self.length = _len
@@ -639,7 +603,7 @@ class Timeseries:
         plt.xlabel('time/s')
         plt.show()
 
-    def show_resample(self, origin_length: int, resampled_length: int, origin_freq: int, resampled_freq: int, origin_list, resampled_list):
+    def show_resample(self, origin_length: int, resampled_length: int, origin_freq: int, resampled_freq: int, origin_list, resampled_list, start):
         ''' draw resampled time series figure
         '''
         import matplotlib.pyplot as plt
@@ -650,6 +614,8 @@ class Timeseries:
         for label in self.labels:
             x_origin = np.arange(0, origin_length/origin_freq, 1/origin_freq)
             x_resampled = np.arange(0, resampled_length/resampled_freq, 1/resampled_freq)
+            x_origin += start
+            x_resampled += start
             plt.subplot(sub_dimension, 1, actual_dimension)
             index = self.labels.index(label)
             plt.title(label)
