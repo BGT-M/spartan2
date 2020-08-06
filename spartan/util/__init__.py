@@ -12,7 +12,7 @@ from spartan.tensor import TensorData, TensorStream
 from .ioutil import loadTensor, File, loadTensorStream
 from .basicutil import set_trace, TimeMapper, StringMapper,\
     IntMapper, ScoreMapper, DenseIntMapper
-from .drawutil import plot_graph, plot_timeseries, drawEigenPulse
+from .drawutil import plot_graph, plot_timeseries, drawEigenPulse, plot
 
 MODEL_PATH = 'spartan.model'
 
@@ -26,6 +26,7 @@ __all__ = [
     'IntMapper',
     'ScoreMapper',
     'DenseIntMapper',
+    'plot',
     'plot_graph',
     'plot_timeseries',
     'drawEigenPulse'

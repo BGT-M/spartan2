@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from spartan.tensor import Graph, Timeseries
+from spartan import model as _model
 
 # TODO do not import matplotlib function in model file
 
@@ -45,7 +46,7 @@ def plot_graph(graph: Graph, layout=None, bipartite=False, labels=None,
     fig = plt.figure()
     if bipartite:
         nx.draw_networkx(g, pos=pos,
-                node_color=('r'*nrow+'b'*ncol), alpha=0.8)
+                         node_color=('r'*nrow+'b'*ncol), alpha=0.8)
     else:
         nx.draw_networkx(g, pos=pos, node_color='r', alpha=0.8)
 
@@ -53,42 +54,50 @@ def plot_graph(graph: Graph, layout=None, bipartite=False, labels=None,
         if isinstance(labels, dict):
             nx.draw_networkx_labels(g, pos=pos, labels=labels)
         else:
-            ldict = dict(zip( range(len(labels)), labels ))
+            ldict = dict(zip(range(len(labels)), labels))
             nx.draw_networkx_labels(g, pos=pos, labels=ldict)
 
     return fig
 
-def show_resample():
-    ''' draw resampled time series figure
-    '''
+
+def plot_timeseries(*args, **kwargs):
     import matplotlib.pyplot as plt
-    import numpy as np
-
-
-def plot_timeseries(series: Timeseries, chosen_labels: list = None):
     plt.figure()
+    plt = __plot_timeseries(plt, *args, **kwargs)
+    plt.show()
+
+
+def __plot_timeseries(plt, series: Timeseries, chosen_labels: list = None, starts: list = None, ends: list = None, ):
     if chosen_labels is None:
         sub_dimension = series.dimension
         actual_dimension = 1
+        fig, ax = plt.subplots(sub_dimension, 1)
         for index, label in enumerate(series.labels):
-            plt.subplot(sub_dimension, 1, actual_dimension)
-            plt.title(label)
-            plt.plot(series.time_tensor._data, series.val_tensor._data[index], label=label)
-            plt.legend(loc="best")
+            ax[index].set_title(label)
+            if starts is not None and ends is not None:
+                color = ['r', 'g', 'b', 'c']
+                for i, _start in enumerate(starts):
+                    _end = ends[i]
+                    ax[index].plot(series.time_tensor._data[_start: _end], series.val_tensor._data[index][_start:_end], color[i % 2], label=label if i == 0 else None)
+                    ax[index].scatter(series.time_tensor._data[_start], series.val_tensor._data[index][_start], color='black')
+            else:
+                ax[index].plot(series.time_tensor._data, series.val_tensor._data[index], label=label)
+            ax[index].legend(loc="best")
             actual_dimension += 1
     else:
         sub_dimension = len(chosen_labels)
         actual_dimension = 1
+        fig, ax = plt.subplots(sub_dimension, 1)
         for chosen_label in chosen_labels:
-            plt.subplot(sub_dimension, 1, actual_dimension)
             for label in chosen_label:
                 index = series.labels.index(label)
-                plt.plot(series.time_tensor._data, series.val_tensor._data[index], label=label)
-            plt.legend(loc="best")
-            plt.title(', '.join(chosen_label))
+                ax[actual_dimension-1].plot(series.time_tensor._data, series.val_tensor._data[index], label=label)
+            ax[actual_dimension-1].legend(loc="best")
+            ax[actual_dimension-1].set_title(', '.join(chosen_label))
             actual_dimension += 1
     plt.xlabel('time/s')
-    plt.show()
+    return plt
+
 
 def plot_resampled_series(series: Timeseries, origin_length: int, resampled_length: int, origin_freq: int, resampled_freq: int, origin_list, resampled_list, start):
     plt.figure()
@@ -109,6 +118,7 @@ def plot_resampled_series(series: Timeseries, origin_length: int, resampled_leng
     plt.xlabel('time/s')
     plt.show()
 
+
 def drawEigenPulse(densities: list = [], figpath: str = None):
     xs = range(len(densities))
     plt.plot(xs, densities, label='density')
@@ -123,3 +133,27 @@ def drawEigenPulse(densities: list = [], figpath: str = None):
         plt.show()
     else:
         plt.savefig(figpath)
+
+
+def plot(model: "Model", *args, **kwargs):
+    function_dict = {
+        _model.BeatLex: __plot_beatlex
+    }
+    if function_dict.__contains__(model):
+        return function_dict[model](*args, **kwargs)
+    else:
+        raise Exception(f"Draw functions of model {model} not existed")
+
+
+def __plot_beatlex(time_series, result):
+    import matplotlib.pyplot as plt
+    models = result['models']
+    for i, model in enumerate(models):
+        plt.figure()
+        plt.plot(model.T)
+        plt.title(f"Vocabulary {i}")
+    starts = result['starts']
+    ends = result['ends']
+    plt.figure()
+    plt = __plot_timeseries(plt, time_series, chosen_labels=None, starts=starts, ends=ends)
+    return plt
