@@ -15,6 +15,7 @@ import pandas as pd
 class TensorData:
     def __init__(self, data: pd.DataFrame):
         self.data = data
+        self.labels = data.columns[1:]
 
     def toDTensor(self, hastticks: bool = True):
         if hastticks:
@@ -40,28 +41,83 @@ class TensorData:
 
         ##assert(attr.dtypes[0] is int and  attr.dtypes[1] is int)
         return STensor((attr.to_numpy().T, value.to_numpy()))
-    
-    def do_map(self, hasvalue=True, mappers={}):	
-        if hasvalue:	
-            value = self.data.iloc[:, -1]	
-            attr = self.data.iloc[:, :-1]	
-        else:	
-            value = pd.Series([1] * len(self.data))	
-            attr = self.data	
 
-        for i in attr.columns:	
-            if i in mappers:	
-                colind = mappers[i].map(self.data.iloc[:, i])	
-                attr.iloc[:, i] = colind	
+    def do_map(self, hasvalue=True, mappers={}):
+        if hasvalue:
+            value = self.data.iloc[:, -1]
+            attr = self.data.iloc[:, :-1]
+        else:
+            value = pd.Series([1] * len(self.data))
+            attr = self.data
+
+        for i in attr.columns:
+            if i in mappers:
+                colind = mappers[i].map(self.data.iloc[:, i])
+                attr.iloc[:, i] = colind
 
         return attr.to_numpy(), value.to_numpy()
-    
+
+    def log_to_time(self, time_col: int or list = 0, group_col: int or list = 1, val_col: int or list = None, format: str = '%Y-%m-%d %H:%M:%S', bins: int = 10, range: tuple = None, inplace: bool = False):
+        """ Transfer log data to time series data.
+
+        Parameters:
+        ----------
+        time_col : int or list, optional
+            position of time column, default is 0
+
+        group_col : int or list, optional
+            positions of columns used to group data, default is 1
+        
+        val_col : int or list, optional
+            positions of columns to be aggregated, default is None, will aggregate all but time col and group col
+        
+        format : str, optional
+            time format, default is '%Y-%m-%d %H:%M:%S'
+        
+        bins : int, optional
+            number of equal width bins in the given range, default is 10
+        
+
+        """
+        import time
+        _data = self.data.copy()
+        if type(group_col) != list:
+            group_col = [group_col]
+        if val_col is not None:
+            if type(val_col) != list:
+                val_col = [val_col]
+        else:
+            val_col = [x for x in _data.columns if x not in group_col + [time_col]]
+        _data = _data.iloc[:, [time_col] + group_col + val_col]
+        _data.iloc[:, time_col] = _data.iloc[:, time_col].apply(lambda x: time.mktime(time.strptime(x, '%Y-%m-%d %H:%M:%S')))
+        if len(range) == 2:
+            _start, _end = range
+            _data = _data.iloc[_start:_end, :].copy()
+        _min = _data.iloc[:, time_col].min()
+        _max = _data.iloc[:, time_col].max()
+        _interval = (_max - _min) / (bins)
+        _data.iloc[:, time_col] = _data.iloc[:, time_col].apply(lambda x: int((x - _min) / _interval) * _interval + _min if int((x - _min) / _interval) < bins else int((x - _min) / _interval - 1) * _interval + _min)
+        name_col = [time_col] + group_col
+        grouped_data = _data.groupby(name_col).sum()
+        import numpy as np
+        time_df = pd.DataFrame({
+            time_col: np.linspace(_min, _max, bins+1)
+        })
+        grouped_data = grouped_data.unstack(level=group_col)
+        _ans = time_df.join(grouped_data, on=time_col, how='outer')
+        if inplace:
+            self.data = _ans
+            self.labels = list(_ans.columns)
+            self.labels.remove(self.labels[time_col])
+        else:
+            return _ans
+
 
 class TensorStream():
-    def __init__(self, f, col_idx: list = None, col_types: list = None, sep: str = ' ', 
+    def __init__(self, f, col_idx: list = None, col_types: list = None, sep: str = ' ',
                  mappers: dict = {}, hasvalue: bool = True):
         self.f = f
-        
+
         if col_types is None:
             if col_idx is None:
                 self.idxtypes = None
@@ -81,22 +137,22 @@ class TensorStream():
 
         self.lastwindow = []  # data of last window (lines)
         self.laststrides = []  # indices of strides of last window
-        
+
     def _get_file_end_pos(self):
         cur_pos = self.f.tell()
         self.f.seek(0, 2)
         end_pos = self.f.tell()
         self.f.seek(cur_pos, 0)
         return end_pos
-    
+
     def fetch_slide_window(self, window: int = 10, stride: int = 5, ts_colidx: int = 0):
         end_pos = self._get_file_end_pos()
         if self.f.tell() == end_pos:
             raise Exception('all data has been processed')
-        
+
         tensorlist = []
         lineid = 0
-        
+
         while True:
             line = self.f.readline()
             coords = line.strip().split(self.sep)
@@ -117,7 +173,7 @@ class TensorStream():
                 if ts - start_ts >= stride:
                     if len(self.lastwindow) == 0:  # first window
                         self.laststrides.append(lineid)
-                        if ts - start_ts >= window:  
+                        if ts - start_ts >= window:
                             self.lastwindow = tensorlist
                             break
                     else:
@@ -135,7 +191,7 @@ class TensorStream():
             tensorlist.append(tline)
             lineid += 1
         tensorlist = pd.DataFrame(tensorlist)
-        
+
         'map other columns, e.g. user, item'
         for i in tensorlist.columns:
             if i in self.mappers:
