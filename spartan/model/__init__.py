@@ -37,6 +37,7 @@ HoloScope = partial(__call__, MODEL_PATH + ".holoscope")
 EigenPulse = partial(__call__, MODEL_PATH + ".eigenpulse")
 Summarize = partial(__call__, MODEL_PATH + ".summarize")
 BeatGAN = partial(__call__, MODEL_PATH + ".beatgan")
+RPeak = partial(__call__, MODEL_PATH + ".rpeak")
 
 
 __all__ = [
@@ -45,4 +46,5 @@ __all__ = [
     'EigenPulse',
     'BeatGAN',
     'Summarize',
+    'RPeak',
 ]
