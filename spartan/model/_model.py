@@ -142,7 +142,7 @@ class PipeLine():
                 task = task.create(data, model, **params)
                 data = task.run()
         return data
-    
+        
 class Generalmodel(Model):
     '''Interface for general model.
     '''
