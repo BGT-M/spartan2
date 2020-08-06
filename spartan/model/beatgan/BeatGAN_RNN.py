@@ -248,13 +248,13 @@ class BeatGAN(MLmodel):
         self.lr = param_default(param, "lr", 0.01)
 
         self.encoder = Encoder(param_default(param, "layers", 1), \
-            param_default(param, "input_size", 2), param_default(param, "hidden_size", 100), \
+            param_default(param, "input_size", 1), param_default(param, "hidden_size", 100), \
                 0, param_default(param, "rep_size", 20), device, cell=param_default(param, "net_type", "gru")).to(device)
         self.decoder = Decoder(param_default(param, "layers", 1), \
-            param_default(param, "input_size", 2), param_default(param, "hidden_size", 100), \
+            param_default(param, "input_size", 1), param_default(param, "hidden_size", 100), \
                 0, param_default(param, "rep_size", 20), device, cell=param_default(param, "net_type", "gru")).to(device)
         self.discriminator = Discriminator(param_default(param, "layers", 1), \
-            param_default(param, "input_size", 2), param_default(param, "hidden_size", 100), \
+            param_default(param, "input_size", 1), param_default(param, "hidden_size", 100), \
                 0, device, cell=param_default(param, "net_type", "gru")).to(device)
 
         self.mse = nn.MSELoss()

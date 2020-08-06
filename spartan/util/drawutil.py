@@ -17,7 +17,8 @@ from spartan import model as _model
 
 def plot(model: "Model", *args, **kwargs):
     function_dict = {
-        _model.BeatLex: __plot_beatlex
+        _model.BeatLex: __plot_beatlex,
+        _model.BeatGAN: __plot_beatgan
     }
     if function_dict.__contains__(model):
         return function_dict[model](*args, **kwargs)
@@ -81,7 +82,7 @@ def __plot_timeseries(plt, series: Timeseries, chosen_labels: list = None):
     if chosen_labels is None:
         sub_dimension = series.dimension
         actual_dimension = 1
-        fig, ax = plt.subplots(sub_dimension, 1)
+        fig, ax = plt.subplots(sub_dimension, 1, sharex=True)
         for index, label in enumerate(series.labels):
             ax[index].set_title(label)
             ax[index].plot(series.time_tensor._data, series.val_tensor._data[index], label=label)
@@ -90,7 +91,7 @@ def __plot_timeseries(plt, series: Timeseries, chosen_labels: list = None):
     else:
         sub_dimension = len(chosen_labels)
         actual_dimension = 1
-        fig, ax = plt.subplots(sub_dimension, 1)
+        fig, ax = plt.subplots(sub_dimension, 1, sharex=True)
         for chosen_label in chosen_labels:
             for label in chosen_label:
                 index = series.labels.index(label)
@@ -162,7 +163,7 @@ def __plot_beatlex_timeseries(plt, series: Timeseries, result: dict):
     color = ['r', 'g', 'b', 'c'] * (int(model_num / 4)+1)
     sub_dimension = series.dimension
     actual_dimension = 1
-    _, ax = plt.subplots(sub_dimension, 1)
+    _, ax = plt.subplots(sub_dimension, 1, sharex=True)
     for index, label in enumerate(series.labels):
         ax[index].set_title(label)
         if starts is not None and ends is not None:
@@ -176,3 +177,23 @@ def __plot_beatlex_timeseries(plt, series: Timeseries, result: dict):
         actual_dimension += 1
     plt.xlabel('time/s')
     return plt
+
+
+def __plot_beatgan(input, output, heat):
+    import matplotlib.pyplot as plt
+    sig_in = input.transpose()
+    sig_out = output.transpose()
+    max_heat = np.max(heat)
+    min_heat = np.min(heat)
+    x_points = np.arange(sig_in.shape[0])
+    fig, ax = plt.subplots(2, 1, sharex=True, figsize=(6, 6), gridspec_kw={'height_ratios': [6, 1]})
+    ax[0].plot(x_points, sig_in, 'k-', linewidth=2.5, label="input signal")
+    ax[0].plot(x_points, sig_out, 'k--', linewidth=2.5, label="output signal")
+    ax[0].set_yticks([])
+    ax[0].legend(loc="upper right")
+    heat = (sig_out-sig_in)**2
+    heat_norm = (heat-min_heat)/(max_heat-min_heat)
+    heat_norm = np.reshape(heat_norm, (1, -1))
+    ax[1].imshow(heat_norm, cmap="jet", aspect="auto")
+    ax[1].set_yticks([])
+    fig.tight_layout()
