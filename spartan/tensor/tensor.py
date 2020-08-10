@@ -34,10 +34,11 @@ class TensorData:
             value = pd.Series([1] * len(self.data))
             attr = self.data
 
-        for i in attr.columns:
-            if i in mappers:
-                colind = mappers[i].map(self.data.iloc[:, i])
-                attr.iloc[:, i] = colind
+        if mappers:
+            for i in attr.columns:
+                if i in mappers:
+                    colind = mappers[i].map(self.data.iloc[:, i])
+                    attr.iloc[:, i] = colind
 
         ##assert(attr.dtypes[0] is int and  attr.dtypes[1] is int)
         return STensor((attr.to_numpy().T, value.to_numpy()))

@@ -34,6 +34,7 @@ def __call__(policy: str, *args, **kwargs) -> object:
 
 BeatLex = partial(__call__, MODEL_PATH + ".beatlex")
 HoloScope = partial(__call__, MODEL_PATH + ".holoscope")
+Eigenspokes = partial(__call__, MODEL_PATH + ".eigenspokes")
 EigenPulse = partial(__call__, MODEL_PATH + ".eigenpulse")
 Summarize = partial(__call__, MODEL_PATH + ".summarize")
 BeatGAN = partial(__call__, MODEL_PATH + ".beatgan")
@@ -43,6 +44,7 @@ RPeak = partial(__call__, MODEL_PATH + ".rpeak")
 __all__ = [
     'BeatLex',
     'HoloScope',
+    'Eigenspokes',
     'EigenPulse',
     'BeatGAN',
     'Summarize',
