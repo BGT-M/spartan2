@@ -243,6 +243,12 @@ class EagleMine( DMmodel ):
     def __str__(self):
         return str(vars(self))
 
+    def dump(self):
+        self.eaglemodel.dump()
+        if self.__histgenerator__ is not None:
+            self.__histgenerator__.dump()
+        print("done!")
+
     def save(self, outfn_eaglemine:str, outfn_leveltree:str=None, 
              outfn_node2label:str=None, outfn_hcel2label:str=None, 
              comments:str="#", delimiter:str=";"):

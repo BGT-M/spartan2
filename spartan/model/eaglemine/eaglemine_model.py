@@ -128,13 +128,14 @@ class EagleMineModel(object):
         print("Information: ")
         print("#mode: {}, input-shape: {}".format(self.mode, self.shape))
         print("#non-zeros: {}, #totals: {}".format(len(self._hcel), np.sum(self._count)))
+        print("describe vocabulary: {}".format(self.descvoc))
         print("Level-tree information:")
         self.leveltree.dump()
         print("Leaves describe information:")
         for id, desc in self.describes.items():
             print("{}: {}".format(id, str(desc)))
 
-        print("done!\n")
+        #print("done!\n")
 
     def save(self, outfn, delimiter=";"): # , suffix=''
         # describe_outfn = 'describe%s.out' % suffix

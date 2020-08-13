@@ -376,7 +376,7 @@ def clusters_viz(hcel2label:dict, output:str, outlier_label=-1):
     outs = hcel_lab[outs_idx, :-1]
     others, others_lab = hcel_lab[~outs_idx, :-1], hcel_lab[~outs_idx, -1]
     others_lab = size_relabel(others_lab)
-    cls_fig = __plot_cluster(others, [], others_lab, outliers=outs[::-1], ticks=False)
+    cls_fig = __plot_cluster(others, [], others_lab, outliers=outs[::-1])
     if output is not None:
         cls_fig.savefig(output)
     return cls_fig
