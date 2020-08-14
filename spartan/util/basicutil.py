@@ -6,10 +6,10 @@
 '''
 
 # here put the import lib
-from datetime import datetime
-from bisect import bisect_left
 import time
 import numpy as np
+from datetime import datetime
+from bisect import bisect_left
 
 
 def param_default(params: dict, key: str, default):

@@ -32,21 +32,24 @@ def __call__(policy: str, *args, **kwargs) -> object:
     return model_cls.__create__(*args, **kwargs)
 
 
+# please register a new module in lexical (alpha-beta) order
 BeatLex = partial(__call__, MODEL_PATH + ".beatlex")
-HoloScope = partial(__call__, MODEL_PATH + ".holoscope")
-Eigenspokes = partial(__call__, MODEL_PATH + ".eigenspokes")
-EigenPulse = partial(__call__, MODEL_PATH + ".eigenpulse")
-Summarize = partial(__call__, MODEL_PATH + ".summarize")
 BeatGAN = partial(__call__, MODEL_PATH + ".beatgan")
+EagleMine = partial(__call__, MODEL_PATH + ".eaglemine")
+EigenPulse = partial(__call__, MODEL_PATH + ".eigenpulse")
+Eigenspokes = partial(__call__, MODEL_PATH + ".eigenspokes")
+HoloScope = partial(__call__, MODEL_PATH + ".holoscope")
 RPeak = partial(__call__, MODEL_PATH + ".rpeak")
+Summarize = partial(__call__, MODEL_PATH + ".summarize")
 
 
 __all__ = [
     'BeatLex',
-    'HoloScope',
-    'Eigenspokes',
-    'EigenPulse',
     'BeatGAN',
-    'Summarize',
+    'EagleMine',    
+    'EigenPulse',
+    'Eigenspokes',
+    'HoloScope',
     'RPeak',
+    'Summarize',
 ]

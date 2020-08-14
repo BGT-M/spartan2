@@ -9,10 +9,10 @@
 
 from spartan.tensor import TensorData, TensorStream
 
-from .ioutil import loadTensor, File, loadTensorStream
+from .ioutil import loadTensor, File, loadTensorStream, loadFile2Dict, loadHistogram
 from .basicutil import set_trace, TimeMapper, StringMapper,\
     IntMapper, ScoreMapper, DenseIntMapper
-from .drawutil import plot_graph, plot_timeseries, drawEigenPulse, plot
+from .drawutil import plot_graph, plot_timeseries, drawEigenPulse, plot, histogram_viz, clusters_viz
 
 MODEL_PATH = 'spartan.model'
 
@@ -20,6 +20,8 @@ __all__ = [
     'loadTensor',
     'File',
     'loadTensorStream',
+    'loadFile2Dict',
+    'loadHistogram',
     'set_trace',
     'TimeMapper',
     'StringMapper',
@@ -29,5 +31,7 @@ __all__ = [
     'plot',
     'plot_graph',
     'plot_timeseries',
-    'drawEigenPulse'
+    'drawEigenPulse',
+    'histogram_viz',
+    'clusters_viz'
 ]
