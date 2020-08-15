@@ -7,7 +7,7 @@
 
 # here put the import lib
 
-from ..util.basicutil import set_trace, TimeMapper
+from ..util.basicutil import set_trace
 from . import STensor, DTensor
 import pandas as pd
 import numpy as np
@@ -119,7 +119,7 @@ class TensorData:
             if len(group_col) == 1:
                 key = row[group_col[0]]
             else:
-                key = ','.join(np.array(row)[groupids])
+                key = ','.join(np.array(row)[group_col])
             if key not in aggts:
                 aggts[key] = []
             aggts[key].append(row[time_col])
