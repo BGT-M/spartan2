@@ -10,6 +10,7 @@
 from ..util.basicutil import set_trace
 from . import STensor, DTensor
 import pandas as pd
+import numpy as np
 
 
 class TensorData:
@@ -111,6 +112,24 @@ class TensorData:
             self.labels.remove(self.labels[time_col])
         else:
             return _ans
+    
+    def log_to_aggts(self, time_col: int = 0, group_col: int or list = 1, timeformat: str = '%Y-%m-%d %H:%M:%S', inplace: bool = False):
+        import time
+        aggts = {} # final dict list for aggregating time series.
+        _data = self.data.copy()
+        if type(group_col) != list:
+            group_col = [group_col]
+        _data = _data.iloc[:, [time_col] + group_col]
+        _data.iloc[:, time_col] = _data.iloc[:, time_col].apply(lambda x: time.mktime(time.strptime(x, timeformat)))
+        for index, row in _data.iterrows():
+            if len(group_col) == 1:
+                key = row[group_col[0]]
+            else:
+                key = ','.join(np.array(row)[groupids])
+            if key not in aggts:
+                aggts[key] = []
+            aggts[key].append(row[time_col])
+        return aggts
 
 
 class TensorStream():
