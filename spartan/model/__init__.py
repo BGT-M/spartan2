@@ -44,6 +44,7 @@ Eigenspokes = partial(__call__, MODEL_PATH + ".eigenspokes")
 HoloScope = partial(__call__, MODEL_PATH + ".holoscope")
 RPeak = partial(__call__, MODEL_PATH + ".rpeak")
 Summarize = partial(__call__, MODEL_PATH + ".summarize")
+IAT = partial(__call__, MODEL_PATH + ".iat")
 
 
 __all__ = [
@@ -56,4 +57,5 @@ __all__ = [
     'HoloScope',
     'RPeak',
     'Summarize',
+    'IAT',
 ]
