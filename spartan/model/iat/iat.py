@@ -17,8 +17,6 @@ class IAT(Generalmodel):
         self.iatpair_user = iatpair_user
         self.iatpaircount = iatpaircount
         self.iatcount = iatcount
-    def run():
-        pass
 
     def calaggiat(self, aggts):
         'aggts: key->user; value->timestamp list'
@@ -35,8 +33,8 @@ class IAT(Generalmodel):
     def load_aggiat(self, infile):
         self.aggiat = loadDictListData(infile, ktype=str, vtype=int)
     
-    "construct dict for iat pair to keys"
     def get_iatpair_user_dict(self):
+        'construct dict for iat pair to keys'
         for k, lst in self.aggiat.items():
             for i in range(len(lst) - 1):
                 pair = (lst[i], lst[i + 1])
@@ -75,11 +73,73 @@ class IAT(Generalmodel):
                     self.iatpaircount[pair] = 0
                 self.iatpaircount[pair] += 1
 
-    'find users that have pairs in iatpairs'
     def find_iatpair_user(self, iatpairs):
+        'find users that have pairs in iatpairs'
         usrset = set()
         for pair in iatpairs:
             if pair in self.iatpair_user:
                 usrlist = self.iatpair_user[pair]
                 usrset.update(usrlist)
         return list(usrset)
+    
+    def find_iatpair_user_ordered(self, iatpairs, k=-1):
+        '''find Top-K users that have pairs in iatpairs ordered by decreasing frequency
+        Parameters:
+        --------
+        :param iatpairs: dict
+            iat pair returned by find_peak_rect function in RectHistogram class
+        :param k: int
+            default: -1 , means return all user
+            else return Top-k user
+        '''
+        self.get_iatpair_user_dict()
+        usrdict = {} # {key:usr, value:frequency}
+        for pair in iatpairs:
+            if pair in self.iatpair_user:
+                usrlist = self.iatpair_user[pair]
+                for usr in usrlist:
+                    if usr in usrdict:
+                        usrdict[usr] += 1
+                    else:
+                        usrdict[usr] = 1
+        usrdict = sorted(usrdict.items(), key=lambda item:item[1], reverse=True)
+        usrlist = [usrcountpair[0] for usrcountpair in usrdict[:k]] 
+        return usrlist
+
+    def drawIatPdf(self, usrlist: list, outfig=None):
+        '''Plot Iat-Pdf line
+        Parameters:
+        --------
+        :param usrlist: list
+            Top-k user returned by find_iatpair_user_ordered function
+        :param outfig: str
+            fig save path
+        '''
+        self.caliatcount()
+
+        iatset = set()
+        for usrid in usrlist:
+            iatset.update(self.aggiat[usrid])
+        iatlist = list(iatset)
+        iatlist.sort()
+
+        allcount = sum(self.iatcount.values()) # total sum of iat
+        iatprob = {iat: self.iatcount[iat]/allcount for iat in self.iatcount.keys()}
+
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+        xs = iatlist
+        ys = [iatprob[iat] for iat in iatlist]
+        plt.plot(xs, ys, 'b')
+        plt.xscale('log')
+        plt.xlabel('IAT(seconds)')
+        plt.ylabel('pdf')
+        if outfig is not None:
+            fig.savefig(outfig)
+        return fig
+        
+
+
+
+
+
