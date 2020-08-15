@@ -142,3 +142,30 @@ class PipeLine():
                 task = task.create(data, model, **params)
                 data = task.run()
         return data
+    
+class Generalmodel(Model):
+    '''Interface for general model.
+    '''
+    def __init__(self, *args, **kwargs):
+        '''Only support construction by classmethod.
+        '''
+        super(Generalmodel, self).__init__(*args, **kwargs)
+
+    @classmethod
+    def __create__(cls, *args, **kwargs) -> object:
+        '''Interface of creation by class, overrided by subclasses.
+
+        Parameters
+        ----------
+        tensor: object
+            data object
+        params: dict
+            parameter dictionary
+
+        Returns
+        ----------
+        _obj
+            object for specific model
+        '''
+        _obj = cls(*args, **kwargs)
+        return _obj

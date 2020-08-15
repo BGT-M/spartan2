@@ -227,6 +227,41 @@ def _aggregate(data_list):
             _data = pd.concat([_data, data], axis=0, ignore_index=True)
         return _data
 
+def _isgzfile( filename ):
+    return filename.endswith(".gz")
+
+"gzip file must be read and write in binary/bytes"
+def _myopenfile(fnm, mode):
+    f = None
+    if 'w' in mode:
+        if _isgzfile(fnm):
+            import gzip
+            mode = mode+'b' if 'b' != mode[-1] else mode
+            f = gzip.open(fnm, mode)
+        else:
+            f = open(fnm, mode)
+    else:
+        if 'r' not in mode and 'a' not in mode:
+            mode = 'r' + mode
+        if os.path.isfile(fnm):
+            if not _isgzfile(fnm):
+                f = open(fnm, mode)
+            else:
+                import gzip
+                mode = 'rb'
+                f = gzip.open( fnm, mode )
+        elif os.path.isfile(fnm+'.gz'):
+            'file @fnm does not exists, use fnm.gz instead'
+            print(
+                '==file {} does not exists, read {}.gz instead'.format(fnm,
+                                                                       fnm))
+            import gzip
+            mode = 'rb'
+            f = gzip.open(fnm+'.gz', mode)
+        else:
+            print('file: {} or its zip file does NOT exist'.format(fnm))
+            sys.exit(1)
+    return f
 
 def loadTensor(path: str,  col_idx: list = None, col_types: list = None, **kwargs):
     '''
@@ -391,3 +426,52 @@ def loadHistogram(infn: str, comments: str = '#', delimiter: str = ','):
         fp.close()
 
     return np.array(shape, int), ticks_dims, np.array(hist_arr, int)
+
+def saveDictListData(dictls, outdata, delim=':', mode='w'):
+    if _isgzfile(outdata):
+        'possible mode is ab'
+        mode = mode + 'b' if mode[-1] != 'b' else mode
+    # write bytes
+    ib = True if 'b' in mode else False
+
+    with _myopenfile(outdata, mode) as fw:
+        i=0
+        for k, l in dictls.items():
+            if not isinstance(l,(list, np.ndarray)):
+                print("This is not a dict of value list.", type(l))
+                break
+            if len(l)<1:
+                continue
+            k = k.decode() if isinstance(k, bytes) else str(k)
+            ostr = "{}{}".format(k,delim)
+            if len(l)<1:
+                i += 1
+                continue
+            l = [ x.decode() if isinstance(x,bytes) else str(x) for x in l ]
+            ostr = ostr + " ".join(l) + '\n'
+            fw.write(ostr.encode() if ib else ostr)
+        fw.close()
+        if i > 0:
+            print( "Warn: total {} empty dict lists are removed".format(str(i)) )
+
+
+def loadDictListData(indata, ktype=str, vtype=str, delim=':', mode='r'):
+    if _isgzfile(indata):
+        mode = 'rb'
+    # bytes
+    ib = True if 'b' in mode else False
+
+    dictls={}
+    with _myopenfile(indata, mode) as fr:
+        for line in fr:
+            line = line.decode() if ib else line
+            line = line.strip().split(delim)
+            lst=[]
+            for e in line[1].strip().split(' '):
+                if vtype == int:
+                    lst.append(vtype(float(e)))
+                else:
+                    lst.append(vtype(e))
+            dictls[ktype(line[0].strip())]=lst
+        fr.close()
+    return dictls
