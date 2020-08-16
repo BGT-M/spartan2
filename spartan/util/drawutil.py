@@ -10,12 +10,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from spartan.tensor import Graph, Timeseries
-from spartan import model as _model
 
 # TODO do not import matplotlib function in model file
 
 
 def plot(model: "Model", *args, **kwargs):
+    from spartan import model as _model
     function_dict = {
         _model.BeatLex: __plot_beatlex,
         _model.BeatGAN: __plot_beatgan
