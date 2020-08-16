@@ -38,5 +38,5 @@ class Summarization(Task):
 class SumPolicy(Enum):
     '''Registration for path of models who can do summarization task.
     '''
-    Beatlex = MODEL_PATH + ".beatlex"
+    BeatLex = MODEL_PATH + ".beatlex"
     Summarize = MODEL_PATH + ".summarize"
