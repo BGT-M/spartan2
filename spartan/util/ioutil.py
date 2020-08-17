@@ -190,11 +190,14 @@ def _read_data(filename: str, idxtypes: list, **kwargs) -> object:
             if os.path.isfile(filename + _postfix):
                 _filename = filename + _postfix
                 return _read_data(_filename, idxtypes, **kwargs)
+        _class = CSVFile
+    try:
+        _obj = _class(filename, 'r', idxtypes)
+        _data = _obj._read(**kwargs)
+        return _data
+    except:
         raise FileNotFoundError(
             f"Error: Can not find file {filename}, please check the file path!\n")
-    _obj = _class(filename, 'r', idxtypes)
-    _data = _obj._read(**kwargs)
-    return _data
 
 
 def _check_compress_file(path: str, cformat=['.gz', '.bz2', '.zip', '.xz']):
