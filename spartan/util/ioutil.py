@@ -218,7 +218,7 @@ def _aggregate(data_list):
     elif len(data_list) == 1:
         return data_list[0]
     else:
-        pass
+        return pd.concat(data_list)
 
 def _isgzfile( filename ):
     return filename.endswith(".gz")
@@ -270,7 +270,6 @@ def loadTensor(path:str,  col_idx: list = None, col_types: list = None, **kwargs
     #if hasattr(path, 'read'):
     #    files = [path]
 
-    path = _check_compress_file(path)
     import glob
     files = glob.glob(path)
 
@@ -289,6 +288,7 @@ def loadTensor(path:str,  col_idx: list = None, col_types: list = None, **kwargs
 
     data_list = []
     for _file in files:
+        _file = _check_compress_file(_file)
         data_list.append(_read_data(_file, idxtypes, **kwargs))
     data = _aggregate(data_list)
     return TensorData(data)
