@@ -83,6 +83,8 @@ def __plot_timeseries(plt, series: Timeseries, chosen_labels: list = None):
         sub_dimension = series.dimension
         actual_dimension = 1
         fig, ax = plt.subplots(sub_dimension, 1, sharex=True)
+        if type(ax) is not list:
+            ax = [ax]
         for index, label in enumerate(series.labels):
             ax[index].set_title(label)
             ax[index].plot(series.time_tensor._data, series.val_tensor._data[index], label=label)
@@ -92,6 +94,8 @@ def __plot_timeseries(plt, series: Timeseries, chosen_labels: list = None):
         sub_dimension = len(chosen_labels)
         actual_dimension = 1
         fig, ax = plt.subplots(sub_dimension, 1, sharex=True)
+        if type(ax) is not list:
+            ax = [ax]
         for chosen_label in chosen_labels:
             for label in chosen_label:
                 index = series.labels.index(label)
