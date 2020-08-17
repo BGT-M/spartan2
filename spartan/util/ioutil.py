@@ -197,24 +197,19 @@ def _read_data(filename: str, idxtypes: list, **kwargs) -> object:
     return _data
 
 
-def _check_compress_file(files: str, cformat=None):
-    if cformat is not None:
-        cformat = ['.gz', '.bz2', '.zip', '.xz']
-    elif type(cformat) is not list:
-        cformat = [cformat]
-    valpath = []
-    for _file in files:
-        if os.path.isfile(_file):
-            valpath.append(_file)
-        else:
-            for cf in cformat:
-                if os.path.isfile(path+cf):
-                    valpath.append(_file)
-    if len(valpath) > 0:
+def _check_compress_file(path: str, cformat=['.gz', '.bz2', '.zip', '.xz']):
+    valpath = None
+    if os.path.isfile(path):
+        valpath = path
+    else:
+        for cf in cformat:
+            if os.path.isfile(path+cf):
+                valpath = path + cf
+                return valpath
+    if not valpath is None:
         return valpath
     else:
         raise FileNotFoundError(f"{path} cannot be found.")
-
 
 def _aggregate(data_list):
     if len(data_list) < 1:
@@ -274,7 +269,6 @@ def loadTensor(path: str,  col_idx: list = None, col_types: list = None, **kwarg
 
     import glob
     files = glob.glob(path)
-    files = _check_compress_file(files)
 
     if col_types is None:
         if col_idx is None:
