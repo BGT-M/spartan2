@@ -113,19 +113,13 @@ class TensorData:
         else:
             return _ans
     
-    def log_to_aggts(self, time_col: int = 0, group_col: int or list = 1, timeformat: str = '%Y-%m-%d %H:%M:%S', inplace: bool = False):
-        import time
+    def to_aggts(self, data, time_col: int = 0, group_col: int or list = 1, inplace: bool = False):
         aggts = {} # final dict list for aggregating time series.
-        _data = self.data.copy()
-        if type(group_col) != list:
-            group_col = [group_col]
-        _data = _data.iloc[:, [time_col] + group_col]
-        _data.iloc[:, time_col] = _data.iloc[:, time_col].apply(lambda x: time.mktime(time.strptime(x, timeformat)))
-        for index, row in _data.iterrows():
+        for row in data:
             if len(group_col) == 1:
                 key = row[group_col[0]]
             else:
-                key = ','.join(np.array(row)[groupids])
+                key = ','.join(np.array(row)[group_col])
             if key not in aggts:
                 aggts[key] = []
             aggts[key].append(row[time_col])
