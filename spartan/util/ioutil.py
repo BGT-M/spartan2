@@ -197,16 +197,20 @@ def _read_data(filename: str, idxtypes: list, **kwargs) -> object:
     return _data
 
 
-def _check_compress_file(path: str, cformat=['.gz', '.bz2', '.zip', '.xz']):
-    valpath = None
-    if os.path.isfile(path):
-        valpath = path
-    else:
-        for cf in cformat:
-            if os.path.isfile(path+cf):
-                valpath = path + cf
-                return valpath
-    if not valpath is None:
+def _check_compress_file(files: str, cformat=None):
+    if cformat is not None:
+        cformat = ['.gz', '.bz2', '.zip', '.xz']
+    elif type(cformat) is not list:
+        cformat = [cformat]
+    valpath = []
+    for _file in files:
+        if os.path.isfile(_file):
+            valpath.append(_file)
+        else:
+            for cf in cformat:
+                if os.path.isfile(path+cf):
+                    valpath.append(_file)
+    if len(valpath) > 0:
         return valpath
     else:
         raise FileNotFoundError(f"{path} cannot be found.")
@@ -218,10 +222,13 @@ def _aggregate(data_list):
     elif len(data_list) == 1:
         return data_list[0]
     else:
-        pass
+        _data = data_list[0]
+        for data in data_list[1:]:
+            _data = pd.concat([_data, data], axis=0, ignore_index=True)
+        return _data
 
 
-def loadTensor(path:str,  col_idx: list = None, col_types: list = None, **kwargs):
+def loadTensor(path: str,  col_idx: list = None, col_types: list = None, **kwargs):
     '''
     Parameters
     ------
@@ -232,12 +239,10 @@ def loadTensor(path:str,  col_idx: list = None, col_types: list = None, **kwargs
         kwargs["header"] = None
     if path is None:
         raise FileNotFoundError('Path is missing.')
-    #if hasattr(path, 'read'):
-    #    files = [path]
 
-    path = _check_compress_file(path)
     import glob
     files = glob.glob(path)
+    files = _check_compress_file(files)
 
     if col_types is None:
         if col_idx is None:
@@ -293,3 +298,96 @@ def loadTensorStream(filename: str, col_idx: list = None, col_types: list = None
         raise FileNotFoundError(f"Error: Can not find file {filename}, please check the file!\n")
     return f, idxtypes
 
+
+def loadFile2Dict(infn: str, n_keyelems: int = 1, key_elem_type: type = int,
+                  value_elem_type: type = float, comments: str = "#", delimiter: str = ","):
+    '''DESIGNED for EAGLEMINE: load dict data from the input file
+    Parameters:
+    -------
+    :param infn: str
+        Input data file
+    :param n_keyelems: int
+        The number of elements as the key of the 'dict' data, which should be [1, \max{\#elems} -  1]
+        Default is 1.
+    :param key_elem_type: type
+        The type of the key element(s)
+        Default is int.
+    :param value_elem_type: type
+        The type of the value element(s)
+        Default is float.
+    :param comments: str
+        The comments (start character) of inputs.
+        Default is "#".
+    :param delimiter: str
+        The separator of items in each line of inputs.
+        Default is ",".
+    '''
+    data = dict()
+    with open(infn, 'r') as fp:
+        for line in fp:
+            if line.startswith(comments):
+                continue
+            toks = line.strip().split(delimiter)
+            n_elems = len(toks)
+            if n_elems <= 1:
+                raise ValueError("Invalid data in input file, which should contain two elements at least")
+            if n_keyelems > 1:
+                key = tuple(map(key_elem_type, toks[:n_keyelems]))
+                if n_elems - n_keyelems > 1:
+                    val = tuple(map(value_elem_type, toks[n_keyelems:]))
+                else:
+                    val = value_elem_type(toks[-1])
+                data[key] = val
+            elif n_keyelems == 1:
+                if n_elems - n_keyelems > 1:
+                    val = tuple(map(value_elem_type, toks[1:]))
+                else:
+                    val = value_elem_type(toks[1])
+                data[key_elem_type(toks[0])] = val
+            else:
+                raise ValueError("Invalid parameter 'n_keyelems', which should be [{}, {}]".format(1, n_elems - 1))
+        fp.close()
+    return data
+
+
+def loadHistogram(infn: str, comments: str = '#', delimiter: str = ','):
+    '''Load histogram data
+    Parameters:
+    --------
+    :param infn: str
+        The input histogram file with following format:
+         the 1st three lines started with ‘#’ are comments for some basic information, that is, 1st line shows the shape of 2-dimensional histogram;
+         the 2nd line gives the corresponding real coordinate of each cell coordinate x, and 
+         the 3rd line is the corresponding real coordinate of each cell coordinate y, these two lines are used for visualizing the histogram. 
+         Then the followed lines are non-zero data records of the histogram.
+    :param comments: str
+            The comments (start character) of inputs.
+            Default is "#".
+        :param delimiter: str
+            The separator of items in each line of inputs.
+            Default is ",".
+    '''
+    shape, ticks_dims = list(), list()
+    hist_arr = list()
+
+    with open(infn, 'r') as fp:
+        line_1st = fp.readline().strip()
+        if not line_1st.startswith(comments):
+            raise IOError("Invalid input histogram file, which should start with {}".format(comments))
+        shape = list(map(int, line_1st[1:].split(delimiter)))
+
+        for m in range(len(shape)):
+            line_m = fp.readline().strip()
+            if not line_m.startswith(comments):
+                raise IOError("Invalid input histogram file, which should start with {}".format(comments))
+            ticks_m = list(map(float, line_m[1:].split(delimiter)))
+            ticks_dims.append(ticks_m)
+
+        for line in fp.readlines():
+            if line.startswith(comments):
+                continue
+            toks = line.strip().split(delimiter)
+            hist_arr.append(list(map(int, toks)))
+        fp.close()
+
+    return np.array(shape, int), ticks_dims, np.array(hist_arr, int)

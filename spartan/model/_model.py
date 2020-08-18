@@ -7,7 +7,6 @@
 
 # here put the import lib
 
-
 class Model():
     '''Basic class of model entity.
 
@@ -119,3 +118,27 @@ class MLmodel(Model):
             when called, return not implemented error
         '''
         raise Exception("Predict function not implemented.")
+
+
+class PipeLine():
+    def __init__(self, data, module_list, pipe_name="my_pipeline", *args, **kwargs):
+        self.module_list = module_list
+        self.data = data
+
+    def run(self):
+        
+        data = self.data
+        for module in self.module_list:
+            model, params = module
+            if not isinstance(model, tuple):
+                model = model(data, **params)
+                if isinstance(model, DMmodel):
+                    data = model.run()
+                elif isinstance(model, MLmodel):
+                    model.fit()
+                    data = model.predict()
+            else:
+                task, model = model
+                task = task.create(data, model, **params)
+                data = task.run()
+        return data

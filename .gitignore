@@ -89,11 +89,17 @@ celerybeat-schedule
 # Environments
 .env
 .venv
+.virtual_documents
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Git
+.git
+
+.idea
 
 # Spyder project settings
 .spyderproject
@@ -111,3 +117,5 @@ venv.bak/
 temp
 outputData
 output
+
+
