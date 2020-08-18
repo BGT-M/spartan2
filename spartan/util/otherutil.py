@@ -18,6 +18,11 @@ class RectHistogram:
     xscale = 'log'
     yscale = 'log'
     gridsize = 200
+    H = []
+    xedges = []
+    yedges = []
+    xs = []
+    ys = []
 
     def __init__(self, xscale='log', yscale='log', gridsize=200):
         self.xscale = xscale
@@ -28,6 +33,9 @@ class RectHistogram:
              suptitle='Rectangle binning points', xlabel='', ylabel=''):
         xs = np.array(xs) if type(xs) is list else xs
         ys = np.array(ys) if type(ys) is list else ys
+        self.xs = xs
+        self.ys = ys
+
         if self.xscale == 'log' and min(xs) <= 0:
             print('[Warning] logscale with nonpositive values in x coord')
             print('\tremove {} nonpositives'.format(len(np.argwhere(xs <= 0))))
@@ -72,6 +80,11 @@ class RectHistogram:
         The bin edges along the y axis.
         '''
         H, xedges, yedges, _ = plt.hist2d(xs, ys, bins=(x_space, y_space), cmin=1, norm=cnorm, cmap=plt.cm.jet)
+        
+        self.H = H
+        self.xedges = xedges
+        self.yedges = yedges
+        
         plt.xscale(self.xscale)
         plt.yscale(self.yscale)
 
@@ -87,19 +100,25 @@ class RectHistogram:
 
         if outfig is not None:
             fig.savefig(outfig)
-        return fig, H, xedges, yedges
+        return fig
 
-    def find_peak_rect(self, xs, ys, H, xedges, yedges, x, y, radius):
+    def find_peak_rect(self, x, y, radius):
         '''
         bi-dimensional array H: the number of samples of bins
         xedges: The bin edges along the first dimension
         yedges: The bin edges along the second dimension
-        return: the bin with the largest number of samples in the range of
+        return: coordinate pairs in the bin with the largest number of samples in the range of
                 horizontal axis: [x-radius, x+radius]
                 vertical axis: [y-radius, y+radius]
         '''
-        xs = np.array(xs) if type(xs) is list else xs
-        ys = np.array(ys) if type(ys) is list else ys
+        xs = self.xs
+        ys = self.ys
+        H = self.H
+        xedges = self.xedges
+        yedges = self.yedges
+
+        H[np.isnan(H)] = 0
+
         if self.xscale == 'log' and min(xs) <= 0:
             print('[Warning] logscale with nonpositive values in x coord')
             print('\tremove {} nonpositives'.format(len(np.argwhere(xs <= 0))))
