@@ -41,6 +41,8 @@ class RectHistogram:
             xs = xs[yg0]
             ys = ys[yg0]
 
+        fig = plt.figure()
+
         # color scale
         cnorm = matplotlib.colors.LogNorm() if colorscale else matplotlib.colors.Normalize()
         suptitle = suptitle + ' with a log color scale' if colorscale else suptitle
@@ -69,7 +71,7 @@ class RectHistogram:
         yedges: 1D array
         The bin edges along the y axis.
         '''
-        H, xedges, yedges, fig = plt.hist2d(xs, ys, bins=(x_space, y_space), cmin=1, norm=cnorm, cmap=plt.cm.jet)
+        H, xedges, yedges, _ = plt.hist2d(xs, ys, bins=(x_space, y_space), cmin=1, norm=cnorm, cmap=plt.cm.jet)
         plt.xscale(self.xscale)
         plt.yscale(self.yscale)
 
