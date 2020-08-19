@@ -12,7 +12,6 @@ from . import STensor, DTensor
 import pandas as pd
 import numpy as np
 
-
 class TensorData:
     def __init__(self, data: pd.DataFrame):
         self.data = data

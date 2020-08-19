@@ -13,7 +13,7 @@ from .ioutil import loadTensor, File, loadTensorStream, loadFile2Dict, loadHisto
 from .basicutil import set_trace, TimeMapper, StringMapper,\
     IntMapper, ScoreMapper, DenseIntMapper
 from .drawutil import plot_graph, plot_timeseries, drawEigenPulse, plot, histogram_viz, clusters_viz, drawHexbin, drawRectbin
-from .otherutil import RectHistogram
+from .rect_histogram import RectHistogram
 
 MODEL_PATH = 'spartan.model'
 
