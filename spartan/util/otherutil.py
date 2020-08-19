@@ -14,10 +14,21 @@ class RectHistogram:
                the rectangles are square. Alternatively, gridsize can be
                a tuple with two elements specifying the number of rectangles in the
                x-direction and the y-direction.
+        H: 2D array
+        The bi-dimensional histogram of samples x and y. 
+        xedges: 1D array
+        The bin edges along the x axis.
+        yedges: 1D array
+        The bin edges along the y axis.
        '''
     xscale = 'log'
     yscale = 'log'
     gridsize = 200
+    H = []
+    xedges = []
+    yedges = []
+    xs = []
+    ys = []
 
     def __init__(self, xscale='log', yscale='log', gridsize=200):
         self.xscale = xscale
@@ -28,6 +39,9 @@ class RectHistogram:
              suptitle='Rectangle binning points', xlabel='', ylabel=''):
         xs = np.array(xs) if type(xs) is list else xs
         ys = np.array(ys) if type(ys) is list else ys
+        self.xs = xs
+        self.ys = ys
+
         if self.xscale == 'log' and min(xs) <= 0:
             print('[Warning] logscale with nonpositive values in x coord')
             print('\tremove {} nonpositives'.format(len(np.argwhere(xs <= 0))))
@@ -40,6 +54,8 @@ class RectHistogram:
             yg0 = ys > 0
             xs = xs[yg0]
             ys = ys[yg0]
+
+        fig = plt.figure()
 
         # color scale
         cnorm = matplotlib.colors.LogNorm() if colorscale else matplotlib.colors.Normalize()
@@ -69,7 +85,12 @@ class RectHistogram:
         yedges: 1D array
         The bin edges along the y axis.
         '''
-        H, xedges, yedges, fig = plt.hist2d(xs, ys, bins=(x_space, y_space), cmin=1, norm=cnorm, cmap=plt.cm.jet)
+        H, xedges, yedges, _ = plt.hist2d(xs, ys, bins=(x_space, y_space), cmin=1, norm=cnorm, cmap=plt.cm.jet)
+        
+        self.H = H
+        self.xedges = xedges
+        self.yedges = yedges
+        
         plt.xscale(self.xscale)
         plt.yscale(self.yscale)
 
@@ -85,19 +106,22 @@ class RectHistogram:
 
         if outfig is not None:
             fig.savefig(outfig)
-        return fig, H, xedges, yedges
-
-    def find_peak_rect(self, xs, ys, H, xedges, yedges, x, y, radius):
+        return fig
+    
+    def find_peak_range(self, x, y, radius):
         '''
-        bi-dimensional array H: the number of samples of bins
-        xedges: The bin edges along the first dimension
-        yedges: The bin edges along the second dimension
-        return: the bin with the largest number of samples in the range of
+        return: the range of coordinates which bin with the largest number of samples in the range of
                 horizontal axis: [x-radius, x+radius]
                 vertical axis: [y-radius, y+radius]
         '''
-        xs = np.array(xs) if type(xs) is list else xs
-        ys = np.array(ys) if type(ys) is list else ys
+        xs = self.xs
+        ys = self.ys
+        H = self.H
+        xedges = self.xedges
+        yedges = self.yedges
+
+        H[np.isnan(H)] = 0
+
         if self.xscale == 'log' and min(xs) <= 0:
             print('[Warning] logscale with nonpositive values in x coord')
             print('\tremove {} nonpositives'.format(len(np.argwhere(xs <= 0))))
@@ -152,7 +176,20 @@ class RectHistogram:
         'the range of max bin'
         binxst, binxend, binyst, binyend = xedges[xbinid], xedges[xbinid + 1], \
                                            yedges[ybinid], yedges[ybinid + 1]
-        'return coordinate pairs in the max bin'
+        return (binxst, binxend), (binyst, binyend)
+    
+    
+    
+    def find_peak_rect(self, binx: tuple, biny: tuple):
+        '''
+        binx: the range of max bin along the x axis.
+        biny: the range of max bin along the y axis.
+        return coordinate pairs in the max bin
+        '''
+        xs = self.xs
+        ys = self.ys
+        (binxst, binxend) = binx
+        (binyst, binyend) = biny
         xcoords = set(np.argwhere(xs >= binxst).T[0]) & set(np.argwhere(xs <= binxend).T[0])
         ycoords = set(np.argwhere(ys >= binyst).T[0]) & set(np.argwhere(ys <= binyend).T[0])
         pairids = list(xcoords & ycoords)
