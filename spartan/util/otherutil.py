@@ -14,6 +14,12 @@ class RectHistogram:
                the rectangles are square. Alternatively, gridsize can be
                a tuple with two elements specifying the number of rectangles in the
                x-direction and the y-direction.
+        H: 2D array
+        The bi-dimensional histogram of samples x and y. 
+        xedges: 1D array
+        The bin edges along the x axis.
+        yedges: 1D array
+        The bin edges along the y axis.
        '''
     xscale = 'log'
     yscale = 'log'
@@ -101,13 +107,10 @@ class RectHistogram:
         if outfig is not None:
             fig.savefig(outfig)
         return fig
-
-    def find_peak_rect(self, x, y, radius):
+    
+    def find_peak_range(self, x, y, radius):
         '''
-        bi-dimensional array H: the number of samples of bins
-        xedges: The bin edges along the first dimension
-        yedges: The bin edges along the second dimension
-        return: coordinate pairs in the bin with the largest number of samples in the range of
+        return: the range of coordinates which bin with the largest number of samples in the range of
                 horizontal axis: [x-radius, x+radius]
                 vertical axis: [y-radius, y+radius]
         '''
@@ -173,7 +176,20 @@ class RectHistogram:
         'the range of max bin'
         binxst, binxend, binyst, binyend = xedges[xbinid], xedges[xbinid + 1], \
                                            yedges[ybinid], yedges[ybinid + 1]
-        'return coordinate pairs in the max bin'
+        return (binxst, binxend), (binyst, binyend)
+    
+    
+    
+    def find_peak_rect(self, binx: tuple, biny: tuple):
+        '''
+        binx: the range of max bin along the x axis.
+        biny: the range of max bin along the y axis.
+        return coordinate pairs in the max bin
+        '''
+        xs = self.xs
+        ys = self.ys
+        (binxst, binxend) = binx
+        (binyst, binyend) = biny
         xcoords = set(np.argwhere(xs >= binxst).T[0]) & set(np.argwhere(xs <= binxend).T[0])
         ycoords = set(np.argwhere(ys >= binyst).T[0]) & set(np.argwhere(ys <= binyend).T[0])
         pairids = list(xcoords & ycoords)
