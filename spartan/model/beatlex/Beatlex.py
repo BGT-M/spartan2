@@ -90,9 +90,14 @@ class BeatLex(DMmodel):
                 best_prefix_k = np.where(good_prefix_costs == min(good_prefix_costs))[0]
                 best_prefix_length = good_prefix_lengths[best_prefix_k]
                 print('best prefix found {} {} {}'.format(min_k, best_cost, best_prefix_cost))
-                if best_prefix_cost < best_cost:
+                end_pos_list.append(self.data_mat.shape[1])
+                if best_prefix_cost > best_cost and len(self.models) < self.max_vocab:
+                    print('ending with new cluster')
+                    self.models.append(np.array(self.data_mat[:, start_pos_list[-1]:end_pos_list[-1]]))
+                    idx.append(num_models)
+                    break
+                else:
                     print('ending with prefix {}'.format(best_prefix_k))
-                    end_pos_list.append(self.data_mat.shape[1])
                     idx.append(best_prefix_k[0])
                     break
             print('cluster cost {}'.format(ave_costs[:, best_size]))
