@@ -22,7 +22,7 @@ def plot(model: "Model", *args, **kwargs):
         _model.BeatGAN: __plot_beatgan
     }
     if function_dict.__contains__(model):
-        return function_dict[model](*args, **kwargs)
+        function_dict[model](*args, **kwargs)
     else:
         raise Exception(f"Draw functions of model {model} not existed")
 
@@ -95,7 +95,7 @@ def __plot_timeseries(plt, series: Timeseries, chosen_labels: list = None):
         sub_dimension = len(chosen_labels)
         actual_dimension = 1
         fig, ax = plt.subplots(sub_dimension, 1, sharex=True)
-        if type(ax) is not list:
+        if type(ax) is not np.ndarray:
             ax = [ax]
         for chosen_label in chosen_labels:
             for label in chosen_label:
