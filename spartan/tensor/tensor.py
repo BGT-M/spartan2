@@ -11,6 +11,8 @@ from ..util.basicutil import set_trace
 from . import STensor, DTensor
 import pandas as pd
 import numpy as np
+from joblib import Parallel, delayed
+
 
 class TensorData:
     def __init__(self, data: pd.DataFrame):
@@ -54,7 +56,6 @@ class TensorData:
             if i in mappers:
                 colind = mappers[i].map(self.data.iloc[:, i])
                 attr.iloc[:, i] = colind
-
         return attr.to_numpy(), value.to_numpy()
 
     def log_to_time(self, time_col: int or list = 0, group_col: int or list = 1, val_col: int or list = None, format: str = '%Y-%m-%d %H:%M:%S', bins: int = 10, range: tuple = None, inplace: bool = False):
@@ -67,20 +68,18 @@ class TensorData:
 
         group_col : int or list, optional
             positions of columns used to group data, default is 1
-        
+
         val_col : int or list, optional
             positions of columns to be aggregated, default is None, will aggregate all but time col and group col
-        
+
         format : str, optional
             time format, default is '%Y-%m-%d %H:%M:%S'
-        
+
         bins : int, optional
             number of equal width bins in the given range, default is 10
-        
-
         """
         import time
-        _data = self.data.copy()
+        _data = self.data
         if type(group_col) != list:
             group_col = [group_col]
         if val_col is not None:
@@ -90,9 +89,9 @@ class TensorData:
             val_col = [x for x in _data.columns if x not in group_col + [time_col]]
         _data = _data.iloc[:, [time_col] + group_col + val_col]
         _data.iloc[:, time_col] = _data.iloc[:, time_col].apply(lambda x: time.mktime(time.strptime(x, '%Y-%m-%d %H:%M:%S')))
-        if len(range) == 2:
+        if range is not None and len(range) == 2:
             _start, _end = range
-            _data = _data.iloc[_start:_end, :].copy()
+            _data = _data.iloc[_start:_end, :]
         _min = _data.iloc[:, time_col].min()
         _max = _data.iloc[:, time_col].max()
         _interval = (_max - _min) / (bins)

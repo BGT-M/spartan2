@@ -139,7 +139,9 @@ class NPFile(File):
         if self.filename.endswith('.npy'):
             df = pd.DataFrame(f)
         elif self.filename.endswith('.npz'):
-            df = pd.DataFrame(f.values())
+            df = pd.DataFrame()
+            for k in f.keys():
+                df = pd.concat([df, pd.DataFrame(f[k])])
         else:
             df = None
         if not self.idxtypes is None:
@@ -190,8 +192,7 @@ def _read_data(filename: str, idxtypes: list, **kwargs) -> object:
             if os.path.isfile(filename + _postfix):
                 _filename = filename + _postfix
                 return _read_data(_filename, idxtypes, **kwargs)
-        raise FileNotFoundError(
-            f"Error: Can not find file {filename}, please check the file path!\n")
+        _class = CSVFile
     _obj = _class(filename, 'r', idxtypes)
     _data = _obj._read(**kwargs)
     return _data
@@ -269,7 +270,6 @@ def loadTensor(path: str,  col_idx: list = None, col_types: list = None, **kwarg
 
     import glob
     files = glob.glob(path)
-
     if col_types is None:
         if col_idx is None:
             idxtypes = None
