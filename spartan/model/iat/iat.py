@@ -10,6 +10,8 @@ class IAT(Generalmodel):
     iatpair_user = {}  # key:(iat1, iat2) list; value: user
     iatpaircount = {}  # key:(iat1, iat2); value:count
     iatcount = {}  # key:iat; value:count
+    iatprob = {} # key:iat; value:probability
+    usrdict = {} # key:usr, value:frequency
 
     def __init__(self, aggiat={}, user_iatpair={}, iatpair_user={}, iatpaircount={}, iatcount={}):
         self.aggiat = aggiat
@@ -31,7 +33,7 @@ class IAT(Generalmodel):
         saveDictListData(self.aggiat, outfile)
 
     def load_aggiat(self, infile):
-        self.aggiat = loadDictListData(infile, ktype=str, vtype=int)
+        self.aggiat = loadDictListData(infile, ktype=int, vtype=int)
     
     def get_iatpair_user_dict(self):
         'construct dict for iat pair to keys'
@@ -65,6 +67,9 @@ class IAT(Generalmodel):
                     self.iatcount[iat] = 0
                 self.iatcount[iat] += 1
 
+        allcount = sum(self.iatcount.values()) # total sum of iat
+        self.iatprob = {iat: self.iatcount[iat]/allcount for iat in self.iatcount.keys()} #cal probability of iat
+
     def caliatpaircount(self):
         for k, lst in self.aggiat.items():
             for i in range(len(lst) - 1):
@@ -82,30 +87,34 @@ class IAT(Generalmodel):
                 usrset.update(usrlist)
         return list(usrset)
     
-    def find_iatpair_user_ordered(self, iatpairs, k=-1):
-        '''find Top-K users that have pairs in iatpairs ordered by decreasing frequency
+    def get_user_dict(self, iatpairs):
+        '''get users dict that have pairs in iatpairs ordered by decreasing frequency
         Parameters:
         --------
         :param iatpairs: dict
             iat pair returned by find_peak_rect function in RectHistogram class
-        :param k: int
-            default: -1 , means return all user
-            else return Top-k user
         '''
-        self.get_iatpair_user_dict()
-        usrdict = {} # {key:usr, value:frequency}
         for pair in iatpairs:
             if pair in self.iatpair_user:
                 usrlist = self.iatpair_user[pair]
                 for usr in usrlist:
-                    if usr in usrdict:
-                        usrdict[usr] += 1
+                    if usr in self.usrdict:
+                        self.usrdict[usr] += 1
                     else:
-                        usrdict[usr] = 1
-        usrdict = sorted(usrdict.items(), key=lambda item:item[1], reverse=True)
-        usrlist = [usrcountpair[0] for usrcountpair in usrdict[:k]] 
+                        self.usrdict[usr] = 1
+        self.usrdict = sorted(self.usrdict.items(), key=lambda item:item[1], reverse=True)
+    
+    def find_topk_user(self, k=-1):
+        '''find Top-K users that have pairs in iatpairs ordered by decreasing frequency
+        Parameters:
+        --------
+        :param k: int
+            default: -1 , means return all user
+            else return Top-k user
+        '''
+        usrlist = [usrcountpair[0] for usrcountpair in self.usrdict[:k]] 
         return usrlist
-
+        
     def drawIatPdf(self, usrlist: list, outfig=None):
         '''Plot Iat-Pdf line
         Parameters:
@@ -115,21 +124,16 @@ class IAT(Generalmodel):
         :param outfig: str
             fig save path
         '''
-        self.caliatcount()
-
         iatset = set()
         for usrid in usrlist:
             iatset.update(self.aggiat[usrid])
         iatlist = list(iatset)
         iatlist.sort()
 
-        allcount = sum(self.iatcount.values()) # total sum of iat
-        iatprob = {iat: self.iatcount[iat]/allcount for iat in self.iatcount.keys()}
-
         import matplotlib.pyplot as plt
         fig = plt.figure()
         xs = iatlist
-        ys = [iatprob[iat] for iat in iatlist]
+        ys = [self.iatprob[iat] for iat in iatlist]
         plt.plot(xs, ys, 'b')
         plt.xscale('log')
         plt.xlabel('IAT(seconds)')
