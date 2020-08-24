@@ -4,11 +4,10 @@
 
 import setuptools
 
-#NAME = 'spartan2-pkg-ictetc'
 NAME = 'spartan2'
-VERSION = '0.0a0.dev12'
+VERSION = '0.0.1'
 DESCRIPTION = 'collection of data mining algorithms on big graphs and time series'
-URL = 'https://github.com/shenghua-liu/spartan2'
+URL = 'https://github.com/BGT-M/spartan2'
 AUTHOR = 'Shenghua Liu, Houquan Zhou, Quan Ding, Jiabao Zhang, Xin Zhao, Siwei Zeng,etc'
 EMAIL = 'liu.shengh@foxmail.com'
 
@@ -26,6 +25,8 @@ REQUIRED_PACKAGES = [
       'pomegranate',
       'scikit-learn',
       'scikit-image',
+      'sparse',
+      'ipdb',
 ]
 
 setuptools.setup(name=NAME,

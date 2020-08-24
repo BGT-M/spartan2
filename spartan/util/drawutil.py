@@ -194,7 +194,6 @@ def __plot_beatgan(input, output, heat):
     fig, ax = plt.subplots(2, 1, sharex=True, figsize=(6, 6), gridspec_kw={'height_ratios': [6, 1]})
     ax[0].plot(x_points, sig_in, 'k-', linewidth=2.5, label="input signal")
     ax[0].plot(x_points, sig_out, 'k--', linewidth=2.5, label="output signal")
-    ax[0].set_yticks([])
     ax[0].legend(loc="upper right")
     heat = (sig_out-sig_in)**2
     heat_norm = (heat-min_heat)/(max_heat-min_heat)

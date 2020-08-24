@@ -35,7 +35,7 @@ conda activate spartan
 3. If you are a normal **USER**, download the package from pip
 
 ```bash
-pip install -i https://test.pypi.org/simple/ spartan2
+pip install spartan2
 ```
 
 4. If you are a **DEVELOPER** and want to **contribute** to the project, please
@@ -93,23 +93,30 @@ python -c 'import site; print(site.getsitepackages())'
 - click to see each jupyter notebook (xxx.ipynb) demo for each algorithm, or see the following guidline.
 
 
+In the future, docs of code can be read from [readthedocs](https://spartan2.readthedocs.io/en/latest/).
+
 ## Live-tutorials: Table of Contents
 
-**Part 1: Basic**
-* [Quick start](./live-tutorials/quick_start.ipynb)
+All contents are collected in another repository [spartan-tutorials](https://github.com/BGT-M/spartan2-tutorials), you can clone that repository to get all the notebooks and example data to run on your own.
 
+**Part 1: Basic**
+* [Quick start](https://github.com/BGT-M/spartan2-tutorials/blob/master/quick_start.ipynb)
+* [Tensor usage](https://github.com/BGT-M/spartan2-tutorials/blob/master/tensor_usage.ipynb)
 
 **Part 2: Big Graphs**
-* [Graph start](./live-tutorials/graph_start.ipynb)
-* [SpokEn](./live-tutorials/SVD_demo.ipynb): an implementation of [EigenSpokes](http://www.cs.cmu.edu/~christos/PUBLICATIONS/pakdd10-eigenspokes.pdf) by SVD.
-* [Eaglemine](./live-tutorials/Eaglemine_demo.ipynb)
-* [Fraudar](./live-tutorials/Fraudar_demo.ipynb): a wrapper of [Fraudar](https://bhooi.github.io/projects/fraudar/index.html) algorithm.
-* [Holoscope](./live-tutorials/Holoscope.ipynb): based on [HoloScope](https://shenghua-liu.github.io/papers/cikm2017-holoscope.pdf)
+* [Graph start](https://github.com/BGT-M/spartan2-tutorials/blob/master/graph_start.ipynb)
+* [SpokEn](https://github.com/BGT-M/spartan2-tutorials/blob/master/SVD_demo.ipynb): an implementation of [EigenSpokes](http://www.cs.cmu.edu/~christos/PUBLICATIONS/pakdd10-eigenspokes.pdf) by SVD.
+* [Eaglemine](https://github.com/BGT-M/spartan2-tutorials/blob/master/EagleMine.ipynb)
+* [Fraudar](https://github.com/BGT-M/spartan2-tutorials/blob/master/Fraudar_demo.ipynb): a wrapper of [Fraudar](https://bhooi.github.io/projects/fraudar/index.html) algorithm.
+* [Holoscope](https://github.com/BGT-M/spartan2-tutorials/blob/master/Holoscope.ipynb): based on [HoloScope](https://shenghua-liu.github.io/papers/cikm2017-holoscope.pdf)
+* [EigenPulse](https://github.com/BGT-M/spartan2-tutorials/blob/master/EigenPulse.ipynb)
+* [Summarization](https://github.com/BGT-M/spartan2-tutorials/blob/master/Summarization.ipynb)
 
 **Part 3: Time Series**
-* [Time Series start](./live-tutorials/timeseries_start.ipynb)
-* [Basic operations](./live-tutorials/TimeseriesData_demo%20-%20II.ipynb)
-* [Beatlex](./live-tutorials/Beatlex_demo.ipynb): based on [BeatLex](https://shenghua-liu.github.io/papers/pkdd2017-beatlex.pdf)
+* [Time Series start](https://github.com/BGT-M/spartan2-tutorials/blob/master/timeseries_start.ipynb)
+* [Other operations](https://github.com/BGT-M/spartan2-tutorials/blob/master/Log2Timeseries.ipynb)
+* [Beatlex](https://github.com/BGT-M/spartan2-tutorials/blob/master/Beatlex.ipynb): based on [BeatLex](https://shenghua-liu.github.io/papers/pkdd2017-beatlex.pdf)
+* [BeatGAN](https://github.com/BGT-M/spartan2-tutorials/blob/master/BeatGAN.ipynb): based on [BeatGAN](https://www.ijcai.org/Proceedings/2019/0616.pdf)
 
 ## References
 1. Shenghua Liu, Bryan Hooi, Christos Faloutsos, A Contrast Metric for Fraud Detection in Rich Graphs, IEEE Transactions on Knowledge and Data Engineering (TKDE), Vol 31, Issue 12, Dec. 1 2019, pp. 2235-2248.
@@ -118,3 +125,4 @@ python -c 'import site; print(site.getsitepackages())'
 3. Wenjie Feng, Shenghua Liu, Christos Faloutsos, Bryan Hooi, Huawei Shen, Xueqi Cheng, EagleMine: Vision-Guided Mining in Large Graphs, ACM SIGKDD 2018, ODD Workshop on Outlier Detection De-constructed, August 20th, London UK.
 4. Bryan Hooi, Shenghua Liu, Asim Smailagic, and Christos Faloutsos, “BEATLEX: Summarizing and Forecasting Time Series with Patterns,” The European Conference on Machine Learning & Principles and Practice of Knowledge Discovery in Databases (ECML-PKDD), Skopje, Macedonia, 2017.
 5. Hooi, Bryan, Hyun Ah Song, Alex Beutel, Neil Shah, Kijung Shin, and Christos Faloutsos. "Fraudar: Bounding graph fraud in the face of camouflage." In Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, pp. 895-904. 2016.
+6. Zhou, Bin, Shenghua Liu, Bryan Hooi, Xueqi Cheng, and Jing Ye. "BeatGAN: Anomalous Rhythm Detection using Adversarially Generated Time Series." In IJCAI, pp. 4433-4439. 2019.

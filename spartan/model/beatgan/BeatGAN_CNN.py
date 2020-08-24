@@ -160,7 +160,7 @@ class BeatGAN(MLmodel):
 
         self.fix_input = None
 
-    def train(self):
+    def train(self, data=None):
         self.generator.apply(weights_init)
         self.discriminator.apply(weights_init)
         self.generator.train()
@@ -261,13 +261,18 @@ class BeatGAN(MLmodel):
                 self.discriminator.apply(weights_init)
                 print('Reloading dis net')
 
-    def test(self, intrain=False, scale=True):
+    def test(self, data=None, intrain=False, scale=True):
         # if not intrain:
         #     self.load_model(self.out_dir, "cur_w.pth")
         self.generator.eval()
         self.discriminator.eval()
 
-        rec_diff = self.get_diff(self.dataloader)
+        if data is None:
+            dataloader = self.dataloader
+        else:
+            dataloader = preprocess_data(data, labels=None, param={}, is_train=False)
+        
+        rec_diff = self.get_diff(dataloader)
         # print(rec_diff)
         return rec_diff
 
@@ -364,12 +369,12 @@ class BeatGAN_CNN(BeatGAN):
         if kwargs.__contains__("model_path"):
             self.load_model_from(kwargs["model_path"])
 
-    def fit(self):
-        return self.train()
+    def fit(self, data=None):
+        return self.train(data)
 
-    def predict(self):
-        return self.test()
+    def predict(self, data=None):
+        return self.test(data)
 
-    def train(self):
-        super().train()
+    def train(self, data=None):
+        super().train(data)
         return self
