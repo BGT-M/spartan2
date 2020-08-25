@@ -5,7 +5,7 @@
 import setuptools
 
 NAME = 'spartan2'
-VERSION = '0.0.1'
+VERSION = '0.0.2'
 DESCRIPTION = 'collection of data mining algorithms on big graphs and time series'
 URL = 'https://github.com/BGT-M/spartan2'
 AUTHOR = 'Shenghua Liu, Houquan Zhou, Quan Ding, Jiabao Zhang, Xin Zhao, Siwei Zeng,etc'
