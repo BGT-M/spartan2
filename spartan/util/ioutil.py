@@ -7,6 +7,7 @@
 
 # here put the import lib
 
+import gzip
 import os
 import sys
 import pandas as pd
@@ -69,6 +70,29 @@ class File():
         pass
 
 
+class GZipFile(File):
+    def _open(self, **kwargs):
+        f = gzip.open(self.filename, self.mode)
+        pos = 0
+        cur_line = f.readline()
+        while cur_line.startswith(b"#"):
+            pos = f.tell()
+            cur_line = f.readline()
+        f.seek(pos)
+        _f = open(self.filename, self.mode)
+        _f.seek(pos)
+        fin = pd.read_csv(f, sep=self.sep, **kwargs)
+        column_names = fin.columns
+        self.dtypes = {}
+        if self.idxtypes is not None:
+            for idx, typex in self.idxtypes:
+                self.dtypes[column_names[idx]] = self.transfer_type(typex)
+            fin = pd.read_csv(_f, dtype=self.dtypes, sep=self.sep, **kwargs)
+        else:
+            fin = pd.read_csv(_f, sep=self.sep, **kwargs)
+        return fin
+
+
 class TensorFile(File):
     def _open(self, **kwargs):
         if 'r' not in self.mode:
@@ -76,7 +100,7 @@ class TensorFile(File):
         f = open(self.filename, self.mode)
         pos = 0
         cur_line = f.readline()
-        while cur_line.startswith("#"):
+        while cur_line.startswith('#'):
             pos = f.tell()
             cur_line = f.readline()
         f.seek(pos)
@@ -136,9 +160,9 @@ class NPFile(File):
 
     def _read(self, **kwargs):
         f = self._open(**kwargs)
-        if self.filename.endswith('.npy'):
+        if self.filename.endswith(".npy"):
             df = pd.DataFrame(f)
-        elif self.filename.endswith('.npz'):
+        elif self.filename.endswith(".npz"):
             df = pd.DataFrame()
             for k in f.keys():
                 df = pd.concat([df, pd.DataFrame(f[k])])
@@ -179,26 +203,27 @@ def _read_data(filename: str, idxtypes: list, **kwargs) -> object:
 
     _class = None
     _postfix = os.path.splitext(filename)[-1]
+    mode = 'r'
     if _postfix == ".csv":
         _class = CSVFile
     elif _postfix == ".tensor":
         _class = TensorFile
-    elif _postfix in ['.gz', '.bz2', '.zip', '.xz']:
-        _class = CSVFile
-    elif _postfix in ['.npy', '.npz']:
+    elif _postfix in [".npy", ".npz"]:
         _class = NPFile
+    elif _postfix in [".gz", ".bz2", ".zip", ".xz"]:
+        _class = CSVFile
     else:
-        for _postfix in [".csv", ".tensor", '.gz', '.bz2', '.zip', '.xz', '.npy', '.npz']:
+        for _postfix in [".csv", ".tensor", ".npy", ".npz", ".gz", ".bz2", ".zip", ".xz"]:
             if os.path.isfile(filename + _postfix):
                 _filename = filename + _postfix
                 return _read_data(_filename, idxtypes, **kwargs)
         _class = CSVFile
-    _obj = _class(filename, 'r', idxtypes)
+    _obj = _class(filename, mode, idxtypes)
     _data = _obj._read(**kwargs)
     return _data
 
 
-def _check_compress_file(path: str, cformat=['.gz', '.bz2', '.zip', '.xz']):
+def _check_compress_file(path: str, cformat=[".gz", ".bz2", ".zip", ".xz"]):
     valpath = None
     if os.path.isfile(path):
         valpath = path
@@ -212,6 +237,7 @@ def _check_compress_file(path: str, cformat=['.gz', '.bz2', '.zip', '.xz']):
     else:
         raise FileNotFoundError(f"{path} cannot be found.")
 
+
 def _aggregate(data_list):
     if len(data_list) < 1:
         raise Exception("Empty list of data")
@@ -220,10 +246,14 @@ def _aggregate(data_list):
     else:
         return pd.concat(data_list, axis=0, ignore_index=True)
 
-def _isgzfile( filename ):
+
+def _isgzfile(filename):
     return filename.endswith(".gz")
 
+
 "gzip file must be read and write in binary/bytes"
+
+
 def _myopenfile(fnm, mode):
     f = None
     if 'w' in mode:
@@ -242,7 +272,7 @@ def _myopenfile(fnm, mode):
             else:
                 import gzip
                 mode = 'rb'
-                f = gzip.open( fnm, mode )
+                f = gzip.open(fnm, mode)
         elif os.path.isfile(fnm+'.gz'):
             'file @fnm does not exists, use fnm.gz instead'
             print(
@@ -255,6 +285,7 @@ def _myopenfile(fnm, mode):
             print('file: {} or its zip file does NOT exist'.format(fnm))
             sys.exit(1)
     return f
+
 
 def loadTensor(path: str,  col_idx: list = None, col_types: list = None, **kwargs):
     '''
@@ -322,7 +353,8 @@ def loadTensorStream(filename: str, col_idx: list = None, col_types: list = None
         if has_header:
             next(f)
     else:
-        raise FileNotFoundError(f"Error: Can not find file {filename}, please check the file!\n")
+        raise FileNotFoundError(
+            f"Error: Can not find file {filename}, please check the file!\n")
     return f, idxtypes
 
 
@@ -357,7 +389,8 @@ def loadFile2Dict(infn: str, n_keyelems: int = 1, key_elem_type: type = int,
             toks = line.strip().split(delimiter)
             n_elems = len(toks)
             if n_elems <= 1:
-                raise ValueError("Invalid data in input file, which should contain two elements at least")
+                raise ValueError(
+                    "Invalid data in input file, which should contain two elements at least")
             if n_keyelems > 1:
                 key = tuple(map(key_elem_type, toks[:n_keyelems]))
                 if n_elems - n_keyelems > 1:
@@ -372,7 +405,8 @@ def loadFile2Dict(infn: str, n_keyelems: int = 1, key_elem_type: type = int,
                     val = value_elem_type(toks[1])
                 data[key_elem_type(toks[0])] = val
             else:
-                raise ValueError("Invalid parameter 'n_keyelems', which should be [{}, {}]".format(1, n_elems - 1))
+                raise ValueError(
+                    "Invalid parameter 'n_keyelems', which should be [{}, {}]".format(1, n_elems - 1))
         fp.close()
     return data
 
@@ -384,8 +418,8 @@ def loadHistogram(infn: str, comments: str = '#', delimiter: str = ','):
     :param infn: str
         The input histogram file with following format:
          the 1st three lines started with ‘#’ are comments for some basic information, that is, 1st line shows the shape of 2-dimensional histogram;
-         the 2nd line gives the corresponding real coordinate of each cell coordinate x, and 
-         the 3rd line is the corresponding real coordinate of each cell coordinate y, these two lines are used for visualizing the histogram. 
+         the 2nd line gives the corresponding real coordinate of each cell coordinate x, and
+         the 3rd line is the corresponding real coordinate of each cell coordinate y, these two lines are used for visualizing the histogram.
          Then the followed lines are non-zero data records of the histogram.
     :param comments: str
             The comments (start character) of inputs.
@@ -400,13 +434,15 @@ def loadHistogram(infn: str, comments: str = '#', delimiter: str = ','):
     with open(infn, 'r') as fp:
         line_1st = fp.readline().strip()
         if not line_1st.startswith(comments):
-            raise IOError("Invalid input histogram file, which should start with {}".format(comments))
+            raise IOError(
+                "Invalid input histogram file, which should start with {}".format(comments))
         shape = list(map(int, line_1st[1:].split(delimiter)))
 
         for m in range(len(shape)):
             line_m = fp.readline().strip()
             if not line_m.startswith(comments):
-                raise IOError("Invalid input histogram file, which should start with {}".format(comments))
+                raise IOError(
+                    "Invalid input histogram file, which should start with {}".format(comments))
             ticks_m = list(map(float, line_m[1:].split(delimiter)))
             ticks_dims.append(ticks_m)
 
@@ -419,6 +455,7 @@ def loadHistogram(infn: str, comments: str = '#', delimiter: str = ','):
 
     return np.array(shape, int), ticks_dims, np.array(hist_arr, int)
 
+
 def saveDictListData(dictls, outdata, delim=':', mode='w'):
     if _isgzfile(outdata):
         'possible mode is ab'
@@ -427,24 +464,24 @@ def saveDictListData(dictls, outdata, delim=':', mode='w'):
     ib = True if 'b' in mode else False
 
     with _myopenfile(outdata, mode) as fw:
-        i=0
+        i = 0
         for k, l in dictls.items():
-            if not isinstance(l,(list, np.ndarray)):
+            if not isinstance(l, (list, np.ndarray)):
                 print("This is not a dict of value list.", type(l))
                 break
-            if len(l)<1:
+            if len(l) < 1:
                 continue
             k = k.decode() if isinstance(k, bytes) else str(k)
-            ostr = "{}{}".format(k,delim)
-            if len(l)<1:
+            ostr = "{}{}".format(k, delim)
+            if len(l) < 1:
                 i += 1
                 continue
-            l = [ x.decode() if isinstance(x,bytes) else str(x) for x in l ]
+            l = [x.decode() if isinstance(x, bytes) else str(x) for x in l]
             ostr = ostr + " ".join(l) + '\n'
             fw.write(ostr.encode() if ib else ostr)
         fw.close()
         if i > 0:
-            print( "Warn: total {} empty dict lists are removed".format(str(i)) )
+            print("Warn: total {} empty dict lists are removed".format(str(i)))
 
 
 def loadDictListData(indata, ktype=str, vtype=str, delim=':', mode='r'):
@@ -453,17 +490,17 @@ def loadDictListData(indata, ktype=str, vtype=str, delim=':', mode='r'):
     # bytes
     ib = True if 'b' in mode else False
 
-    dictls={}
+    dictls = {}
     with _myopenfile(indata, mode) as fr:
         for line in fr:
             line = line.decode() if ib else line
             line = line.strip().split(delim)
-            lst=[]
+            lst = []
             for e in line[1].strip().split(' '):
                 if vtype == int:
                     lst.append(vtype(float(e)))
                 else:
                     lst.append(vtype(e))
-            dictls[ktype(line[0].strip())]=lst
+            dictls[ktype(line[0].strip())] = lst
         fr.close()
     return dictls
