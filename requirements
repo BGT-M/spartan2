@@ -6,6 +6,5 @@ statsmodels
 pomegranate
 scikit-learn
 scikit-image
-pytorch
-sparse
+sparse>=0.9.1
 ipdb

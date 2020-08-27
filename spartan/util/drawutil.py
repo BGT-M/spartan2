@@ -84,7 +84,7 @@ def __plot_timeseries(plt, series: Timeseries, chosen_labels: list = None):
         sub_dimension = series.dimension
         actual_dimension = 1
         fig, ax = plt.subplots(sub_dimension, 1, sharex=True)
-        if type(ax) is not list:
+        if type(ax) is not np.ndarray:
             ax = [ax]
         for index, label in enumerate(series.labels):
             ax[index].set_title(label)
