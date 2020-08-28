@@ -38,11 +38,15 @@ class TensorData:
 
         for i in attr.columns:
             if i in mappers:
-                colind = mappers[i].map(self.data.iloc[:, i])
-                attr.iloc[:, i] = colind
-
-        ##assert(attr.dtypes[0] is int and  attr.dtypes[1] is int)
+                if isinstance(i, str):
+                    colind = mappers[i].map(self.data.loc[:,i])
+                    attr.loc[:,i] = colind
+                else:
+                    colind = mappers[i].map(self.data.iloc[:, i])
+                    attr.iloc[:, i] = colind
+        attr.astype('int')
         return STensor((attr.to_numpy().T, value.to_numpy()))
+        
 
     def do_map(self, hasvalue=True, mappers={}):
         if hasvalue:
