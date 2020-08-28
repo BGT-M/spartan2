@@ -42,6 +42,7 @@ EagleMine = partial(__call__, MODEL_PATH + ".eaglemine")
 EigenPulse = partial(__call__, MODEL_PATH + ".eigenpulse")
 Eigenspokes = partial(__call__, MODEL_PATH + ".eigenspokes")
 HoloScope = partial(__call__, MODEL_PATH + ".holoscope")
+FlowScope = partial(__call__, MODEL_PATH + ".flowscope")
 RPeak = partial(__call__, MODEL_PATH + ".rpeak")
 Summarize = partial(__call__, MODEL_PATH + ".summarize")
 IAT = partial(__call__, MODEL_PATH + ".iat")
@@ -55,6 +56,7 @@ __all__ = [
     'EigenPulse',
     'Eigenspokes',
     'HoloScope',
+    'FlowScope',
     'RPeak',
     'Summarize',
     'IAT',
