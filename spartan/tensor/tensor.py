@@ -17,7 +17,7 @@ from joblib import Parallel, delayed
 class TensorData:
     def __init__(self, data: pd.DataFrame):
         self.data = data
-        self.labels = data.columns[1:]
+        self.labels = data.columns
 
     def toDTensor(self, hastticks: bool = True):
         if hastticks:

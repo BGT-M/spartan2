@@ -53,11 +53,11 @@ class Timeseries:
         if labels is None:
             self.labels = ['dim_' + str(i) for i in range(self.dimension)]
         else:
-            self.labels = labels
+            self.labels = list(labels)
         if time_tensor is None:
             self.startts = startts
             import numpy as np
-            self.time_tensor = DTensor.from_numpy(np.linspace(self.startts, 1 / self.freq * self.length + self.startts, self.length))
+            self.time_tensor = self.__init_time(self.val_tensor.shape[1], self.freq, self.startts)
         else:
             self.startts = time_tensor[0]
             self.freq = (self.length) / (time_tensor.max() - time_tensor.min())
@@ -92,8 +92,10 @@ class Timeseries:
             Start Timestamp: {round(self.startts, 3)}
             Labels: {', '.join([str(x) for x in self.labels])}
         """
+        columns = ['Time']
+        columns.extend(self.labels)
         print(pd.DataFrame(DTensor([self.time_tensor]).concatenate(self.val_tensor, axis=0)._data.T,
-                           columns=['Time'] + self.labels))
+                           columns=columns))
         return _str
 
     def __copy__(self):
@@ -616,8 +618,31 @@ class Timeseries:
         startts : int
             start time tick
         """
-        import numpy as np
         _len = val_tensor.shape[1]
         self.length = _len
-        self.time_tensor = DTensor.from_numpy(np.linspace(startts, 1 / freq * _len + startts, _len))
+        self.time_tensor = self.__init_time(_len, freq, startts)
         self.freq = freq
+    
+    
+    def __init_time(self, len: int, freq: int, startts: int):
+        """Construct time tensor.
+
+        Parameters
+        ----------
+        len : int
+            length of time tensor
+
+        freq : int
+            frequency of series
+
+        startts : int
+            start time tick
+        
+        Returns
+        ----------
+        time_tensor : DTensor
+            time tensor
+        """
+        import numpy as np
+        time_tensor = DTensor.from_numpy(np.linspace(startts, 1 / freq * len + startts - 1, len))
+        return time_tensor
