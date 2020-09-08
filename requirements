@@ -8,3 +8,4 @@ scikit-learn
 scikit-image
 sparse>=0.9.1
 ipdb
+Cython
