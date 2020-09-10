@@ -223,8 +223,8 @@ class BeatGAN(MLmodel):
             fake_data, enc_z = self.generator(data_X)
             d_fake_prob, _ = self.discriminator(fake_data)
 
-            loss_d_real = self.bce(d_real_prob, torch.full((d_real_prob.size(0),), 1, device=self.device))
-            loss_d_fake = self.bce(d_fake_prob, torch.full((d_fake_prob.size(0),), 0, device=self.device))
+            loss_d_real = self.bce(d_real_prob, torch.full((d_real_prob.size(0),), 1, dtype=torch.float, device=self.device))
+            loss_d_fake = self.bce(d_fake_prob, torch.full((d_fake_prob.size(0),), 0, dtype=torch.float, device=self.device))
 
             loss_d = loss_d_real + loss_d_fake
             loss_d.backward()
