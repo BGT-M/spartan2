@@ -8,6 +8,7 @@
 # here put the import lib
 from . import STensor
 import spartan as st
+import numpy as np
 
 
 class Graph:
@@ -128,5 +129,21 @@ class Graph:
 
     def degrees(self):
         rowdegs, coldegs = self.sm.sum(axis=1), self.sm.sum(axis=0)
-        return rowdegs, coldegs.T
+        return rowdegs.A1, coldegs.A1
+
+    def get_edgelist_array(self):
+        """
+        Get the edgelist of graph (without edge attributes),
+        summing up weights of the same edge.
+
+        Returns
+        ------
+        2D numpy ndarray of (row, col, weights) as list.
+        """
+        coosm = self.sm.tocoo()
+        data = coosm.data
+        row = coosm.row
+        col = coosm.col
+        return np.vstack((row, col, data)).T
+
 
