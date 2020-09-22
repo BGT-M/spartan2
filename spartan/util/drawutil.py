@@ -27,7 +27,7 @@ def plot(model: "Model", *args, **kwargs):
         raise Exception(f"Draw functions of model {model} not existed")
 
 
-def plot_graph(graph: Graph, layout=None, bipartite=False, labels=None,
+def plot_graph(graph: Graph, layout=None, bipartite=False, labels=None, save_path=None,
                *args, **kwargs):
     import networkx as nx
     from networkx.algorithms.bipartite.matrix import from_biadjacency_matrix
@@ -68,7 +68,8 @@ def plot_graph(graph: Graph, layout=None, bipartite=False, labels=None,
         else:
             ldict = dict(zip(range(len(labels)), labels))
             nx.draw_networkx_labels(g, pos=pos, labels=ldict)
-
+    if save_path:
+        plt.savefig(save_path)
     return fig
 
 

@@ -55,11 +55,16 @@ class Graph:
             return None
 
     def get_sub_graph(self, rows, cols):
+        
+        import numpy as np
+        rows = np.array(rows).astype('int64')
+        cols = np.array(cols).astype('int64')
 
         cootensor = self.graph_tensor
 
-        gr = -1 * st.ones(cootensor.shape[0], dtype=int)
-        gc = -1 * st.ones(cootensor.shape[1], dtype=int)
+        gr = -1 * np.ones(cootensor.shape[0], dtype=int)
+        gc = -1 * np.ones(cootensor.shape[1], dtype=int)
+
 
         lr = len(rows)
         lc = len(cols)
@@ -93,18 +98,22 @@ class Graph:
         ------
         tuples of org_row_id, org_col_id, value
         """
+        import numpy as np
+        rows = np.array(rows).astype('int64')
+        cols = np.array(cols).astype('int64')
+
         matr = self.sm.tocoo()
 
-        gr = -1 * st.ones(matr.shape[0], dtype=int)
-        gc = -1 * st.ones(matr.shape[1], dtype=int)
+        gr = -1 * np.ones(matr.shape[0], dtype=int)
+        gc = -1 * np.ones(matr.shape[1], dtype=int)
 
         lr = len(rows)
         lc = len(cols)
 
-        ar = st.arange(0, lr, 1)
-        ac = st.arange(0, lc, 1)
+        ar = np.arange(0, lr, 1)
+        ac = np.arange(0, lc, 1)
         gr[rows[ar]] = ar
-        gc[cols[ac]] = ac
+        gc[cols[ar]] = ac
         mrow = matr.row
         mcol = matr.col
         newelem = (gr[mrow] > -1) & (gc[mcol] > -1)

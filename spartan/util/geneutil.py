@@ -3,6 +3,7 @@ import os, logging
 import numpy as np
 import pandas as pd
 import gc
+import spartan as st
 
 class NeighborSampler():
     def __init__(self, chip_name, stage = 0, x_data=None):
@@ -36,11 +37,15 @@ class NeighborSampler():
         return top_k
 
 
-def load_gene_file(filapath, stage_index, output_filepath_list):
+def load_gene_file(filapath, stage_index, output_filepath_list, output_gene_dict):
     list_data = []
+    list_gene = []
     with open(filapath) as fp:
-        next(fp) # skip header
-        for line in fp:
+        # next(fp) # skip header
+        for idx, line in enumerate(fp):
+            if idx == 0:
+                list_gene = line.split("\t")[1:]
+                continue
             data = line.split("\t")[1:]
             x_data = np.zeros(len(data))
             for i in range(len(data)):
@@ -59,10 +64,15 @@ def load_gene_file(filapath, stage_index, output_filepath_list):
         stage_index = np.array([0] * x_data.shape[0])
     n_stage = np.max(stage_index) + 1
     # print("gene file has " + str(n_stage) + " stages")
+    
     for j in range(n_stage):
         idx = stage_index == j
         x_output = x_data[idx]
         np.savetxt(output_filepath_list[j], x_output, delimiter="\t")
+
+    with open(output_gene_dict, "w") as wfp:
+        for i, gene in enumerate(list_gene):
+            wfp.write(str(i) + "\t" + gene + "\n")
 
 def build_sampled_coexpression_matrix(x_data, argsoutput1, k = 1000, use_peason = False):
     logging.info("Co-expression matrix building process starts.")
@@ -83,7 +93,30 @@ def build_sampled_coexpression_matrix(x_data, argsoutput1, k = 1000, use_peason 
             f.flush()
             os.fsync(f.fileno())
 
-def get_top_by_threshold(input_path, output_path, threshold = 0.99):
+def plot_gene_subgraph(id_file, dict_file, graph_file, save_path):
+    list_id = list()
+    with open(id_file) as dfp:
+        for line in dfp:
+            list_id.append(int(line.strip()))
+    sorted_list = sorted(list_id)
+    dict_map = dict((v, i) for i, v in enumerate(sorted_list))
+
+    dict_name = dict()
+    with open(dict_file) as dfp:
+        for line in dfp:
+            tokens = line.strip().split("\t")
+            if len(tokens) == 2 and int(tokens[0]) in dict_map:
+                dict_name[dict_map[int(tokens[0])]] = tokens[1]
+        
+
+    stensor = st.loadTensor(graph_file, header=None, sep=',')
+    stensor = stensor.toSTensor(hasvalue=False)
+    graph = st.Graph(stensor)
+    subgraph = graph.get_sub_graph(list_id, list_id)
+    fig = st.util.drawutil.plot_graph(subgraph, save_path=save_path, labels=dict_name)
+
+
+def get_top_by_threshold(input_path, output_path, threshold = 0.7):
     logging.info("start getting top by threshold")
 
     with open(output_path, "w") as wfp:
@@ -93,7 +126,7 @@ def get_top_by_threshold(input_path, output_path, threshold = 0.99):
                 if len(tokens) != 3:
                     continue
                 if threshold <= float(tokens[2]):
-                    wfp.write("%s\t%s\n" % (tokens[0], tokens[1]))
+                    wfp.write("%s,%s\n" % (tokens[0], tokens[1]))
 
 def pearson(X, Y):
     return np.corrcoef(X, Y)[0][1]
@@ -123,7 +156,7 @@ def graph1_minus_graph2(g1, g2, only_pos = 0, output_path = "res_net.edgelist"):
 
     with open(output_path, "w") as wfp:
         for edge in edge_list:
-            wfp.write(str(edge[0])+"\t"+str(edge[1])+"\n")
+            wfp.write(str(edge[0])+","+str(edge[1])+"\n")
     return edge_list
 
 if __name__ == "__main__":
