@@ -93,7 +93,7 @@ def build_sampled_coexpression_matrix(x_data, argsoutput1, k = 1000, use_peason 
             f.flush()
             os.fsync(f.fileno())
 
-def plot_gene_subgraph(id_file, dict_file, graph_file, save_path):
+def plot_gene_subgraph(id_file, dict_file, graph_file, save_path, edgelist_path):
     list_id = list()
     with open(id_file) as dfp:
         for line in dfp:
@@ -114,6 +114,9 @@ def plot_gene_subgraph(id_file, dict_file, graph_file, save_path):
     graph = st.Graph(stensor)
     subgraph = graph.get_sub_graph(list_id, list_id)
     fig = st.util.drawutil.plot_graph(subgraph, save_path=save_path, labels=dict_name)
+    edgelist = subgraph.get_edgelist_array()
+    edgelist = edgelist.astype(int)[:, 0:2]
+    np.savetxt(edgelist_path, edgelist, fmt='%d,%d', delimiter=',')
 
 
 def get_top_by_threshold(input_path, output_path, threshold = 0.7):
@@ -144,15 +147,15 @@ def graph1_minus_graph2(g1, g2, only_pos = 0, output_path = "res_net.edgelist"):
         neighbors1 = set(g1.neighbors(node))
         if node in nodes2:
             neighbors2 = set(g2.neighbors(node))
-
-    if only_pos != 1:
-        for neighbor in neighbors1:
-            if neighbor not in neighbors2:
-                edge_list.append((node, neighbor))
-    if only_pos != -1:
-        for neighbor in neighbors2:
-            if neighbor not in neighbors1:
-                edge_list.append((node, neighbor))
+    
+        if only_pos != 1:
+            for neighbor in neighbors1:
+                if neighbor not in neighbors2:
+                    edge_list.append((node, neighbor))
+        if only_pos != -1:
+            for neighbor in neighbors2:
+                if neighbor not in neighbors1:
+                    edge_list.append((node, neighbor))
 
     with open(output_path, "w") as wfp:
         for edge in edge_list:
