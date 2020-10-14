@@ -46,6 +46,7 @@ FlowScope = partial(__call__, MODEL_PATH + ".flowscope")
 RPeak = partial(__call__, MODEL_PATH + ".rpeak")
 Summarize = partial(__call__, MODEL_PATH + ".summarize")
 IAT = partial(__call__, MODEL_PATH + ".iat")
+Fraudar = partial(__call__, MODEL_PATH + ".fraudar")
 
 
 __all__ = [
@@ -60,4 +61,5 @@ __all__ = [
     'RPeak',
     'Summarize',
     'IAT',
+    'Fraudar'
 ]
