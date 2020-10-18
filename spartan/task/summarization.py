@@ -39,4 +39,5 @@ class SumPolicy(Enum):
     '''Registration for path of models who can do summarization task.
     '''
     BeatLex = MODEL_PATH + ".beatlex"
-    Summarize = MODEL_PATH + ".summarize"
+    DPGS = MODEL_PATH + ".DPGS"
+    kGrass = MODEL_PATH + ".kGS"

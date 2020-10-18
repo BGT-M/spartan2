@@ -43,17 +43,15 @@ def LN(n):
 def xlogx(x):
     if x == 0:
         return 0
-    return x * math.log2(x)
+    return x * math.log(x)
 
 
-class Summarize(DMmodel):
-    B = 32
+class DPGSummarizer(DMmodel):
     # Maximum size of each group
     C = 500
 
-    def __init__(self, st):
-        self.sm = st.to_scipy(format='lil')
-        self.sm.maximum(self.sm.T)
+    def __init__(self, graph):
+        self.sm = graph.sm.tolil()
         self.sm.setdiag(0)
         N = self.N = self.sm.shape[0]
         self.es = self.sm.nnz // 2
@@ -64,13 +62,12 @@ class Summarize(DMmodel):
         self.degs = np.array(self.sm.sum(axis=1)).flatten()
         self.sizes = [1] * self.N
         self.nodes_dict = dict(zip(range(N), ({n} for n in range(N))))
-        del self.sm
 
-    def run(self, T=20):
-        return self._summarize(T)
+    def run(self, T=30, n_sign=16, min_b=3, max_b=8):
+        return self._summarize(T, n_sign, min_b, max_b)
 
-    def summarization(self, T=20):
-        return self._summarize(T)
+    def summarization(self, T=30, n_sign=16, min_b=3, max_b=8):
+        return self._summarize(T, n_sign, min_b, max_b)
 
     def _merge(self, u, v):
         nodes_dict = self.nodes_dict
@@ -99,7 +96,7 @@ class Summarize(DMmodel):
                     self.adj[nei][u] = self.adj[u][nei]
         self.deleted.add(v)
 
-    def _update_lsh(self, threshold=0.5):
+    def _update_lsh(self, params):
         for n in self.nodes_dict:
             if n in self.deleted:
                 continue
@@ -108,13 +105,13 @@ class Summarize(DMmodel):
                 continue
             m = self.minhashes[n]
             if m is None:
-                m = NeiMinHash(num_perm=16, hashfunc=hash, seed=1024)
+                m = NeiMinHash(num_perm=self.n_sign, hashfunc=hash, seed=1024)
             else:
                 m.clear()
             m.updates(neighbors)
             self.minhashes[n] = m
 
-        self.lsh = MinHashLSH(threshold=threshold, num_perm=16)
+        self.lsh = MinHashLSH(num_perm=self.n_sign, params=params)
         lsh = self.lsh
         with lsh.insertion_session() as session:
             for n in self.nodes_dict:
@@ -152,7 +149,8 @@ class Summarize(DMmodel):
 
         gain = LN(self.cnt) - LN(self.cnt-1)
         gain += 2 * (xlogx(du) + xlogx(dv) - xlogx(du+dv))
-        gain += self.N * math.log2(self.cnt / (self.cnt-1))
+        # gain += self.N * math.log2(self.cnt / (self.cnt-1))
+        gain += self.N * (LN(self.cnt) - LN(self.cnt-1))
         common_nei = 0
         for nei in neiu:
             if nei not in neiv:
@@ -227,16 +225,42 @@ class Summarize(DMmodel):
                 break
         return merge_cnt, gains
 
-    def _summarize(self, T):
+    @staticmethod
+    def _check_parameters(T, n_sign, min_b, max_b):
+        if T <= 0:
+            print(f"`T`({T}) should be greater than 0")
+            return False
+        if n_sign < 0:
+            print(f"`n_sign`({n_sign}) should be greater than 0")
+            return False
+        if min_b < 0:
+            print(f"`min_b`({min_b}) should be greater than 0")
+            return False
+        if max_b < 0:
+            print(f"`max_b`({max_b}) should be greater than 0")
+            return False
+        if max_b > n_sign:
+            print(f"`max_b`({max_b}) should be less or equal than `n_sign`({n_sign})")
+            return False
+        if min_b > max_b:
+            print(f"`min_b`({min_b}) should be less or equal than `max_b`({max_b})")
+            return False
+        return True
+
+    def _summarize(self, T, n_sign, min_b, max_b):
         N = self.N
+
+        if not self._check_parameters(T, n_sign, min_b, max_b):
+            print("Check parameter fails.")
+            return
+        self.n_sign = n_sign
+        self.min_b, self.max_b = int(min_b), int(max_b)
+        slope = (max_b - min_b) / (T-1)
 
         degs = self.degs
         degs_orig = degs.copy()
         nodes_dict = self.nodes_dict
 
-        M_threshold = 0.75
-        m_threshold = 0.35
-        x = (m_threshold / M_threshold) ** (1/(T-1))
         start_time = time.time()
         t = 0
         self.N = self.cnt = N
@@ -244,10 +268,11 @@ class Summarize(DMmodel):
         self.total_gain = 0.0
         while t < T:
             t += 1
-            threshold = M_threshold * (x**(t-1))
-            logger.info(f"Iteration {t}, threshold: {threshold}")
+            b = int(self.min_b + (t-1) * slope)
+            r = n_sign // b
+            params = (b, r)
             start_time2 = time.time()
-            groups = self._update_lsh(threshold)
+            groups = self._update_lsh(params)
             elapsed = time.time() - start_time2
             merge_cnt = 0
             for group in groups:
@@ -261,11 +286,9 @@ class Summarize(DMmodel):
 
         elapsed = time.time() - start_time
         logger.info(
-            f"Summarize {N} nodes to {self.cnt} nodes with {self.es} edges, \
-                 costs {elapsed} seconds")
+            f"Summarize {N} nodes to {self.cnt} nodes with {self.es} edges, costs {elapsed} seconds")
         logger.info(f"Total gain: {self.total_gain}")
 
-        # Constructing P and P_
         rows, cols, datas = [], [], []
         for i, (n, nodes) in enumerate(nodes_dict.items()):
             assert len(nodes) != 0
@@ -277,19 +300,11 @@ class Summarize(DMmodel):
                 datas.extend([1.0 / len(nodes)] * len(nodes))
             else:
                 datas.extend((degs_orig[n_] / D for n_ in nodes))
-        n = len(nodes_dict)
 
-        supernodeid = dict((n, i) for i, n in enumerate(nodes_dict))
-        rows, cols, datas = [], [], []
-        for i, n_ in enumerate(nodes_dict):
-            for nei in self.adj[n_]:
-                if nei not in supernodeid:
-                    continue
-                rows.append(i)
-                cols.append(supernodeid[nei])
-                datas.append(self.adj[n_][nei])
-        sm_s = ssp.coo_matrix((datas, (rows, cols)), shape=(n, n))
+        P_ = ssp.csr_matrix(([1] * len(datas), (rows, cols)),
+                            shape=(len(nodes_dict), self.N))
+        sm_s = P_ @ self.sm @ P_.T
 
         self.nodes_dict = nodes_dict
         self.sm_s = sm_s
-        return nodes_dict, STensor.from_scipy_sparse(sm_s)
+        return STensor.from_scipy_sparse(sm_s)
