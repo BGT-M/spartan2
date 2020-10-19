@@ -10,7 +10,7 @@ except Exception as e:
     os.chdir(old_dir)
     from . import c_MDL
 
-from .summarizer import Summarize
+from .DPGS import DPGSummarizer
 
 def __call__():
-    return Summarize
+    return DPGSummarizer
