@@ -596,6 +596,8 @@ class STensor(np.lib.mixins.NDArrayOperatorsMixin):
     def sum_to_scipy_sparse(self, modes: tuple = (0, 1)):
         m = len(self._data.shape)
         cmodes = tuple(set(range(m)) - set(modes))
+        if len(cmodes) == 0:
+            return self._data.to_scipy_sparse()
         return self._data.sum(axis=cmodes).to_scipy_sparse()
 
     def __repr__(self):

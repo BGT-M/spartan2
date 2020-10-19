@@ -47,6 +47,7 @@ RPeak = partial(__call__, MODEL_PATH + ".rpeak")
 DPGS = partial(__call__, MODEL_PATH + ".DPGS")
 kGrass = partial(__call__, MODEL_PATH + ".kGS")
 IAT = partial(__call__, MODEL_PATH + ".iat")
+Fraudar = partial(__call__, MODEL_PATH + ".fraudar")
 
 
 __all__ = [
@@ -62,4 +63,5 @@ __all__ = [
     'DPGS',
     "kGrass",
     'IAT',
+    'Fraudar'
 ]
