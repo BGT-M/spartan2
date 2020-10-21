@@ -25,13 +25,13 @@ class MinTree:
         cur = self.numBranches + idx
         return self.nodes[cur]
 
+    # return the renewed value of degrees[idx]
     def changeVal(self, idx, delta):
         cur = self.numBranches + idx
         if self.nodes[cur] == float('inf'):
             return float('inf')
 
-        new_value = self.nodes[cur] + delta
-        self.nodes[cur] = new_value
+        self.nodes[cur] = self.nodes[cur] + delta
 
         for i in range(self.height):
             cur = (cur - 1) // 2
@@ -39,9 +39,10 @@ class MinTree:
             if self.nodes[cur] == nextParent:
                 break
             self.nodes[cur] = nextParent
-        return new_value
+        return self.nodes[cur]
 
-    def setter (self, idx, new_value ):
+    # return the renewed value of degrees[idx]
+    def setVal (self, idx, new_value):
         cur = self.numBranches + idx
         if self.nodes[cur] == float('inf'):
             return float('inf')
@@ -53,7 +54,7 @@ class MinTree:
             if self.nodes[cur] == nextParent:
                 break
             self.nodes[cur] = nextParent
-        return new_value
+        return self.nodes[cur]
 
     def dump(self):
         print("numLeaves: %d, numBranches: %d, n: %d, nodes: " % (self.numLeaves, self.numBranches, self.n))
