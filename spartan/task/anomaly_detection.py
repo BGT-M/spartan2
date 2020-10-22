@@ -41,5 +41,4 @@ class ADPolicy(Enum):
     # EagleMine = MODEL_PATH + ".eaglemine"
     EigenPulse = MODEL_PATH + ".eigenpulse"
     HoloScope = MODEL_PATH + ".holoscope"
-    FlowScope = MODEL_PATH + ".flowscope"
     pass
