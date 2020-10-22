@@ -7,7 +7,7 @@ from setuptools.extension import Extension
 from Cython.Build import cythonize
 
 NAME = 'spartan2'
-VERSION = '0.0.2'
+VERSION = '0.0.3dev2'
 DESCRIPTION = 'collection of data mining algorithms on big graphs and time series'
 URL = 'https://github.com/BGT-M/spartan2'
 AUTHOR = 'Shenghua Liu, Houquan Zhou, Quan Ding, Jiabao Zhang, Xin Zhao, Siwei Zeng,etc'
@@ -19,8 +19,8 @@ with open('README.md', encoding='utf-8') as fp:
 
 extensions = [
     Extension(
-        "spartan.model.summarize.c_MDL",
-        ["spartan/model/summarize/c_MDL.pyx"],
+        "spartan.model.DPGS.c_MDL",
+        ["spartan/model/DPGS/c_MDL.pyx"],
     ),
 ]
 
