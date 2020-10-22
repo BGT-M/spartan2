@@ -19,8 +19,8 @@ with open('README.md', encoding='utf-8') as fp:
 
 extensions = [
     Extension(
-        "spartan.model.summarize.c_MDL",
-        ["spartan/model/summarize/c_MDL.pyx"],
+        "spartan.model.DPGS.c_MDL",
+        ["spartan/model/DPGS/c_MDL.pyx"],
     ),
 ]
 
