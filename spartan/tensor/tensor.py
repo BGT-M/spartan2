@@ -44,7 +44,7 @@ class TensorData:
                 else:
                     colind = mappers[i].map(self.data.iloc[:, i])
                     attr.iloc[:, i] = colind
-        attr.astype('int')
+        attr = attr.astype('int')
         return STensor((attr.to_numpy().T, value.to_numpy()))
         
 
