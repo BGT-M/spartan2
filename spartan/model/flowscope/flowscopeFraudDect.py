@@ -29,23 +29,20 @@ class FlowScope( DMmodel ):
     def __init__(self, graphList: list, **params):
         self.graphnum = len(graphList)
         self.graphlist = graphList
-        self.alpha = param_default(params, 'alpha', 4)
+        # self.alpha = param_default(params, 'alpha', 0.8)
         # self.alg = param_default(params, 'alg', 'fastgreedy')
 
     def __str__(self):
         return str(vars(self))
 
     
-    def run(self, k:int=3, level:int=0, alpha:float):
+    def run(self, k:int=3, level:int=0, alpha:float=0.8):
         print("you are running with ", self.graphnum," partite graph")
         self.level = level
+        self.alpha = alpha
         self.initData()
         self.nres = []
-        if alpha is not None:
-            self.alpha = alpha
-            print('set alpha ', self.alpha)
-        else:
-            print('alpha is ', self.alpha)
+
 
         for i in range(k):
             if self.level == 0:
