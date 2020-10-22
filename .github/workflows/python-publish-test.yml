@@ -4,9 +4,8 @@
 name: Upload Python Package TestPYPI
 
 on:
-  pull_request:
-    branches: 
-      - master
+  issues:
+    types: closed
   
 jobs:
   deploy:
