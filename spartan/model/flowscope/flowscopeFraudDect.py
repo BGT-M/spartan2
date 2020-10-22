@@ -36,11 +36,16 @@ class FlowScope( DMmodel ):
         return str(vars(self))
 
     
-    def run(self, k:int=3, level:int=0):
+    def run(self, k:int=3, level:int=0, alpha:float):
         print("you are running with ", self.graphnum," partite graph")
         self.level = level
         self.initData()
         self.nres = []
+        if alpha is not None:
+            self.alpha = alpha
+            print('set alpha ', self.alpha)
+        else:
+            print('alpha is ', self.alpha)
 
         for i in range(k):
             if self.level == 0:
@@ -331,3 +336,7 @@ class FlowScope( DMmodel ):
             
 
         return finalsets, self.bestAveScore
+
+
+    def anomaly_detection(self, k:int=3, alpha:float = 0.8):
+        return self.run(k=k, alpha=alpha)
