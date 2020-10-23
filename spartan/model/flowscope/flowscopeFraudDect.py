@@ -326,7 +326,7 @@ class FlowScope( DMmodel ):
         finalsets.append(set(range(self.mcurlist[0].shape[0])))
         for i in range(len(self.mcurlist) - 1):
             finalsets.append(set(range(self.mcurlist[i].shape[1])))
-        finalsets.append(set(range(self.mcurlist[1].shape[1])))
+        finalsets.append(set(range(self.mcurlist[-1].shape[1])))
         
         for i in range(self.bestNumDeleted):
             finalsets[self.deleted[i][0]].remove(self.deleted[i][1])
