@@ -62,7 +62,7 @@ class FlowScope( DMmodel ):
         self.mcurlist = []
         self.mtranslist = []
         for i in range(len(self.graphlist)):
-            self.mcurlist.append(self.graphlist[i].graph_tensor._data.copy().tocsr().tolil())
+            self.mcurlist.append(self.graphlist[i].graph_tensor._data.copy().tocsr().tolil().astype(np.float64))
             self.mtranslist.append(self.graphlist[i].graph_tensor._data.copy().tocsr().tolil().transpose()) 
 
 
