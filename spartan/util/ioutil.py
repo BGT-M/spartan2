@@ -504,3 +504,9 @@ def loadDictListData(indata, ktype=str, vtype=str, delim=':', mode='r'):
             dictls[ktype(line[0].strip())] = lst
         fr.close()
     return dictls
+
+def saveSimpleListData(simls, outdata):
+    with open(outdata, 'w') as fw:
+        fw.write('\n'.join(map(str, simls)))
+        fw.write('\n')
+        fw.close()
