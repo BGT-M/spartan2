@@ -106,7 +106,7 @@ class TensorFile(File):
         f.seek(pos)
         _f = open(self.filename, self.mode)
         _f.seek(pos)
-        fin = pd.read_csv(f, sep=self.sep, **kwargs)
+        fin = pd.read_csv(f, **kwargs)
         column_names = fin.columns
         self.dtypes = {}
         if not self.idxtypes is None:
@@ -119,7 +119,7 @@ class TensorFile(File):
 
     def _read(self, **kwargs):
         tensorlist = []
-        self.get_sep_of_file()
+        # self.get_sep_of_file()
         _file = self._open(**kwargs)
         if not self.idxtypes is None:
             idx = [i[0] for i in self.idxtypes]
@@ -287,7 +287,7 @@ def _myopenfile(fnm, mode):
     return f
 
 
-def loadTensor(path: str,  col_idx: list = None, col_types: list = None, **kwargs):
+def loadTensor(path: str,  col_idx: list = None, col_types: list = None, sep: str = ',', **kwargs):
     '''
     Parameters
     ------
@@ -298,6 +298,8 @@ def loadTensor(path: str,  col_idx: list = None, col_types: list = None, **kwarg
         kwargs["header"] = None
     if path is None:
         raise FileNotFoundError('Path is missing.')
+    if not "sep" in kwargs.keys():
+        kwargs["sep"] = sep
 
     import glob
     files = glob.glob(path)
