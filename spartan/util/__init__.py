@@ -9,7 +9,7 @@
 
 from spartan.tensor import TensorData, TensorStream
 
-from .ioutil import loadTensor, File, loadTensorStream, loadFile2Dict, loadHistogram
+from .ioutil import loadTensor, File, loadTensorStream, loadFile2Dict, loadHistogram, loadSimpleList
 from .basicutil import set_trace, TimeMapper, StringMapper,\
     IntMapper, ScoreMapper, DenseIntMapper
 from .drawutil import plot_graph, plot_timeseries, drawEigenPulse, plot, histogram_viz, clusters_viz, drawHexbin, drawRectbin
@@ -40,4 +40,5 @@ __all__ = [
     'drawRectbin',
     'RectHistogram',
     'injectFraud2PropGraph',
+    'loadSimpleList',
 ]

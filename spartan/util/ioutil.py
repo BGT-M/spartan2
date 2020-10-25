@@ -510,3 +510,17 @@ def saveSimpleListData(simls, outdata):
         fw.write('\n'.join(map(str, simls)))
         fw.write('\n')
         fw.close()
+
+def loadSimpleList(indata, dtype=None):
+    sl=[]
+    with open(indata, 'r') as fi:
+        for e in fi:
+            e = e.strip()
+            if e == '':
+                continue
+            if dtype is not None:
+                e = dtype(e)
+            sl.append(e)
+        fi.close()
+    return sl
+
