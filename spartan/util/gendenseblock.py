@@ -3,17 +3,26 @@ import numpy as np
 import random
 from .ioutil import saveSimpleListData
 
-def generateProps(stensor, i, j, s, t0, tsdiffcands, tsp, inject_coords, inject_values):
+def generateProps(stensor, i, j, s, t0, tsdiffcands, tsp, inject_coords, inject_values, dataset='yelp'):
 
     # rs = np.random.choice([4, 4.5], size=s)
-    rs = np.random.choice([4, 5], size=s)
-    ts = np.random.choice(tsdiffcands, size=s, p=tsp) + t0
-    maxTime = stensor.shape[2]
-    for k in range(len(rs)):
-        while ts[k] > maxTime:
-            ts[k] = np.random.choice(tsdiffcands, size=1, p=tsp) + t0
-        inject_coords.append([i, j, ts[k], rs[k]])
-        inject_values.append(1)
+    if dataset == 'yelp':
+        rs = np.random.choice([4, 5], size=s)
+        ts = np.random.choice(tsdiffcands, size=s, p=tsp) + t0
+        maxTime = stensor.shape[2] - 1
+        for k in range(len(ts)):
+            while ts[k] > maxTime:
+                ts[k] = np.random.choice(tsdiffcands, size=1, p=tsp) + t0
+            inject_coords.append([i, j, ts[k], rs[k]])
+            inject_values.append(1)
+    elif dataset == 'wb':
+        ts = np.random.choice(tsdiffcands, size=s, p=tsp) + t0
+        maxTime = stensor.shape[2] - 1
+        for k in range(len(ts)):
+            while ts[k] > maxTime:
+                ts[k] = np.random.choice(tsdiffcands, size=1, p=tsp) + t0
+            inject_coords.append([i, j, ts[k]])
+            inject_values.append(1)
     return
 
 def injectFraud2PropGraph(stensor, acnt, bcnt, goal, popbd,
@@ -30,7 +39,7 @@ def injectFraud2PropGraph(stensor, acnt, bcnt, goal, popbd,
 
     if acnt == 0 and re:
         return tensorData, ([], [])
-    (m, n, p, q) = stensor.shape
+    (m, n) = stensor.shape[:2]
     rates, times, tsdiffs, t0 = [], [], [], 0
     t0, tsdiffcands,tsp = 0, [], []
     inject_coords, inject_values = [], []
@@ -99,7 +108,7 @@ def injectFraud2PropGraph(stensor, acnt, bcnt, goal, popbd,
             # if (not weighted) and M2[i,j] > 0:
             if (not weighted) and stensor[i][j].sum() > 0: 
                 continue
-            generateProps(stensor, i, j, s, t0, tsdiffcands, tsp, inject_coords, inject_values)
+            generateProps(stensor, i, j, s, t0, tsdiffcands, tsp, inject_coords, inject_values, dataset=dataset)
 
     # inject camo
     p = goal/float(acnt)
@@ -111,7 +120,7 @@ def injectFraud2PropGraph(stensor, acnt, bcnt, goal, popbd,
                 if (not weighted) and stensor[i][j].sum() > 0:
                     continue
                 if random.random() < thres:
-                    generateProps(stensor, i, j, s, t0, tsdiffcands, tsp, inject_coords, inject_values)
+                    generateProps(stensor, i, j, s, t0, tsdiffcands, tsp, inject_coords, inject_values, dataset=dataset)
         if testIdx == 2:
             thres = 2 * p * bcnt / (n - bcnt)
             for j in camocands:
@@ -119,7 +128,7 @@ def injectFraud2PropGraph(stensor, acnt, bcnt, goal, popbd,
                 if (not weighted) and stensor[i][j].sum() > 0:
                     continue
                 if random.random() < thres:
-                    generateProps(stensor, i, j, s, t0, tsdiffcands, tsp, inject_coords, inject_values)
+                    generateProps(stensor, i, j, s, t0, tsdiffcands, tsp, inject_coords, inject_values, dataset=dataset)
         # biased camo           
         if testIdx == 3:
             colRplmt = np.random.choice(camocands, size=int(bcnt*p),
@@ -129,7 +138,7 @@ def injectFraud2PropGraph(stensor, acnt, bcnt, goal, popbd,
             for j in colRplmt:
                 if (not weighted) and stensor[i][j].sum() > 0:
                     continue
-                generateProps(stensor, i, j, s, t0, tsdiffcands, tsp, inject_coords, inject_values)
+                generateProps(stensor, i, j, s, t0, tsdiffcands, tsp, inject_coords, inject_values, dataset=dataset)
 
     inject_coords = np.asarray(inject_coords)
     inject_values = np.asarray(inject_values)
