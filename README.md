@@ -19,7 +19,7 @@ we name the package of algorithms as
 spartan2 is backend of SparTAn.
 Everything here is viewed as a tensor (sparse).
 
-## install requires
+## install requirements
 
 This project requires Python 3.7 and upper.
 We suggest recreating the experimental environment using Anaconda through the following steps.
