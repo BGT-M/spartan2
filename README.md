@@ -1,5 +1,5 @@
 
-# spartan2:
+# welcome to spartan2
 
 **spartan2** is a collection of data mining algorithms on **big graphs** and
 **time series**, as graphs and time series are fundamental representations of many key applications 
@@ -19,7 +19,7 @@ we name the package of algorithms as
 spartan2 is backend of SparTAn.
 Everything here is viewed as a tensor (sparse).
 
-### install requires
+## install requires
 
 This project requires Python 3.7 and upper.
 We suggest recreating the experimental environment using Anaconda through the following steps.
@@ -92,10 +92,11 @@ python -c 'import site; print(site.getsitepackages())'
 - start jupyter notebook
 - click to see each jupyter notebook (xxx.ipynb) demo for each algorithm, or see the following guidline.
 
+## API docs
 
-In the future, docs of code can be read from [readthedocs](https://spartan2.readthedocs.io/en/latest/).
+The docs of code can be read from [readthedocs](https://spartan2.readthedocs.io/en/latest/).
 
-## Live-tutorials: Table of Contents
+## live-tutorials: Table of Contents
 
 All contents are collected in another repository [spartan-tutorials](https://github.com/BGT-M/spartan2-tutorials), you can clone that repository to get all the notebooks and example data to run on your own.
 
@@ -118,7 +119,7 @@ All contents are collected in another repository [spartan-tutorials](https://git
 * [Beatlex](https://github.com/BGT-M/spartan2-tutorials/blob/master/Beatlex.ipynb): based on [BeatLex](https://shenghua-liu.github.io/papers/pkdd2017-beatlex.pdf)
 * [BeatGAN](https://github.com/BGT-M/spartan2-tutorials/blob/master/BeatGAN.ipynb): based on [BeatGAN](https://www.ijcai.org/Proceedings/2019/0616.pdf)
 
-## References
+## references
 1. Shenghua Liu, Bryan Hooi, Christos Faloutsos, A Contrast Metric for Fraud Detection in Rich Graphs, IEEE Transactions on Knowledge and Data Engineering (TKDE), Vol 31, Issue 12, Dec. 1 2019, pp. 2235-2248.
 1. Shenghua Liu, Bryan Hooi, and Christos Faloutsos, "HoloScope: Topology-and-Spike Aware Fraud Detection," In Proc. of ACM International Conference on Information and Knowledge Management (CIKM), Singapore, 2017, pp.1539-1548.
 2. Prakash, B. Aditya, Ashwin Sridharan, Mukund Seshadri, Sridhar Machiraju, and Christos Faloutsos. "Eigenspokes: Surprising patterns and scalable community chipping in large graphs." In Pacific-Asia Conference on Knowledge Discovery and Data Mining, pp. 435-448. Springer, Berlin, Heidelberg, 2010.
