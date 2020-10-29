@@ -36,8 +36,8 @@ class FlowScope( DMmodel ):
         return str(vars(self))
 
     
-    def run(self, k:int=3, level:int=0, alpha:float=0.8):
-        print("you are running with ", self.graphnum," partite graph")
+    def run(self, k:int=3, level:int=0, alpha:float=4):
+        print("you are running with ", self.graphnum+1," partite graph")
         self.level = level
         self.alpha = alpha
         self.initData()
@@ -62,7 +62,7 @@ class FlowScope( DMmodel ):
         self.mcurlist = []
         self.mtranslist = []
         for i in range(len(self.graphlist)):
-            self.mcurlist.append(self.graphlist[i].graph_tensor._data.copy().tocsr().tolil())
+            self.mcurlist.append(self.graphlist[i].graph_tensor._data.copy().tocsr().tolil().astype(np.float64))
             self.mtranslist.append(self.graphlist[i].graph_tensor._data.copy().tocsr().tolil().transpose()) 
 
 
@@ -116,8 +116,8 @@ class FlowScope( DMmodel ):
         
         
 
-    def updataConnNode(self, type, index, mindelta):
-        if type == 0:
+    def updataConnNode(self, mold, index, mindelta):
+        if mold == 0:
             # update  the  weight of connected nodes
             for j in self.mcurlist[0].rows[mindelta]:
                 
@@ -141,7 +141,7 @@ class FlowScope( DMmodel ):
             self.deleted.append((index, mindelta)) 
             self.numDeleted += 1
 
-        elif type == 2:
+        elif mold == 2:
             # update mD1, mD2, and mid_tree
             for i in self.mtranslist[-1].rows[mindelta]:
                 if self.deltaslist[-1][i] == -1:
@@ -164,7 +164,7 @@ class FlowScope( DMmodel ):
             self.deleted.append((index, mindelta))
             self.numDeleted += 1
 
-        elif type == 1:
+        elif mold == 1:
 
             self.curScorelist[2 * index - 2] -= min(self.deltaslist[2 * index - 2][mindelta],
                                                     self.deltaslist[2 * index - 1][mindelta])
@@ -232,21 +232,21 @@ class FlowScope( DMmodel ):
         min_weight = min1
         minidx = resmin[0][0]
         idx = 0
-        type = 0
+        mold = 0
         
         if min2 < min_weight:
             min_weight = min2
             idx = len(resmin) - 1
-            type = 2
+            mold = 2
             minidx = resmin[-1][0]
         for i in range(len(resmin) - 2):
             if resmin[i + 1][1] < min_weight:
                 min_weight = resmin[i + 1][1]
                 minidx = resmin[i + 1][0]
                 idx = i + 1
-                type = 1
+                mold = 1
         
-        return type, idx, minidx
+        return mold, idx, minidx
         
         
     def checkset(self):
@@ -292,10 +292,10 @@ class FlowScope( DMmodel ):
             curall += self.curAveScorelist[i] - self.alpha * self.curAveScorelist[i+1]
         print('initial score of g(S):', curall)
         while self.checkset():  # repeat deleting until one node set in null
-            
-            type, idx, minidx = self.findmin()
 
-            self.updataConnNode(type=type, index=idx, mindelta=minidx)
+            mold, idx, minidx = self.findmin()
+
+            self.updataConnNode(mold=mold, index=idx, mindelta=minidx)
             
             s = 0
             for i in range(len(self.sets)):
