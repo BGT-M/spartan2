@@ -74,11 +74,15 @@ class FlowScope( DMmodel ):
         self.curAveScorelist = []
 
 
+
         self.sets.append(set(range(self.mcurlist[0].shape[0])))
         for i in range(len(self.mcurlist)-1):
             self.sets.append(set(range(self.mcurlist[i].shape[1])))
-        self.sets.append(set(range(self.mcurlist[1].shape[1])))
-        
+        self.sets.append(set(range(self.mcurlist[-1].shape[1])))
+
+        s = 0
+        for i in range(len(self.sets)):
+            s += len(self.sets[i])
         
         rowDeltas = np.squeeze(self.mcurlist[0].sum(axis=1).A)  # sum of A
         self.dtrees.append(MinTree(rowDeltas))
@@ -105,7 +109,6 @@ class FlowScope( DMmodel ):
             curScore2 = sum(abs(midDeltas1 - midDeltas2))
             self.curScorelist.append(curScore1)
             self.curScorelist.append(curScore2)
-            s = self.mcurlist[i].shape[0] + self.mcurlist[i].shape[1] + self.mcurlist[i+1].shape[1]
             curAveScore1 = curScore1 / s
             curAveScore2 = curScore2 / s
             self.curAveScorelist.append(curAveScore1)
@@ -133,7 +136,7 @@ class FlowScope( DMmodel ):
 
                 # update mid_tree
                 mid_delta_value = abs(self.deltaslist[0][j] - self.deltaslist[1][j])
-                new_mid_w = tempmin - self.alpha * mid_delta_value
+                new_mid_w = min(self.deltaslist[0][j], self.deltaslist[1][j]) - self.alpha * mid_delta_value
                 self.dtrees[1].setVal(j, new_mid_w)
 
             self.sets[0] -= {mindelta}  # update rowSet
@@ -156,7 +159,7 @@ class FlowScope( DMmodel ):
                 self.deltaslist[-1][i] = new_md2
 
                 mid_delta_value = abs(self.deltaslist[-1][i] - self.deltaslist[-2][i])
-                new_mid_w = tempmin - self.alpha * mid_delta_value
+                new_mid_w = min(self.deltaslist[-1][i], self.deltaslist[-2][i]) - self.alpha * mid_delta_value
                 self.dtrees[-2].setVal(i, new_mid_w)
 
             self.sets[-1] -= {mindelta}
@@ -189,7 +192,7 @@ class FlowScope( DMmodel ):
 
 
                     mid_delta_value = abs(self.deltaslist[2 * index][j] - self.deltaslist[2 * index + 1][j])
-                    new_mid_w = tempmin - self.alpha * mid_delta_value
+                    new_mid_w = min(self.deltaslist[2 * index][j], self.deltaslist[2 * index + 1][j]) - self.alpha * mid_delta_value
                     self.dtrees[index + 1].setVal(j, new_mid_w)
                 else:
                     self.dtrees[index + 1].changeVal(j, -self.mcurlist[index][mindelta, j])
@@ -209,7 +212,7 @@ class FlowScope( DMmodel ):
                     self.deltaslist[2 * index - 3][j] = new_md2
 
                     mid_delta_value = abs(self.deltaslist[2 * index - 3][j] - self.deltaslist[2 * index - 4][j])
-                    new_mid_w = tempmin - self.alpha * mid_delta_value
+                    new_mid_w = min(self.deltaslist[2 * index - 3][j], self.deltaslist[2 * index - 4][j]) - self.alpha * mid_delta_value
                     self.dtrees[index - 1].setVal(j, new_mid_w)
                 else:
                     self.dtrees[index - 1].changeVal(j, -self.mtranslist[index - 1][mindelta, j])
