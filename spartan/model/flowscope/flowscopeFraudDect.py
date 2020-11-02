@@ -52,8 +52,8 @@ class FlowScope( DMmodel ):
 
             self.nres.append([finalsets, score])
 
-            for i in range(len(self.mcurlist)):
-                self.mcurlist[i] = del_block(self.mcurlist[i], finalsets[i], finalsets[i+1]) 
+            for j in range(len(self.mcurlist)):
+                self.mcurlist[j] = del_block(self.mcurlist[j], finalsets[j], finalsets[j+1])
 
         return self.nres
 
