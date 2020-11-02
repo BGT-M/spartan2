@@ -62,7 +62,7 @@ class FlowScope( DMmodel ):
         self.mcurlist = []
         self.mtranslist = []
         for i in range(len(self.graphlist)):
-            self.mcurlist.append(self.graphlist[i].graph_tensor._data.copy().tocsr().tolil().astype(np.float64))
+            self.mcurlist.append(self.graphlist[i].graph_tensor._data.copy().tocsr().tolil())
             self.mtranslist.append(self.graphlist[i].graph_tensor._data.copy().tocsr().tolil().transpose()) 
 
 
@@ -84,11 +84,11 @@ class FlowScope( DMmodel ):
         for i in range(len(self.sets)):
             s += len(self.sets[i])
         
-        rowDeltas = np.squeeze(self.mcurlist[0].sum(axis=1).A)  # sum of A
+        rowDeltas = np.squeeze(self.mcurlist[0].sum(axis=1, dtype=np.float64).A)  # sum of A
         self.dtrees.append(MinTree(rowDeltas))
         for i in range(len(self.mcurlist)-1):
-            midDeltas1 = np.squeeze(self.mcurlist[i].sum(axis=0).A)
-            midDeltas2 = np.squeeze(self.mcurlist[i+1].sum(axis=1).A)
+            midDeltas1 = np.squeeze(self.mcurlist[i].sum(axis=0, dtype=np.float64).A)
+            midDeltas2 = np.squeeze(self.mcurlist[i+1].sum(axis=1, dtype=np.float64).A)
             self.deltaslist.append(midDeltas1)
             self.deltaslist.append(midDeltas2)
             
@@ -114,7 +114,7 @@ class FlowScope( DMmodel ):
             self.curAveScorelist.append(curAveScore1)
             self.curAveScorelist.append(curAveScore2)
 
-        colDeltas = np.squeeze(self.mcurlist[-1].sum(axis=0).A)  # sum of C
+        colDeltas = np.squeeze(self.mcurlist[-1].sum(axis=0, dtype=np.float64).A)  # sum of C
         self.dtrees.append(MinTree(colDeltas))
         
         
