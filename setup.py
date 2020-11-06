@@ -4,10 +4,10 @@
 
 import setuptools
 from setuptools.extension import Extension
-from Cython.Build import cythonize
+from Cython.Build import cythonize, build_ext
 
 NAME = 'spartan2'
-VERSION = '0.1.0'
+VERSION = '0.1.1'
 DESCRIPTION = 'collection of data mining algorithms on big graphs and time series'
 URL = 'https://github.com/BGT-M/spartan2'
 AUTHOR = 'Shenghua Liu, Houquan Zhou, Quan Ding, Jiabao Zhang, Xin Zhao, Siwei Zeng,etc'
@@ -19,8 +19,8 @@ with open('README.md', encoding='utf-8') as fp:
 
 extensions = [
     Extension(
-        "spartan.model.DPGS.c_MDL",
-        ["spartan/model/DPGS/c_MDL.pyx"],
+        name="spartan.model.DPGS.c_MDL",
+        sources=["spartan/model/DPGS/c_MDL.pyx"],
     ),
 ]
 
@@ -54,4 +54,5 @@ setuptools.setup(name=NAME,
                      "Operating System :: OS Independent",
                  ],
                  python_requires='>=3.6',
+                 build_ext= build_ext
                  )
