@@ -92,9 +92,6 @@ python -c 'import site; print(site.getsitepackages())'
 - start jupyter notebook
 - click to see each jupyter notebook (xxx.ipynb) demo for each algorithm, or see the following guidline.
 
-## API docs
-
-The docs of code can be read from [readthedocs](https://spartan2.readthedocs.io/en/latest/).
 
 ## live-tutorials: Table of Contents
 
@@ -118,6 +115,11 @@ All contents are collected in another repository [spartan-tutorials](https://git
 * [Other operations](https://github.com/BGT-M/spartan2-tutorials/blob/master/Log2Timeseries.ipynb)
 * [Beatlex](https://github.com/BGT-M/spartan2-tutorials/blob/master/Beatlex.ipynb): based on [BeatLex](https://shenghua-liu.github.io/papers/pkdd2017-beatlex.pdf)
 * [BeatGAN](https://github.com/BGT-M/spartan2-tutorials/blob/master/BeatGAN.ipynb): based on [BeatGAN](https://www.ijcai.org/Proceedings/2019/0616.pdf)
+
+
+## API docs
+
+For more details to use spartan2, please see the api docs [readthedocs](https://spartan2.readthedocs.io/en/latest/).
 
 ## references
 1. Shenghua Liu, Bryan Hooi, Christos Faloutsos, A Contrast Metric for Fraud Detection in Rich Graphs, IEEE Transactions on Knowledge and Data Engineering (TKDE), Vol 31, Issue 12, Dec. 1 2019, pp. 2235-2248.
