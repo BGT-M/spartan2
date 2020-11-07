@@ -54,6 +54,8 @@ class FlowScope( DMmodel ):
 
             for j in range(len(self.mcurlist)):
                 self.mcurlist[j] = del_block(self.mcurlist[j], finalsets[j], finalsets[j+1])
+                self.mtranslist[i] = del_block(self.mtranslist[i], finalsets[i+1], finalsets[i])
+
 
         return self.nres
 
@@ -62,7 +64,7 @@ class FlowScope( DMmodel ):
         self.mcurlist = []
         self.mtranslist = []
         for i in range(len(self.graphlist)):
-            self.mcurlist.append(self.graphlist[i].graph_tensor._data.copy().tocsr().tolil())
+            self.mcurlist.append(self.graphlist[i].graph_tensor._data.copy().tocsr().tolil().astype(np.float64))
             self.mtranslist.append(self.graphlist[i].graph_tensor._data.copy().tocsr().tolil().transpose()) 
 
 
