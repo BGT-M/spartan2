@@ -3,7 +3,6 @@
 # given elements in the leaves, where each internal node stores the min of its two children.
 # min tree, which can fetch min value quickly
 import math
-import numpy as np
 class MinTree:
     def __init__(self, degrees):
         degrees = self.checktype(degrees)
@@ -80,15 +79,15 @@ class MinTree:
         elif isinstance(obj, list):
             obj = (np.array(obj)).tolist()
             return obj
-        elif np.issubdtype(obj_type, np.integer):
+        elif obj_type in [np.int_, np.intc, np.int8, np.int16, np.int32, np.int64]:
             obj = int(obj)
             return obj
-        elif np.issubdtype(obj_type, np.floating):
+        elif obj_type in [np.float_, np.float16, np.float32, np.float64]:
             obj = float(obj)
             return obj
         elif isinstance(obj, int):
             return obj
         elif isinstance(obj, float):
             return obj
-        else: raise Exception('The type of ', obj,' is the wrong type! Type is', type(obj))
+        else: raise Exception('The type of ', obj,' is the wrong type!')
 
