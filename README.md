@@ -104,7 +104,7 @@ python -c 'import site; print(site.getsitepackages())'
 </details>
 
 
-5. run the tutorial demos in jupyter notebook.
+5. start jupyter notebook, and try live tutorials for demos:
 <details><summary><strong>live-tutorials</strong></summary> 
 
 **Table of Contents**
