@@ -1,23 +1,30 @@
 
-# welcome to spartan2
+# Welcome to spartan2
+
+## introduction
 
 **spartan2** is a collection of data mining algorithms on **big graphs** and
-**time series**, as graphs and time series are fundamental representations of many key applications 
+**time series**, providing *three* basic tasks: ***anomaly detection***, 
+***forecast***, and ***summarization***. (see [readthedocs](https://spartan2.readthedocs.io/en/latest/), and [tutorials](https://github.com/BGT-M/spartan2-tutorials) )
+
+Graphs and time series are fundamental representations of many key applications 
 in a wide range of users' online behaviors (e.g. social media, shopping, Apps), 
-finance (e.g. stock tradings, bank transfers), IoT networks (e.g. sensor readings, smart power grid), and healthcare (e.g. electrocardiogram, photoplethysmogram, respiratory inductance plethysmography). 
-
+finance (e.g. stock tradings, bank transfers), IoT networks (e.g. sensor readings, smart power grid), 
+and healthcare (e.g. electrocardiogram, photoplethysmogram, respiratory inductance plethysmography). 
 In practice, we find that thinking graphs and time series as matrices or tensors
-can enable us to find efficient (near linear), interpretable, yet accurate solutions in many applications.
+can enable us to find *efficient (near linear)*, *interpretable*, yet *accurate* solutions in many applications.
 
-Therefore, we want to develop a collectioin of algorithms on graphs and time series based
-on tensors (matrix is a 2-mode tensor). In real world, those tensors are sparse, and we
+Therefore, our **goal** is developping a collectioin of algorithms on graphs and time series based
+on **tensors** (matrix is a 2-mode tensor). 
+
+In real world, those tensors are *sparse*, and we
 are required to make use of the sparsity to develop efficient algorithms. That is why
-we name the package of algorithms as 
+we name the backend package and a private UI interface as 
 
 **SparTAn**: **Spar**se **T**ensor **An**alytics.
 
-spartan2 is backend of SparTAn.
-Everything here is viewed as a tensor (sparse).
+spartan2 is the backend name. The package named **spartan** can be imported and run independently as a *usual python package*.
+Everything in package **spartan** is viewed as a tensor (sparse).
 
 ## install requirements
 
@@ -32,68 +39,75 @@ conda create -n spartan python=3.7
 conda activate spartan
 ```
 
-3. If you are a normal **USER**, download the package from pip
-
+3. If you are a normal **USER**,
+<details><summary>download the package from pip</summary> 
+    
 ```bash
 pip install spartan2
 ```
 
-4. If you are a **DEVELOPER** and want to **contribute** to the project, please
-- clone the project from github
+</details>
 
+
+4. If you are a **DEVELOPER** and **contribute** to the project, or prefer to run directly on the code, 
+<details>
+    <summary>please do the following setup</summary>
+
+4.1 Clone the project from github
+    
 ```bash
 git clone https://github.com/shenghua-liu/spartan2.git
 ``` 
 
-- Install requirements.
+4.2 Install requirements.
 ```bash
 # [not recommended]# pip install --user --requirement requirements
 # using conda tool
 conda install --force-reinstall -y --name spartan -c conda-forge --file requirements
 ```
-   or  
+
+*or use the following way*
+    
 ```bash
 # this may not work in ubuntu 18.04
 python setup.py install
 ```
 
-- Install code in development mode
+4.3 Install code in development mode
 ```bash
 # in parent directory of spartan2
 pip install -e spartan2
 ```
-- Since you install your package to a location other than the user site-packages directory, you will need to 
+4.4 Since you install your package to a location other than the user site-packages directory, you will need to 
 add environment variable PYTHONPATH in ~/.bashrc  
+
 ```bash
 export PYTHONPATH=/<dir to spartan2>/spartan2:$PYTHONPATH
 ```
 
-   or prepend the path to that directory to your PYTHONPATH environment variable.
+*or prepend the path to that directory to your PYTHONPATH environment variable.*
+
 ```python
 import sys
 sys.path.append("/<dir to spartan2>/spartan2")
 ```
-   or 
+*or do as follows*
+
 ```bash
 #find directory of site-packages
 python -c 'import site; print(site.getsitepackages())'
+
+#add \<name\>.pth file in your site-packages directory with string '/<dir to spartan2>/spartan2'
+
 ```
 
-   and add \<name\>.pth file in your site-packages directory
-
-```
-/<dir to spartan2>/spartan2
-```
+</details>
 
 
+5. run the tutorial demos in jupyter notebook.
+<details><summary><strong>live-tutorials</strong></summary> 
 
-5. run the project demos in jupyter notebook:
-
-- start jupyter notebook
-- click to see each jupyter notebook (xxx.ipynb) demo for each algorithm, or see the following guidline.
-
-
-## live-tutorials: Table of Contents
+**Table of Contents**
 
 All contents are collected in another repository [spartan-tutorials](https://github.com/BGT-M/spartan2-tutorials), you can clone that repository to get all the notebooks and example data to run on your own.
 
@@ -116,6 +130,7 @@ All contents are collected in another repository [spartan-tutorials](https://git
 * [Beatlex](https://github.com/BGT-M/spartan2-tutorials/blob/master/Beatlex.ipynb): based on [BeatLex](https://shenghua-liu.github.io/papers/pkdd2017-beatlex.pdf)
 * [BeatGAN](https://github.com/BGT-M/spartan2-tutorials/blob/master/BeatGAN.ipynb): based on [BeatGAN](https://www.ijcai.org/Proceedings/2019/0616.pdf)
 
+</details>
 
 ## API docs
 
