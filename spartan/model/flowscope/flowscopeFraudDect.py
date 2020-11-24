@@ -54,7 +54,7 @@ class FlowScope( DMmodel ):
 
             for j in range(len(self.mcurlist)):
                 self.mcurlist[j] = del_block(self.mcurlist[j], finalsets[j], finalsets[j+1])
-                self.mtranslist[i] = del_block(self.mtranslist[i], finalsets[i+1], finalsets[i])
+                self.mtranslist[j] = del_block(self.mtranslist[j], finalsets[j+1], finalsets[j])
 
 
         return self.nres
