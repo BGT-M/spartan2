@@ -37,7 +37,7 @@ class NeighborSampler():
         return top_k
 
 
-def load_gene_file(filapath, stage_index, output_filepath_list, output_gene_dict):
+def load_gene_file(filapath, filepath_stage, output_filepath, output_gene_dict):
     list_data = []
     list_gene = []
     with open(filapath) as fp:
@@ -55,20 +55,17 @@ def load_gene_file(filapath, stage_index, output_filepath_list, output_gene_dict
             gc.collect() # the line has more than 800K element
     x_data = np.array(list_data)
 
-    if stage_index:
-        print(stage_index)
-        # stage_index = stage_index.split(",")
-        stage_index = [int(x) for x in stage_index]
-        stage_index = np.array(stage_index)
-    else:
-        stage_index = np.array([0] * x_data.shape[0])
-    n_stage = np.max(stage_index) + 1
-    # print("gene file has " + str(n_stage) + " stages")
+    idx = []
+    with open(filepath_stage) as fp:
+        for line in fp:
+            tokens = line.split()
+            for i, token in enumerate(tokens):
+                if token == "1":
+                    idx.append(i)
+            break
     
-    for j in range(n_stage):
-        idx = stage_index == j
-        x_output = x_data[idx]
-        np.savetxt(output_filepath_list[j], x_output, delimiter="\t")
+    x_output = x_data[idx]
+    np.savetxt(output_filepath, x_output, delimiter="\t")
 
     with open(output_gene_dict, "w") as wfp:
         for i, gene in enumerate(list_gene):

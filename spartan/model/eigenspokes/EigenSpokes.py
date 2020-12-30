@@ -14,7 +14,7 @@ class EigenSpokes(DMmodel):
         sparse_matrix = sparse_matrix.asfptype()
         RU, RS, RVt = slin.svds(sparse_matrix, k)
         RV = np.transpose(RVt)
-        U, S, V = np.flip(RU, axis=1), np.flip(RS), np.flip(RV, axis=1)
+        # U, S, V = np.flip(RU, axis=1), np.flip(RS), np.flip(RV, axis=1)
 
         n_row = U.shape[0]
         n_col = V.shape[0]
