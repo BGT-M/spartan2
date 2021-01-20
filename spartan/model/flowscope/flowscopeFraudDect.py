@@ -29,18 +29,20 @@ class FlowScope( DMmodel ):
     def __init__(self, graphList: list, **params):
         self.graphnum = len(graphList)
         self.graphlist = graphList
-        self.alpha = param_default(params, 'alpha', 4)
+        # self.alpha = param_default(params, 'alpha', 0.8)
         # self.alg = param_default(params, 'alg', 'fastgreedy')
 
     def __str__(self):
         return str(vars(self))
 
     
-    def run(self, k:int=3, level:int=0):
-        print("you are running with ", self.graphnum," partite graph")
+    def run(self, k:int=3, level:int=0, alpha:float=4):
+        print("you are running with ", self.graphnum+1," partite graph")
         self.level = level
+        self.alpha = alpha
         self.initData()
         self.nres = []
+
 
         for i in range(k):
             if self.level == 0:
@@ -50,8 +52,10 @@ class FlowScope( DMmodel ):
 
             self.nres.append([finalsets, score])
 
-            for i in range(len(self.mcurlist)):
-                self.mcurlist[i] = del_block(self.mcurlist[i], finalsets[i], finalsets[i+1]) 
+            for j in range(len(self.mcurlist)):
+                self.mcurlist[j] = del_block(self.mcurlist[j], finalsets[j], finalsets[j+1])
+                self.mtranslist[j] = del_block(self.mtranslist[j], finalsets[j+1], finalsets[j])
+
 
         return self.nres
 
@@ -60,7 +64,7 @@ class FlowScope( DMmodel ):
         self.mcurlist = []
         self.mtranslist = []
         for i in range(len(self.graphlist)):
-            self.mcurlist.append(self.graphlist[i].graph_tensor._data.copy().tocsr().tolil())
+            self.mcurlist.append(self.graphlist[i].graph_tensor._data.copy().tocsr().tolil().astype(np.float64))
             self.mtranslist.append(self.graphlist[i].graph_tensor._data.copy().tocsr().tolil().transpose()) 
 
 
@@ -72,17 +76,21 @@ class FlowScope( DMmodel ):
         self.curAveScorelist = []
 
 
+
         self.sets.append(set(range(self.mcurlist[0].shape[0])))
         for i in range(len(self.mcurlist)-1):
             self.sets.append(set(range(self.mcurlist[i].shape[1])))
-        self.sets.append(set(range(self.mcurlist[1].shape[1])))
+        self.sets.append(set(range(self.mcurlist[-1].shape[1])))
+
+        s = 0
+        for i in range(len(self.sets)):
+            s += len(self.sets[i])
         
-        
-        rowDeltas = np.squeeze(self.mcurlist[0].sum(axis=1).A)  # sum of A
+        rowDeltas = np.squeeze(self.mcurlist[0].sum(axis=1, dtype=np.float64).A)  # sum of A
         self.dtrees.append(MinTree(rowDeltas))
         for i in range(len(self.mcurlist)-1):
-            midDeltas1 = np.squeeze(self.mcurlist[i].sum(axis=0).A)
-            midDeltas2 = np.squeeze(self.mcurlist[i+1].sum(axis=1).A)
+            midDeltas1 = np.squeeze(self.mcurlist[i].sum(axis=0, dtype=np.float64).A)
+            midDeltas2 = np.squeeze(self.mcurlist[i+1].sum(axis=1, dtype=np.float64).A)
             self.deltaslist.append(midDeltas1)
             self.deltaslist.append(midDeltas2)
             
@@ -103,19 +111,18 @@ class FlowScope( DMmodel ):
             curScore2 = sum(abs(midDeltas1 - midDeltas2))
             self.curScorelist.append(curScore1)
             self.curScorelist.append(curScore2)
-            s = self.mcurlist[i].shape[0] + self.mcurlist[i].shape[1] + self.mcurlist[i+1].shape[1]
             curAveScore1 = curScore1 / s
             curAveScore2 = curScore2 / s
             self.curAveScorelist.append(curAveScore1)
             self.curAveScorelist.append(curAveScore2)
 
-        colDeltas = np.squeeze(self.mcurlist[-1].sum(axis=0).A)  # sum of C
+        colDeltas = np.squeeze(self.mcurlist[-1].sum(axis=0, dtype=np.float64).A)  # sum of C
         self.dtrees.append(MinTree(colDeltas))
         
         
 
-    def updataConnNode(self, type, index, mindelta):
-        if type == 0:
+    def updataConnNode(self, mold, index, mindelta):
+        if mold == 0:
             # update  the  weight of connected nodes
             for j in self.mcurlist[0].rows[mindelta]:
                 
@@ -131,7 +138,7 @@ class FlowScope( DMmodel ):
 
                 # update mid_tree
                 mid_delta_value = abs(self.deltaslist[0][j] - self.deltaslist[1][j])
-                new_mid_w = tempmin - self.alpha * mid_delta_value
+                new_mid_w = min(self.deltaslist[0][j], self.deltaslist[1][j]) - self.alpha * mid_delta_value
                 self.dtrees[1].setVal(j, new_mid_w)
 
             self.sets[0] -= {mindelta}  # update rowSet
@@ -139,7 +146,7 @@ class FlowScope( DMmodel ):
             self.deleted.append((index, mindelta)) 
             self.numDeleted += 1
 
-        elif type == 2:
+        elif mold == 2:
             # update mD1, mD2, and mid_tree
             for i in self.mtranslist[-1].rows[mindelta]:
                 if self.deltaslist[-1][i] == -1:
@@ -154,7 +161,7 @@ class FlowScope( DMmodel ):
                 self.deltaslist[-1][i] = new_md2
 
                 mid_delta_value = abs(self.deltaslist[-1][i] - self.deltaslist[-2][i])
-                new_mid_w = tempmin - self.alpha * mid_delta_value
+                new_mid_w = min(self.deltaslist[-1][i], self.deltaslist[-2][i]) - self.alpha * mid_delta_value
                 self.dtrees[-2].setVal(i, new_mid_w)
 
             self.sets[-1] -= {mindelta}
@@ -162,7 +169,7 @@ class FlowScope( DMmodel ):
             self.deleted.append((index, mindelta))
             self.numDeleted += 1
 
-        elif type == 1:
+        elif mold == 1:
 
             self.curScorelist[2 * index - 2] -= min(self.deltaslist[2 * index - 2][mindelta],
                                                     self.deltaslist[2 * index - 1][mindelta])
@@ -187,7 +194,7 @@ class FlowScope( DMmodel ):
 
 
                     mid_delta_value = abs(self.deltaslist[2 * index][j] - self.deltaslist[2 * index + 1][j])
-                    new_mid_w = tempmin - self.alpha * mid_delta_value
+                    new_mid_w = min(self.deltaslist[2 * index][j], self.deltaslist[2 * index + 1][j]) - self.alpha * mid_delta_value
                     self.dtrees[index + 1].setVal(j, new_mid_w)
                 else:
                     self.dtrees[index + 1].changeVal(j, -self.mcurlist[index][mindelta, j])
@@ -207,7 +214,7 @@ class FlowScope( DMmodel ):
                     self.deltaslist[2 * index - 3][j] = new_md2
 
                     mid_delta_value = abs(self.deltaslist[2 * index - 3][j] - self.deltaslist[2 * index - 4][j])
-                    new_mid_w = tempmin - self.alpha * mid_delta_value
+                    new_mid_w = min(self.deltaslist[2 * index - 3][j], self.deltaslist[2 * index - 4][j]) - self.alpha * mid_delta_value
                     self.dtrees[index - 1].setVal(j, new_mid_w)
                 else:
                     self.dtrees[index - 1].changeVal(j, -self.mtranslist[index - 1][mindelta, j])
@@ -230,21 +237,21 @@ class FlowScope( DMmodel ):
         min_weight = min1
         minidx = resmin[0][0]
         idx = 0
-        type = 0
+        mold = 0
         
         if min2 < min_weight:
             min_weight = min2
             idx = len(resmin) - 1
-            type = 2
+            mold = 2
             minidx = resmin[-1][0]
         for i in range(len(resmin) - 2):
             if resmin[i + 1][1] < min_weight:
                 min_weight = resmin[i + 1][1]
                 minidx = resmin[i + 1][0]
                 idx = i + 1
-                type = 1
+                mold = 1
         
-        return type, idx, minidx
+        return mold, idx, minidx
         
         
     def checkset(self):
@@ -290,10 +297,10 @@ class FlowScope( DMmodel ):
             curall += self.curAveScorelist[i] - self.alpha * self.curAveScorelist[i+1]
         print('initial score of g(S):', curall)
         while self.checkset():  # repeat deleting until one node set in null
-            
-            type, idx, minidx = self.findmin()
 
-            self.updataConnNode(type=type, index=idx, mindelta=minidx)
+            mold, idx, minidx = self.findmin()
+
+            self.updataConnNode(mold=mold, index=idx, mindelta=minidx)
             
             s = 0
             for i in range(len(self.sets)):
@@ -324,10 +331,14 @@ class FlowScope( DMmodel ):
         finalsets.append(set(range(self.mcurlist[0].shape[0])))
         for i in range(len(self.mcurlist) - 1):
             finalsets.append(set(range(self.mcurlist[i].shape[1])))
-        finalsets.append(set(range(self.mcurlist[1].shape[1])))
+        finalsets.append(set(range(self.mcurlist[-1].shape[1])))
         
         for i in range(self.bestNumDeleted):
             finalsets[self.deleted[i][0]].remove(self.deleted[i][1])
             
 
         return finalsets, self.bestAveScore
+
+
+    def anomaly_detection(self, k:int=3, alpha:float = 0.8):
+        return self.run(k=k, alpha=alpha)

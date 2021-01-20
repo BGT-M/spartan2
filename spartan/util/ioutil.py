@@ -24,35 +24,9 @@ class File():
         self.mode = mode
         self.idxtypes = idxtypes
         self.dtypes = None
-        self.sep = None
 
-    def get_sep_of_file(self):
-        '''
-        return the separator of the line.
-        :param infn: input file
-        '''
-        sep = None
-        fp = open(self.filename, self.mode)
-        for line in fp:
-            line = line.decode(
-                'utf-8') if isinstance(line, bytes) else line
-            if (line.startswith("%") or line.startswith("#")):
-                continue
-            line = line.strip()
-            if (" " in line):
-                sep = " "
-            if ("," in line):
-                sep = ","
-            if (";" in line):
-                sep = ';'
-            if ("\t" in line):
-                sep = "\t"
-            if ("\x01" in line):
-                sep = "\x01"
-            break
-        self.sep = sep
-
-    def transfer_type(self, typex):
+    @staticmethod
+    def transfer_type(typex):
         if typex == float:
             _typex = 'float'
         elif typex == int:
@@ -81,15 +55,15 @@ class GZipFile(File):
         f.seek(pos)
         _f = open(self.filename, self.mode)
         _f.seek(pos)
-        fin = pd.read_csv(f, sep=self.sep, **kwargs)
+        fin = pd.read_csv(f, **kwargs)
         column_names = fin.columns
         self.dtypes = {}
         if self.idxtypes is not None:
             for idx, typex in self.idxtypes:
                 self.dtypes[column_names[idx]] = self.transfer_type(typex)
-            fin = pd.read_csv(_f, dtype=self.dtypes, sep=self.sep, **kwargs)
+            fin = pd.read_csv(_f, dtype=self.dtypes, **kwargs)
         else:
-            fin = pd.read_csv(_f, sep=self.sep, **kwargs)
+            fin = pd.read_csv(_f, **kwargs)
         return fin
 
 
@@ -106,20 +80,19 @@ class TensorFile(File):
         f.seek(pos)
         _f = open(self.filename, self.mode)
         _f.seek(pos)
-        fin = pd.read_csv(f, sep=self.sep, **kwargs)
+        fin = pd.read_csv(f, **kwargs)
         column_names = fin.columns
         self.dtypes = {}
         if not self.idxtypes is None:
             for idx, typex in self.idxtypes:
                 self.dtypes[column_names[idx]] = self.transfer_type(typex)
-            fin = pd.read_csv(_f, dtype=self.dtypes, sep=self.sep, **kwargs)
+            fin = pd.read_csv(_f, dtype=self.dtypes, **kwargs)
         else:
-            fin = pd.read_csv(_f, sep=self.sep, **kwargs)
+            fin = pd.read_csv(_f, **kwargs)
         return fin
 
     def _read(self, **kwargs):
         tensorlist = []
-        self.get_sep_of_file()
         _file = self._open(**kwargs)
         if not self.idxtypes is None:
             idx = [i[0] for i in self.idxtypes]
@@ -287,7 +260,7 @@ def _myopenfile(fnm, mode):
     return f
 
 
-def loadTensor(path: str,  col_idx: list = None, col_types: list = None, **kwargs):
+def loadTensor(path: str,  col_idx: list = None, col_types: list = None, sep: str = ',', **kwargs):
     '''
     Parameters
     ------
@@ -298,6 +271,8 @@ def loadTensor(path: str,  col_idx: list = None, col_types: list = None, **kwarg
         kwargs["header"] = None
     if path is None:
         raise FileNotFoundError('Path is missing.')
+    if not "sep" in kwargs.keys():
+        kwargs["sep"] = sep
 
     import glob
     files = glob.glob(path)
@@ -310,7 +285,7 @@ def loadTensor(path: str,  col_idx: list = None, col_types: list = None, **kwarg
         if col_idx is None:
             col_idx = [i for i in range(len(col_types))]
         if len(col_idx) == len(col_types):
-            idxtypes = [[x, col_types[i]] for i, x in enumerate(col_idx)]
+            idxtypes = list(zip(col_idx, col_types))
         else:
             raise Exception(f"Error: input same size of col_types and col_idx")
 

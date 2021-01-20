@@ -44,20 +44,24 @@ Eigenspokes = partial(__call__, MODEL_PATH + ".eigenspokes")
 HoloScope = partial(__call__, MODEL_PATH + ".holoscope")
 FlowScope = partial(__call__, MODEL_PATH + ".flowscope")
 RPeak = partial(__call__, MODEL_PATH + ".rpeak")
-Summarize = partial(__call__, MODEL_PATH + ".summarize")
+DPGS = partial(__call__, MODEL_PATH + ".DPGS")
+kGrass = partial(__call__, MODEL_PATH + ".kGS")
 IAT = partial(__call__, MODEL_PATH + ".iat")
+Fraudar = partial(__call__, MODEL_PATH + ".fraudar")
 
 
 __all__ = [
     'PipeLine',
     'BeatLex',
     'BeatGAN',
-    'EagleMine',    
+    'EagleMine',
     'EigenPulse',
     'Eigenspokes',
     'HoloScope',
     'FlowScope',
     'RPeak',
-    'Summarize',
+    'DPGS',
+    "kGrass",
     'IAT',
+    'Fraudar'
 ]

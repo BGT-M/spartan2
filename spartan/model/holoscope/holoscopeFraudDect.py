@@ -16,15 +16,15 @@ from spartan.backend import STensor
 def score_level_objects( objscores, p=0.90):
     '''implement with Perato distribution, given significant value
     '''
-    sortscores = sorted(objscores)
+    sortscores = np.array(sorted(objscores))
     sortobjs = np.argsort(objscores)
     alpha = 0.9
     tail_fir_score = np.percentile(sortscores, [alpha*100])[0]
     if tail_fir_score == 0:
         'remove 0 if the number of percentile 90% is 0'
         firindex = np.argwhere(sortscores > 0)[0]
-        sortscores = sortscores[firindex:]
-        sortobjs = sortobjs[firindex:]
+        sortscores = sortscores[firindex[0]:]
+        sortobjs = sortobjs[firindex[0]:]
     'fit generalized pareto distribution using 10% upper tail data'
     tailidx = int(alpha * len(sortscores))
     tailscores = sortscores[tailidx:]

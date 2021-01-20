@@ -3,8 +3,10 @@
 # given elements in the leaves, where each internal node stores the min of its two children.
 # min tree, which can fetch min value quickly
 import math
+import numpy as np
 class MinTree:
     def __init__(self, degrees):
+        degrees = self.checktype(degrees)
         self.height = int(math.ceil(math.log(len(degrees), 2)))
         self.numLeaves = 2 ** self.height  #  the operater form of pow
         self.numBranches = self.numLeaves - 1
@@ -22,16 +24,19 @@ class MinTree:
         return (cur - self.numBranches, self.nodes[cur])
 
     def index_of(self ,idx):
+        idx = self.checktype(idx)
         cur = self.numBranches + idx
         return self.nodes[cur]
 
+    # return the renewed value of degrees[idx]
     def changeVal(self, idx, delta):
+        idx = self.checktype(idx)
+        delta = self.checktype(delta)
         cur = self.numBranches + idx
         if self.nodes[cur] == float('inf'):
             return float('inf')
 
-        new_value = self.nodes[cur] + delta
-        self.nodes[cur] = new_value
+        self.nodes[cur] = self.nodes[cur] + delta
 
         for i in range(self.height):
             cur = (cur - 1) // 2
@@ -39,9 +44,12 @@ class MinTree:
             if self.nodes[cur] == nextParent:
                 break
             self.nodes[cur] = nextParent
-        return new_value
+        return self.nodes[cur]
 
-    def setter (self, idx, new_value ):
+    # return the renewed value of degrees[idx]
+    def setVal (self, idx, new_value):
+        idx = self.checktype(idx)
+        new_value = self.checktype(new_value)
         cur = self.numBranches + idx
         if self.nodes[cur] == float('inf'):
             return float('inf')
@@ -53,7 +61,7 @@ class MinTree:
             if self.nodes[cur] == nextParent:
                 break
             self.nodes[cur] = nextParent
-        return new_value
+        return self.nodes[cur]
 
     def dump(self):
         print("numLeaves: %d, numBranches: %d, n: %d, nodes: " % (self.numLeaves, self.numBranches, self.n))
@@ -63,3 +71,24 @@ class MinTree:
                 print(self.nodes[cur],)
                 cur += 1
             print('')
+
+    def checktype(self, obj):
+        obj_type = type(obj)
+        if obj_type is np.ndarray:
+            obj = obj.tolist()
+            return obj
+        elif isinstance(obj, list):
+            obj = (np.array(obj)).tolist()
+            return obj
+        elif np.issubdtype(obj_type, np.integer):
+            obj = int(obj)
+            return obj
+        elif np.issubdtype(obj_type, np.floating):
+            obj = float(obj)
+            return obj
+        elif isinstance(obj, int):
+            return obj
+        elif isinstance(obj, float):
+            return obj
+        else: raise Exception('The type of ', obj,' is the wrong type! Type is', type(obj))
+
