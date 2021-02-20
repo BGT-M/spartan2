@@ -48,6 +48,7 @@ DPGS = partial(__call__, MODEL_PATH + ".DPGS")
 kGrass = partial(__call__, MODEL_PATH + ".kGS")
 IAT = partial(__call__, MODEL_PATH + ".iat")
 Fraudar = partial(__call__, MODEL_PATH + ".fraudar")
+CubeFlow = partial(__call__, MODEL_PATH + ".CubeFlow")
 
 
 __all__ = [
@@ -63,5 +64,6 @@ __all__ = [
     'DPGS',
     "kGrass",
     'IAT',
-    'Fraudar'
+    'Fraudar',
+    'CubeFlow'
 ]
