@@ -4,22 +4,22 @@
 ## introduction
 
 **spartan2** is a collection of data mining algorithms on **big graphs** and
-**time series**, providing *three* basic tasks: ***anomaly detection***, 
+**time series**, providing *three* basic tasks: ***anomaly detection***,
 ***forecast***, and ***summarization***. (see [readthedocs](https://spartan2.readthedocs.io/en/latest/), and [tutorials](https://github.com/BGT-M/spartan2-tutorials) )
 
-Graphs and time series are fundamental representations of many key applications 
-in a wide range of users' online behaviors (e.g. social media, shopping, Apps), 
-finance (e.g. stock tradings, bank transfers), IoT networks (e.g. sensor readings, smart power grid), 
-and healthcare (e.g. electrocardiogram, photoplethysmogram, respiratory inductance plethysmography). 
+Graphs and time series are fundamental representations of many key applications
+in a wide range of users' online behaviors (e.g. social media, shopping, Apps),
+finance (e.g. stock tradings, bank transfers), IoT networks (e.g. sensor readings, smart power grid),
+and healthcare (e.g. electrocardiogram, photoplethysmogram, respiratory inductance plethysmography).
 In practice, we find that thinking graphs and time series as matrices or tensors
 can enable us to find *efficient (near linear)*, *interpretable*, yet *accurate* solutions in many applications.
 
 Therefore, our **goal** is developping a collectioin of algorithms on graphs and time series based
-on **tensors** (matrix is a 2-mode tensor). 
+on **tensors** (matrix is a 2-mode tensor).
 
 In real world, those tensors are *sparse*, and we
 are required to make use of the sparsity to develop efficient algorithms. That is why
-we name the backend package and a private UI interface as 
+we name the backend package and a private UI interface as
 
 **SparTAn**: **Spar**se **T**ensor **An**alytics.
 
@@ -30,7 +30,7 @@ Everything in package **spartan** is viewed as a tensor (sparse).
 
 This project requires Python 3.7 and upper.
 We suggest recreating the experimental environment using Anaconda through the following steps.
- 
+
 1. Install the appropriate version for Anaconda from here - https://www.anaconda.com/distribution/
 
 2. Create a new conda environment named "spartan"
@@ -40,8 +40,8 @@ conda activate spartan
 ```
 
 3. If you are a normal **USER**,
-<details><summary>download the package from pip</summary> 
-    
+<details><summary>download the package from pip</summary>
+
 ```bash
 pip install spartan2
 ```
@@ -49,15 +49,15 @@ pip install spartan2
 </details>
 
 
-4. If you are a **DEVELOPER** and **contribute** to the project, or prefer to run directly on the code, 
+4. If you are a **DEVELOPER** and **contribute** to the project, or prefer to run directly on the code,
 <details>
     <summary>please do the following setup</summary>
 
 4.1 Clone the project from github
-    
+
 ```bash
 git clone https://github.com/shenghua-liu/spartan2.git
-``` 
+```
 
 4.2 Install requirements.
 ```bash
@@ -67,7 +67,7 @@ conda install --force-reinstall -y --name spartan -c conda-forge --file requirem
 ```
 
 *or use the following way*
-    
+
 ```bash
 # this may not work in ubuntu 18.04
 python setup.py install
@@ -78,8 +78,8 @@ python setup.py install
 # in parent directory of spartan2
 pip install -e spartan2
 ```
-4.4 Since you install your package to a location other than the user site-packages directory, you will need to 
-add environment variable PYTHONPATH in ~/.bashrc  
+4.4 Since you install your package to a location other than the user site-packages directory, you will need to
+add environment variable PYTHONPATH in ~/.bashrc
 
 ```bash
 export PYTHONPATH=/<dir to spartan2>/spartan2:$PYTHONPATH
@@ -105,7 +105,7 @@ python -c 'import site; print(site.getsitepackages())'
 
 
 5. start jupyter notebook, and try live tutorials for demos:
-<details><summary><strong>live-tutorials</strong></summary> 
+<details><summary><strong>live-tutorials</strong></summary>
 
 **Table of Contents**
 
@@ -122,7 +122,7 @@ All contents are collected in another repository [spartan-tutorials](https://git
 * [Fraudar](https://github.com/BGT-M/spartan2-tutorials/blob/master/Fraudar_demo.ipynb): a wrapper of [Fraudar](https://bhooi.github.io/projects/fraudar/index.html) algorithm.
 * [Holoscope](https://github.com/BGT-M/spartan2-tutorials/blob/master/Holoscope.ipynb): based on [HoloScope](https://shenghua-liu.github.io/papers/cikm2017-holoscope.pdf)
 * [EigenPulse](https://github.com/BGT-M/spartan2-tutorials/blob/master/EigenPulse.ipynb)
-* [Summarization](https://github.com/BGT-M/spartan2-tutorials/blob/master/Summarization.ipynb)
+* [DPGS](https://github.com/BGT-M/spartan2-tutorials/blob/master/DPGS.ipynb)
 
 **Part 3: Time Series**
 * [Time Series start](https://github.com/BGT-M/spartan2-tutorials/blob/master/timeseries_start.ipynb)
@@ -144,3 +144,4 @@ For more details to use spartan2, please see the api docs [readthedocs](https://
 4. Bryan Hooi, Shenghua Liu, Asim Smailagic, and Christos Faloutsos, “BEATLEX: Summarizing and Forecasting Time Series with Patterns,” The European Conference on Machine Learning & Principles and Practice of Knowledge Discovery in Databases (ECML-PKDD), Skopje, Macedonia, 2017.
 5. Hooi, Bryan, Hyun Ah Song, Alex Beutel, Neil Shah, Kijung Shin, and Christos Faloutsos. "Fraudar: Bounding graph fraud in the face of camouflage." In Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, pp. 895-904. 2016.
 6. Zhou, Bin, Shenghua Liu, Bryan Hooi, Xueqi Cheng, and Jing Ye. "BeatGAN: Anomalous Rhythm Detection using Adversarially Generated Time Series." In IJCAI, pp. 4433-4439. 2019.
+7. Houquan Zhou, Shenghua Liu, Kyuhan Lee, Kijung Shin, Huawei Shen and Xueqi Cheng. "DPGS: Degree-Preserving Graph Summarization." In SDM, 2021.
