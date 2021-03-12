@@ -169,6 +169,8 @@ def __plot_beatlex_timeseries(plt, series: Timeseries, result: dict):
     sub_dimension = series.dimension
     actual_dimension = 1
     _, ax = plt.subplots(sub_dimension, 1, sharex=True)
+    if sub_dimension == 1:
+        ax = [ax]
     for index, label in enumerate(series.labels):
         ax[index].set_title(label)
         if starts is not None and ends is not None:
