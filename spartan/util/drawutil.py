@@ -74,7 +74,6 @@ def plot_graph(graph: Graph, layout=None, bipartite=False, labels=None,
 
 def plot_timeseries(*args, **kwargs):
     import matplotlib.pyplot as plt
-    plt.figure()
     __plot_timeseries(plt, *args, **kwargs)
     plt.show()
 
@@ -146,8 +145,9 @@ def drawEigenPulse(densities: list = [], figpath: str = None):
 def __plot_beatlex(time_series, result):
     import matplotlib.pyplot as plt
     models = result['models']
-    __plot_beatlex_vocabulary(plt, models)
-    __plot_beatlex_timeseries(plt, time_series, result)
+    plt = __plot_beatlex_vocabulary(plt, models)
+    plt = __plot_beatlex_timeseries(plt, time_series, result)
+    plt.show()
     return plt
 
 
@@ -157,10 +157,10 @@ def __plot_beatlex_vocabulary(plt, models):
         plt.figure()
         plt.plot(model.T, color[i % len(models)])
         plt.title(f"Vocabulary {i}")
+    return plt
 
 
 def __plot_beatlex_timeseries(plt, series: Timeseries, result: dict):
-    plt.figure()
     starts = result['starts']
     ends = result['ends']
     model_num = len(result['models'])
@@ -205,8 +205,8 @@ def __plot_beatgan(input, output, heat):
     fig.tight_layout()
 
 
-def histogram_viz(histogram_matrix, x_ticks:list, y_ticks:list, output:str, 
-                     base:int=10, x_label:str=None, y_label:str=None):
+def histogram_viz(histogram_matrix, x_ticks: list, y_ticks: list, output: str,
+                  base: int = 10, x_label: str = None, y_label: str = None):
     '''Plot two-dimensional histogram
     Parameters:
     --------
@@ -230,19 +230,20 @@ def histogram_viz(histogram_matrix, x_ticks:list, y_ticks:list, output:str,
     '''
     import matplotlib.pylab as plt
     from matplotlib.colors import LogNorm
-    
+
     n, m = histogram_matrix.shape
-    fig = plt.figure(figsize=(4.7, 3.8),dpi=96) # figsize=(8, 6.5),
+    fig = plt.figure(figsize=(4.7, 3.8), dpi=96)  # figsize=(8, 6.5),
     plt.pcolormesh(histogram_matrix.toarray(), cmap='jet', norm=LogNorm(), rasterized=True)
     cb = plt.colorbar()
     cb.set_label('counts')
-    #for lb in cb.ax.yaxis.get_ticklabels():
-        # lb.set_family('Times New roman')
-        # lb.set_size(20)
+    # for lb in cb.ax.yaxis.get_ticklabels():
+    # lb.set_family('Times New roman')
+    # lb.set_size(20)
 
     ax = fig.gca()
     xticks = ax.get_xticks()
-    if xticks[-1] > m:  xticks = xticks[:-1]
+    if xticks[-1] > m:
+        xticks = xticks[:-1]
     xstep = xticks[1] - xticks[0]
     nw_xtick = []
     for xt in xticks:
@@ -264,22 +265,22 @@ def histogram_viz(histogram_matrix, x_ticks:list, y_ticks:list, output:str,
             else:
                 pws = int(np.log10(yval))
                 fv = yval * 1.0 / 10**pws
-                nw_ytick.append('%.1fE%d'%(fv, pws))
+                nw_ytick.append('%.1fE%d' % (fv, pws))
 
     if nw_xtick[-1] == '':
-        nw_xtick[-1] = '%.2f'%x_ticks[-1]
+        nw_xtick[-1] = '%.2f' % x_ticks[-1]
         # nw_xtick[-1] = '%.2f'%np.power(base, x_vec[-1])
     if nw_ytick[-1] == '':
         nw_ytick[-1] = '%d' % int(y_ticks[-1])
         # nw_ytick = '%d' % int(np.power(base, y_vec[-1]))
 
-    ax.set_xticklabels(nw_xtick) #, fontsize=27, family='Times New roman'
-    ax.set_yticklabels(nw_ytick) #, fontsize=27, family='Times New roman'
+    ax.set_xticklabels(nw_xtick)  # , fontsize=27, family='Times New roman'
+    ax.set_yticklabels(nw_ytick)  # , fontsize=27, family='Times New roman'
 
     if x_label is not None:
-        plt.xlabel(x_label, linespacing=12) #, fontsize=32, family='Times New roman'
+        plt.xlabel(x_label, linespacing=12)  # , fontsize=32, family='Times New roman'
     if y_label is not None:
-        plt.ylabel(y_label, linespacing=12) #, fontsize=32, family='Times New roman'
+        plt.ylabel(y_label, linespacing=12)  # , fontsize=32, family='Times New roman'
 
     # fig.set_size_inches(8, 7.3)
     fig.tight_layout()
@@ -287,14 +288,15 @@ def histogram_viz(histogram_matrix, x_ticks:list, y_ticks:list, output:str,
         fig.savefig(output)
     return fig
 
+
 def __plot_cluster(data, center_pts, data_labels, outliers=list(),
-                  core_samples=None, grid=False, outfn=None):
+                   core_samples=None, grid=False, outfn=None):
     '''plot clusters of the data'''
     import collections as clct
     import matplotlib.cm as cm
     import matplotlib.pylab as plt
-    
-    fig = plt.figure(figsize=(3.8, 3.7),dpi=96) # figsize=(6.5, 6)
+
+    fig = plt.figure(figsize=(3.8, 3.7), dpi=96)  # figsize=(6.5, 6)
     lab2cnt = clct.Counter(data_labels)
     cmap = cm.get_cmap('Spectral')
     colors = cmap(np.linspace(0, 1, len(lab2cnt)))
@@ -317,15 +319,15 @@ def __plot_cluster(data, center_pts, data_labels, outliers=list(),
         class_member_mask = (data_labels == k)
         xy = data[class_member_mask & core_samples_mask]
         if len(xy) > 0:
-            plt.plot(xy[:, 1], xy[:, 0], 's', color=col, markersize=6) #markerfacecolor=col, markeredgecolor=col
+            plt.plot(xy[:, 1], xy[:, 0], 's', color=col, markersize=6)  # markerfacecolor=col, markeredgecolor=col
 
         mn_xy = np.mean(xy, 0)
         plt.text(mn_xy[1], mn_xy[0], str(k),
                  {'color': 'k', 'fontsize': 18, 'ha': 'center', 'va': 'center',
-                  'bbox': dict(boxstyle="circle", fc="w", ec="k", pad=0.2, alpha=0.3)} )
+                  'bbox': dict(boxstyle="circle", fc="w", ec="k", pad=0.2, alpha=0.3)})
         xy = data[class_member_mask & (np.invert(core_samples_mask))]
         if len(xy) > 0:
-            plt.plot(xy[:, 1], xy[:, 0], 's', color=col, markersize=6) #markerfacecolor=col, markeredgecolor=col
+            plt.plot(xy[:, 1], xy[:, 0], 's', color=col, markersize=6)  # markerfacecolor=col, markeredgecolor=col
         if len(center_pts) > 0:
             plt.plot(center_pts[k, 0], center_pts[k, 1], 's', markerfacecolor=col, markeredgecolor='k', markersize=10)
 
@@ -340,7 +342,7 @@ def __plot_cluster(data, center_pts, data_labels, outliers=list(),
     # ax.set_axis_bgcolor('white')   # deprecated method in Matplotlib v2.0
     ax.set_facecolor('white')
 
-    spine_linewidth = 3 #6 #8#
+    spine_linewidth = 3  # 6 #8#
     for spine in ax.spines.values():
         spine.set_linewidth(spine_linewidth)
     plt.grid(grid)
@@ -353,7 +355,8 @@ def __plot_cluster(data, center_pts, data_labels, outliers=list(),
     # plt.show()
     return fig
 
-def clusters_viz(hcel2label:dict, output:str, outlier_label=-1):
+
+def clusters_viz(hcel2label: dict, output: str, outlier_label=-1):
     '''Visualize cluster result for histogram
     Parameters:
     -------
@@ -367,16 +370,18 @@ def clusters_viz(hcel2label:dict, output:str, outlier_label=-1):
     '''
     import warnings
     warnings.filterwarnings("ignore")
-    
+
     def size_relabel(labels):
         clsdic = {}
         for l in labels:
             if l not in clsdic:
-                if l != -1: clsdic[l] = len(clsdic)
-                else:       clsdic[l] = l
+                if l != -1:
+                    clsdic[l] = len(clsdic)
+                else:
+                    clsdic[l] = l
         rlbs = [clsdic[l] for l in labels]
         return np.array(rlbs)
-    
+
     hcel_lab = np.column_stack((list(hcel2label.keys()), list(hcel2label.values())))
     outs_idx = hcel_lab[:, -1] == outlier_label
     outs = hcel_lab[outs_idx, :-1]
@@ -386,6 +391,7 @@ def clusters_viz(hcel2label:dict, output:str, outlier_label=-1):
     if output is not None:
         cls_fig.savefig(output)
     return cls_fig
+
 
 def drawHexbin(xs, ys, outfig=None, xscale='log', yscale='log',
                gridsize=200,
@@ -406,7 +412,7 @@ def drawHexbin(xs, ys, outfig=None, xscale='log', yscale='log',
     '''
     xs = np.array(xs) if type(xs) is list else xs
     ys = np.array(ys) if type(ys) is list else ys
-    if xscale == 'log' and min(xs)<=0:
+    if xscale == 'log' and min(xs) <= 0:
         print('[Warning] logscale with nonpositive values in x coord')
         print('\tremove {} nonpositives'.format(len(np.argwhere(xs <= 0))))
         xg0 = xs > 0
@@ -486,7 +492,7 @@ def drawRectbin(xs, ys, outfig=None, xscale='log', yscale='log',
         y_space = ygridsize
 
     hist = plt.hist2d(xs, ys, bins=(x_space, y_space), cmin=1, norm=cnorm,
-            cmap=plt.cm.jet )
+                      cmap=plt.cm.jet)
     plt.xscale(xscale)
     plt.yscale(yscale)
 

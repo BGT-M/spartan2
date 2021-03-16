@@ -7,7 +7,7 @@ from setuptools.extension import Extension
 from Cython.Build import cythonize, build_ext
 
 NAME = 'spartan2'
-VERSION = '0.1.2'
+VERSION = '0.1.2-post1'
 DESCRIPTION = 'collection of data mining algorithms on big graphs and time series'
 URL = 'https://github.com/BGT-M/spartan2'
 AUTHOR = 'Shenghua Liu, Houquan Zhou, Quan Ding, Jiabao Zhang, Xin Zhao, Siwei Zeng,etc'
