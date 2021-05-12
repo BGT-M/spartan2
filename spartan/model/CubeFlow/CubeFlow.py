@@ -32,19 +32,19 @@ class CubeFlow(DMmodel):
     def anomaly_detection(self):
         return self.run()
 
-    def run(self, del_type=0, size_max_limit=(-1,-1,-1)):
+    def run(self, del_type=0, maxsize=(-1,-1,-1)):
         print("you are running with ", self.graphnum + 1, "partite graph")
         self.del_type = del_type
         self.nres = []
-        self.size_max_limit = size_max_limit
+        self.size_max_limit = maxsize
         self.has_limit = False
         
-        if type(size_max_limit) == int and size_max_limit != -1:
+        if type(self.size_max_limit) == int and self.size_max_limit != -1:
             print('Block size sum (X+Y+Z) limit:', self.size_max_limit)
             self.has_limit = True
             
-        elif type(size_max_limit) == tuple:
-            if len(size_max_limit) != 3:
+        elif type(self.size_max_limit) == tuple:
+            if len(self.size_max_limit) != 3:
                 raise Exception('The length of size_max_limit tuple should be 3!')
             
             if not (self.size_max_limit[0] == -1 and self.size_max_limit[1] == -1 and self.size_max_limit[2] == -1):
