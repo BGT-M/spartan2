@@ -26,39 +26,68 @@ class FlowScope( DMmodel ):
     graph: Graph
         Graph instance contains adjency matrix, and possible multiple signals.
     '''
-    def __init__(self, graphList: list, **params):
+    def __init__(self, graphList: list):
         self.graphnum = len(graphList)
         self.graphlist = graphList
-        # self.alpha = param_default(params, 'alpha', 0.8)
-        # self.alg = param_default(params, 'alg', 'fastgreedy')
+                    
 
     def __str__(self):
         return str(vars(self))
 
     
-    def run(self, k:int=3, level:int=0, alpha:float=4):
+    def run(self,  k=3, level=0, alpha=4, maxsize=-1):
+        
         print("you are running with ", self.graphnum+1," partite graph")
+        self.nres = []
         self.level = level
         self.alpha = alpha
-        self.initData()
-        self.nres = []
-
-
-        for i in range(k):
-            if self.level == 0:
-                (finalsets, score) = self.fastGreedyDecreasing()
-            else:
-                return print("No such level know")
-
-            self.nres.append([finalsets, score])
-
-            for j in range(len(self.mcurlist)):
-                self.mcurlist[j] = del_block(self.mcurlist[j], finalsets[j], finalsets[j+1])
-                self.mtranslist[j] = del_block(self.mtranslist[j], finalsets[j+1], finalsets[j])
-
-
+        self.k = k
+        self.maxsize = maxsize
+        
+        isCorrectInput = self.checkinput()
+        if not isCorrectInput:
+            print('wrong input: exit')
+        else:
+            self.initData()
+            for i in range(self.k):
+                if self.level == 0:
+                    (finalsets, score) = self.fastGreedyDecreasing()
+                else:
+                    return print("No such level know")
+    
+                self.nres.append([finalsets, score])
+    
+                for j in range(len(self.mcurlist)):
+                    self.mcurlist[j] = del_block(self.mcurlist[j], finalsets[j], finalsets[j+1])
+                    self.mtranslist[j] = del_block(self.mtranslist[j], finalsets[j+1], finalsets[j])
         return self.nres
-
+    
+    
+    def checkinput(self):
+        isCorrectInput = True
+        if not isinstance(self.maxsize, int) and not isinstance(self.maxsize,tuple):
+            print('block size limit must be an integer or a tuple')
+            isCorrectInput = False
+        elif isinstance(self.maxsize, int):
+            if self.maxsize >= 0 and self.maxsize < self.graphnum + 1:
+                print('block size must be larger than the number of dimensions of multipartite graph')
+                isCorrectInput = False
+            if self.maxsize < 0 and self.maxsize != -1:
+                print('negatives except -1 are wrong input (-1 means no size limit)')
+                isCorrectInput = False
+        elif isinstance(self.maxsize, tuple):
+            if len(self.maxsize) != self.graphnum + 1:
+                print('please enter the node size limit for each dimension of multipartite graph')
+                isCorrectInput = False
+            else:
+                for mode in range(len(self.maxsize)):
+                    if not isinstance(self.maxsize[mode], int):
+                        print('The node size limit of each dimension must be an integer(-1 for no limit)')
+                        isCorrectInput = False
+                    if self.maxsize[mode] <= 0 and self.maxsize[mode] != -1:
+                        print('node size of any dimension should be -1 or any positive integer')
+                        isCorrectInput = False
+        return isCorrectInput
 
     def initData(self):
         self.mcurlist = []
@@ -66,16 +95,14 @@ class FlowScope( DMmodel ):
         for i in range(len(self.graphlist)):
             self.mcurlist.append(self.graphlist[i].graph_tensor._data.copy().tocsr().tolil().astype(np.float64))
             self.mtranslist.append(self.graphlist[i].graph_tensor._data.copy().tocsr().tolil().transpose()) 
-
-
+    
+    
     def initGreedy(self):
         self.sets = []
         self.dtrees = []
         self.deltaslist = []
         self.curScorelist = []
         self.curAveScorelist = []
-
-
 
         self.sets.append(set(range(self.mcurlist[0].shape[0])))
         for i in range(len(self.mcurlist)-1):
@@ -121,10 +148,10 @@ class FlowScope( DMmodel ):
         
         
 
-    def updataConnNode(self, mold, index, mindelta):
+    def updateConnNode(self, mold, index, mindelta):
         if mold == 0:
             # update  the  weight of connected nodes
-            for j in self.mcurlist[0].rows[mindelta]:
+            for j in self.mcurlist[0].rows[mindelta]:  # A
                 
                 if self.deltaslist[0][j] == -1:
                     continue
@@ -146,7 +173,7 @@ class FlowScope( DMmodel ):
             self.deleted.append((index, mindelta)) 
             self.numDeleted += 1
 
-        elif mold == 2:
+        elif mold == 2:   # C
             # update mD1, mD2, and mid_tree
             for i in self.mtranslist[-1].rows[mindelta]:
                 if self.deltaslist[-1][i] == -1:
@@ -260,6 +287,19 @@ class FlowScope( DMmodel ):
             res = self.sets[i] and res
         return res
 
+
+    def checksize(self):
+        isCorrectSize = True
+        if isinstance(self.maxsize, tuple):
+            for mode in range(len(self.maxsize)):
+                if self.maxsize[mode] != -1 and len(self.sets[mode]) > self.maxsize[mode]:
+                    isCorrectSize = False
+                    break
+        if isinstance(self.maxsize, int) and self.maxsize > 0:
+            nodesum = sum([len(self.sets[mode]) for mode in range(len(self.sets))])
+            if nodesum > self.maxsize:
+                isCorrectSize = False
+        return isCorrectSize
     
     # use to print the result of algorithm
     def printres(self):
@@ -278,8 +318,9 @@ class FlowScope( DMmodel ):
         for i in range(len(self.dtrees)):
             res3 += str((self.dtrees[i].getMin())) + ' '
         print(res3)
+  
     
-    
+        
     def fastGreedyDecreasing(self):
         print('this is the cpu version of FlowScope')  
         print('start  greedy')
@@ -300,7 +341,7 @@ class FlowScope( DMmodel ):
 
             mold, idx, minidx = self.findmin()
 
-            self.updataConnNode(mold=mold, index=idx, mindelta=minidx)
+            self.updateConnNode(mold=mold, index=idx, mindelta=minidx)
             
             s = 0
             for i in range(len(self.sets)):
@@ -313,19 +354,17 @@ class FlowScope( DMmodel ):
                 print("something wrong in FlowScope")
                 for i in range(0, len(self.curAveScorelist), 2):
                     self.curAveScorelist[i] = 0
-                    self.curAveScorelist[i+1] = 0 
-                    
-            curAveScore =0
-            for i in range(0, len(self.curAveScorelist), 2):
-                curAveScore += self.curAveScorelist[i] - self.alpha * self.curAveScorelist[i+1]
-
-            
-            if curAveScore >= self.bestAveScore: 
-                self.bestNumDeleted = self.numDeleted
-                self.bestAveScore = curAveScore
-
+                    self.curAveScorelist[i+1] = 0
+            isCorrectSize = self.checksize()
+            if isCorrectSize:
+                curAveScore = 0
+                for i in range(0, len(self.curAveScorelist), 2):
+                    curAveScore += self.curAveScorelist[i] - self.alpha * self.curAveScorelist[i + 1]
+                if curAveScore >= self.bestAveScore:
+                    self.bestNumDeleted = self.numDeleted
+                    self.bestAveScore = curAveScore
+                
         self.printres()
-        
 
         finalsets = []
         finalsets.append(set(range(self.mcurlist[0].shape[0])))
@@ -335,10 +374,14 @@ class FlowScope( DMmodel ):
         
         for i in range(self.bestNumDeleted):
             finalsets[self.deleted[i][0]].remove(self.deleted[i][1])
-            
-
+        
+        res = 'the block size is: '
+        for i in range(len(finalsets)):
+            res += str(len(finalsets[i])) + ' '
+        print(res+'\n')
+        
         return finalsets, self.bestAveScore
 
 
-    def anomaly_detection(self, k:int=3, alpha:float = 0.8):
-        return self.run(k=k, alpha=alpha)
+    def anomaly_detection(self, k=3, level=0, alpha=4, maxsize=-1):
+        return self.run(k, level, alpha, maxsize)
