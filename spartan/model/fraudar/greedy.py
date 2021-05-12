@@ -229,6 +229,6 @@ def fastGreedyDecreasing(M, colWeights):
             finalRowSet.remove(deleted[i][1])
         else:
             finalColSet.remove(deleted[i][1])
-    return ((finalRowSet, finalColSet), bestAveScore)
+    return (finalRowSet, finalColSet, bestAveScore)
 
 
