@@ -16,12 +16,16 @@ def preprocess_data(stensorList:list, dim):
     mt_dict, mt_m_dict, concise_a_mt_dict, concise_c_mt_dict = {}, {}, defaultdict(int), defaultdict(int)
     mt_t_dict = {}
     mt_d4_dict = {}  # k_symbols
+    m_mt_dict = {} 
+    m_mtSize_dict = {} # key: m; value: 对应mt的个数 # for limit size
     
     amt_stensor = stensorList[0]
     cmt_stensor = stensorList[1]
     amt_coo, cmt_coo = amt_stensor._data, cmt_stensor._data
+    print(amt_coo.shape)
     a_mt_coo = amt_coo.reshape(shape=(amt_coo.shape[0], -1))  # combine M and T
     c_mt_coo = cmt_coo.reshape(shape=(cmt_coo.shape[0], -1))  # combine M and T
+    print(a_mt_coo.shape)
     print(a_mt_coo)
     print(c_mt_coo)
 
@@ -36,8 +40,17 @@ def preprocess_data(stensorList:list, dim):
             if mt not in mt_dict:
                 mt_dict[mt] = len(mt_dict)
             map_m = mt_dict[mt]
+            
             if map_m not in mt_m_dict:
-                mt_m_dict[map_m] = mt // m_shape_a
+                m = mt // m_shape_a
+                mt_m_dict[map_m] = m
+                if m not in m_mt_dict:
+                    m_mt_dict[m] = [map_m]
+                    m_mtSize_dict[m] = 1
+                else:
+                    m_mt_dict[m].append(map_m)
+                    m_mtSize_dict[m] += 1
+                    
             if map_m not in mt_t_dict:
                 mt_t_dict[map_m] = mt % m_shape_a
             key = (a, map_m)
@@ -47,8 +60,17 @@ def preprocess_data(stensorList:list, dim):
             if mt not in mt_dict:
                 mt_dict[mt] = len(mt_dict)
             map_m = mt_dict[mt]
+            
             if map_m not in mt_m_dict:
-                mt_m_dict[map_m] = mt // m_shape_c
+                m = mt // m_shape_c
+                mt_m_dict[map_m] = m
+                if m not in m_mt_dict:
+                    m_mt_dict[m] = [map_m]
+                    m_mtSize_dict[m] = 1
+                else:
+                    m_mt_dict[m].append(map_m)
+                    m_mtSize_dict[m] += 1
+                    
             if map_m not in mt_t_dict:
                 mt_t_dict[map_m] = mt % m_shape_c
             key = (c, map_m)
@@ -63,11 +85,21 @@ def preprocess_data(stensorList:list, dim):
             if mt not in mt_dict:
                 mt_dict[mt] = len(mt_dict)
             map_m = mt_dict[mt]
+            
             if map_m not in mt_m_dict:
-                mt_m_dict[map_m] = mt // (t_shape_a * d4_shape_a)
+                m = mt // (t_shape_a * d4_shape_a)
+                mt_m_dict[map_m] = m
+                if m not in m_mt_dict:
+                    m_mt_dict[m] = [map_m]
+                    m_mtSize_dict[m] = 1
+                else:
+                    m_mt_dict[m].append(map_m)
+                    m_mtSize_dict[m] += 1
+                    
             tmp = mt % (t_shape_a * d4_shape_a)
             if map_m not in mt_t_dict:
                 mt_t_dict[map_m] = tmp // d4_shape_a
+                
             if map_m not in mt_d4_dict:
                 mt_d4_dict[map_m] = tmp % d4_shape_a
             key = (a, map_m)
@@ -77,11 +109,21 @@ def preprocess_data(stensorList:list, dim):
             if mt not in mt_dict:
                 mt_dict[mt] = len(mt_dict)
             map_m = mt_dict[mt]
+            
             if map_m not in mt_m_dict:
-                mt_m_dict[map_m] = mt // (t_shape_c * d4_shape_c)
+                m = mt // (t_shape_c * d4_shape_c)
+                mt_m_dict[map_m] = m
+                if m not in m_mt_dict:
+                    m_mt_dict[m] = [map_m]
+                    m_mtSize_dict[m] = 1
+                else:
+                    m_mt_dict[m].append(map_m)
+                    m_mtSize_dict[m] += 1
+                    
             tmp = mt % (t_shape_a * d4_shape_a)
             if map_m not in mt_t_dict:
                 mt_t_dict[map_m] = tmp // d4_shape_c
+                
             if map_m not in mt_d4_dict:
                 mt_d4_dict[map_m] = tmp % d4_shape_c
             key = (c, map_m)
@@ -102,7 +144,7 @@ def preprocess_data(stensorList:list, dim):
     c_mt_graph = Graph(graph_tensor=concise_c_mt_stensor, bipartite=True, weighted=True)
     
     print('preprocess Data completed!')
-    return [a_mt_graph, c_mt_graph], [mt_m_dict, mt_t_dict, mt_d4_dict]
+    return [a_mt_graph, c_mt_graph], [mt_m_dict, mt_t_dict, mt_d4_dict], m_mt_dict, m_mtSize_dict
 
 def find_true_m(res, dim, mt_dictList):     
     res_M = []
@@ -138,7 +180,8 @@ def get_real_res(res, dim, mt_dictList, outpath):
         print(len(real_res[0][0]), len(real_res[0][1]), len(real_res[0][2]), len(real_res[0][3]))
     else:
         print(len(real_res[0][0]), len(real_res[0][1]), len(real_res[0][2]), len(real_res[0][3]), len(real_res[0][4]))
-    saveres2txt(real_res, outpath)
+    if outpath != '':
+        saveres2txt(real_res, outpath)
     return real_res
 
 def saveres2npy(res, outpath):
@@ -155,8 +198,6 @@ def saveres2npy(res, outpath):
     print('res save completed!')
 
 def saveres2txt(res, outpath):
-    if outpath == '':
-        return 
     mkdir_self(outpath)
     for i in range(len(res[0])):
         res[0][i] = list(res[0][i])
