@@ -67,9 +67,6 @@ __all__ = [
     "kGrass",
     'IAT',
     'Fraudar',
-<<<<<<< HEAD
-    'CubeFlow'
-=======
+    'CubeFlow',
     'Specgreedy'
->>>>>>> 20c30af... add and modify specgreedy
 ]
