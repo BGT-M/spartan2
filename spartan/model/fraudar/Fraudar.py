@@ -34,7 +34,9 @@ class Fraudar(DMmodel):
 
             if (t >= k):
                 break
-
+            
+            t += 1
+            
             (rs, cs) = Mcur.nonzero() # (u, v)
             ## only delete inner connections
             rowSet = set(list_row)
