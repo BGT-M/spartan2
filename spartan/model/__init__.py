@@ -48,6 +48,8 @@ DPGS = partial(__call__, MODEL_PATH + ".DPGS")
 kGrass = partial(__call__, MODEL_PATH + ".kGS")
 IAT = partial(__call__, MODEL_PATH + ".iat")
 Fraudar = partial(__call__, MODEL_PATH + ".fraudar")
+Specgreedy = partial(__call__, MODEL_PATH + ".specgreedy")
+# TODO Specgreedy = partial(__call__, MODEL_PATH + ".specgreedy.Specgreedy.Specgreedy")
 
 
 __all__ = [
@@ -63,5 +65,6 @@ __all__ = [
     'DPGS',
     "kGrass",
     'IAT',
-    'Fraudar'
+    'Fraudar',
+    'Specgreedy'
 ]
