@@ -3,12 +3,12 @@ import os
 import sys
 import time
 import argparse
+import gc
 
 # third-part libs
 import numpy as np
 
 # project
-from .ioutils import *
 from .greedy import *
 from .._model import DMmodel
 
@@ -39,6 +39,7 @@ class Specgreedy(DMmodel):
                 break
 
             t += 1
+            gc.collect()
 
             if (t >= T):
                 break
@@ -88,7 +89,7 @@ class Specgreedy(DMmodel):
         print("load graph @ {}s".format(time.time() - t0))
         print("graph: #node: {}, #edge: {}, # es: {}".format((ms, ns), es, sm.sum()))
         print("matrix max: {}, min: {}, shape: {}\n".format(sm.max(), sm.min(), (n ,n)))
-        print("Top k:", topk)
+        print("Finding subgraph with top k singular values:", topk)
 
         orgnds, cans = None, None
         opt_density = 0.0
@@ -124,6 +125,7 @@ class Specgreedy(DMmodel):
                 print("k_cur:{}, size: {}, density: {}.  @ {}s\n".format(kth, len(nds_res),  avgsc_part / 2.0, time.time() - t1))
                 kth += 1
                 k += 1
+                gc.collect()
                 if avgsc_part > opt_density:
                     opt_k, opt_density = kth, avgsc_part
                     sm_pms = max(len(row_cans), len(col_cans))
@@ -146,7 +148,6 @@ class Specgreedy(DMmodel):
         if orgnds is not None:
             print("\noptimals: k:{}, size:{}, density:{}".format(opt_k, fin_pms, opt_density / 2.0))
             print("total time @ {}s".format(time.time() - t1))
-            # save_dictlist({'x': orgnds}, outfn)
             return orgnds, orgnds, opt_density / 2.0
         else:
             print("No dense subgraphs found.")
@@ -175,7 +176,7 @@ class Specgreedy(DMmodel):
         print("load graph time @ {}s".format(time.time() - t0))
         print("graph: #node: {},  #edge: {}".format((ms, ns), es))
         print("matrix max: {}, min: {}, shape: {}\n".format(sm.max(), sm.min(), sm.shape))
-        print("Top k:", topk)
+        print("Finding subgraph with top k singular values:", topk)
 
         opt_k = -1
         opt_density = 0.0
@@ -240,7 +241,6 @@ class Specgreedy(DMmodel):
         if orgnds is not None:
             print("\noptimal k: {}, density: {}".format(opt_k, opt_density / 2.0))    
             print("total time @ {}s".format(time.time() - t1))
-            # save_dictlist({'x': orgnds[0], 'y': orgnds[1]}, outfn)
             return orgnds[0], orgnds[1], opt_density / 2.0
         else:
             print("No dense subgraphs found.")

@@ -12,7 +12,7 @@ import scipy.sparse as sps
 import scipy.sparse.linalg as linalg
 
 # project
-from .priority_queue import PriorQueMin
+from spartan.model.fraudar.MinTree import MinTree as PriorQueMin
 
 
 def list2sm_bip(srcs, dests):
@@ -98,17 +98,17 @@ def fast_greedy_decreasing(mat, colweights=None):
             cur_score -= row_delt
             for j in ml.rows[del_row]:
                 delt = colweights[j] * ml[del_row, j]
-                col_tree.change(j, -1 * delt)
+                col_tree.changeVal(j, -1 * delt)
             row_set -= {del_row}
-            row_tree.change(del_row, float('inf'))
+            row_tree.changeVal(del_row, float('inf'))
             deleted.append((0, del_row))
         else:                     # remove this column
             cur_score -= col_delt
             for i in mlt.rows[del_col]:
                 delt = colweights[del_col] * ml[i, del_col] #mlt[del_col, i]
-                row_tree.change(i, -1 * delt)
+                row_tree.changeVal(i, -1 * delt)
             col_set -= {del_col}
-            col_tree.change(del_col, float('inf'))
+            col_tree.changeVal(del_col, float('inf'))
             deleted.append((1, del_col))
 
         n_dels += 1
@@ -158,9 +158,9 @@ def fast_greedy_decreasing_monosym(mat):
         (delidx_, delt_) = tree.getMin()
         cur_score -= delt_ * 2
         for j in ml.rows[delidx_]:   # remove this row / column
-            tree.change(j, -1.0 * ml[delidx_, j])
+            tree.changeVal(j, -1.0 * ml[delidx_, j])
 
-        tree.change(delidx_, float('inf'))
+        tree.changeVal(delidx_, float('inf'))
         node_set -= {delidx_}
         deleted.append(delidx_)
 
@@ -176,7 +176,7 @@ def fast_greedy_decreasing_monosym(mat):
         nd_id = deleted[i]
         final_.remove(nd_id)
 
-    return list(final_), best_avgscore
+    return list(final_), list(final_), best_avgscore
 
 
 def spectral_levels(sm, topk=1, scale=1.0):
