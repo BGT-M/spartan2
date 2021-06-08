@@ -38,10 +38,10 @@ class Specgreedy(DMmodel):
                 print("Finding subgraph failed. Specgreedy stopped.")
                 break
 
+            t += 1
+
             if (t >= T):
                 break
-
-            t += 1
 
             if delete_type == "edge":
                 (rs, cs) = Mcur.nonzero() # (u, v)

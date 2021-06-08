@@ -132,16 +132,16 @@ def getRowFMeasure(pred, actual, idx):
     rec = getRowRecall(pred, actual, idx)
     return 0 if (prec + rec == 0) else (2 * prec * rec / (prec + rec))
 
-def sqrtWeightedAveDegree(M):
+def sqrtWeightedAveDegree(M, maxsiz=-1):
     m, n = M.shape
     colSums = M.sum(axis=0)
     colWeights = 1.0 / np.sqrt(np.squeeze(colSums.A) + 5)
     colDiag = sparse.lil_matrix((n, n))
     colDiag.setdiag(colWeights)
     W = M * colDiag
-    return fastGreedyDecreasing(W, colWeights)
+    return fastGreedyDecreasing(W, colWeights, maxsize)
 
-def logWeightedAveDegree(M):
+def logWeightedAveDegree(M, maxsize=-1):
     (m, n) = M.shape
     colSums = M.sum(axis=0)
     colWeights = 1.0 / np.log(np.squeeze(colSums.A) + 5)
@@ -149,11 +149,11 @@ def logWeightedAveDegree(M):
     colDiag.setdiag(colWeights)
     W = M * colDiag
     print("finished computing weight matrix")
-    return fastGreedyDecreasing(W, colWeights)
+    return fastGreedyDecreasing(W, colWeights, maxsize)
 
-def aveDegree(M):
+def aveDegree(M, maxsize=-1):
     m, n = M.shape
-    return fastGreedyDecreasing(M, [1] * n)
+    return fastGreedyDecreasing(M, [1] * n, maxsize)
 
 def subsetAboveDegree(M, col_thres, row_thres):
     M = M.tocsc()
@@ -170,7 +170,7 @@ def subsetAboveDegree(M, col_thres, row_thres):
 
 
 # @profile
-def fastGreedyDecreasing(M, colWeights):
+def fastGreedyDecreasing(M, colWeights, maxsize=-1):
     (m, n) = M.shape
     Md = M.todok()
     Ml = M.tolil()
@@ -218,8 +218,17 @@ def fastGreedyDecreasing(M, colWeights):
         curAveScore = curScore / (len(colSet) + len(rowSet))
 
         if curAveScore > bestAveScore:
-            bestAveScore = curAveScore
-            bestNumDeleted = numDeleted
+            is_update = False
+            if isinstance(maxsize, int):
+                if (maxsize==-1 or (maxsize >= len(rowSet) + len(colSet))):
+                    is_update = True
+            elif maxsize[0]>=len(rowSet) and maxsize[1]>=len(colSet):
+                is_update = True
+
+            if is_update:
+                bestAveScore = curAveScore
+                bestNumDeleted = numDeleted
+            
 
     # reconstruct the best row and column sets
     finalRowSet = set(range(m))
