@@ -7,9 +7,10 @@ import gc
 
 # third-part libs
 import numpy as np
+import scipy.sparse.linalg as linalg
 
 # project
-from .greedy import *
+from spartan.model.fraudar.greedy import logWeightedAveDegree, sqrtWeightedAveDegree, aveDegree, fast_greedy_decreasing_monosym
 from .._model import DMmodel
 
 
@@ -45,8 +46,8 @@ class Specgreedy(DMmodel):
                 break
 
             if delete_type == "edge":
-                (rs, cs) = Mcur.nonzero() # (u, v)
                 ## only delete inner connections
+                (rs, cs) = Mcur.nonzero() # (u, v)
                 rowSet = set(list_row)
                 colSet = set(list_col)
                 for i in range(len(rs)):
@@ -54,13 +55,12 @@ class Specgreedy(DMmodel):
                         Mcur[rs[i], cs[i]] = 0
             elif delete_type == "node":
                 # delete nodes
-                mask = np.zeros(Mcur.shape[0], dtype=bool)
-                mask[list_row] = True
-                Mcur[mask, :] = 0
-
-                mask = np.zeros(Mcur.shape[1], dtype=bool)
-                mask[list_col] = True
-                Mcur[:, mask] = 0
+                (rs, cs) = Mcur.nonzero() # (u, v)
+                rowSet = set(list_row)
+                colSet = set(list_col)
+                for i in range(len(rs)):
+                    if rs[i] in rowSet or cs[i] in colSet:
+                        Mcur[rs[i], cs[i]] = 0
             else:
                 raise ValueError("Invalid argument delete_type. Please set 'edge' or 'node'")
 
@@ -121,8 +121,8 @@ class Specgreedy(DMmodel):
                     continue
                 sm_part = sm[row_cans, :][:, col_cans]
                 # print("{}, size: {}".format(kth, sm_part.shape))
-                nds_res, avgsc_part = greedy_fun(sm_part)
-                print("k_cur:{}, size: {}, density: {}.  @ {}s\n".format(kth, len(nds_res),  avgsc_part / 2.0, time.time() - t1))
+                row_ids, col_ids, avgsc_part = greedy_fun(sm_part)
+                print("k_cur:{}, size: {}, density: {}.  @ {}s\n".format(kth, len(row_ids),  avgsc_part / 2.0, time.time() - t1))
                 kth += 1
                 k += 1
                 gc.collect()
@@ -160,11 +160,11 @@ class Specgreedy(DMmodel):
         #alpha = 1.0
         greedy_func = None
         if col_wt == 'even':
-            greedy_func = avgdeg_even
+            greedy_func = logWeightedAveDegree
         elif args.col_wt == 'sqrt':
-            greedy_func = avgdeg_sqrt
+            greedy_func = sqrtWeightedAveDegree
         else:
-            greedy_func = avgdeg_log
+            greedy_func = aveDegree
 
         t0 = time.time()
         ms, ns = sm.shape
@@ -211,22 +211,22 @@ class Specgreedy(DMmodel):
                     k += 1
                     continue
                 sm_part = sm[row_cans, :][:, col_cans]
-                nds_gs, avgsc_gs = greedy_func(sm_part, alpha)
-                print("k_cur: {} size: {}, density: {}  @ {}s".format(kth, (len(nds_gs[0]), len(nds_gs[1])), 
+                row_ids, col_ids, avgsc_gs = greedy_func(sm_part, alpha)
+                print("k_cur: {} size: {}, density: {}  @ {}s".format(kth, (len(row_ids), len(col_ids)), 
                                                                     avgsc_gs / 2.0, time.time() - t1))
                 kth += 1
                 k += 1
                 if avgsc_gs > opt_density:
                     opt_k, opt_density = kth + 1, avgsc_gs
                     (sm_pms, sm_pns) = sm_part.shape
-                    fin_pms, fin_pns = len(nds_gs[0]), len(nds_gs[1])
+                    fin_pms, fin_pns = len(row_ids), len(col_ids)
                     print("Update. svd tops shape (candidates size): {}".format((sm_pms, sm_pns)))
                     print("Update. size: {}, score: {}\n".format((fin_pms, fin_pns), avgsc_gs / 2.0))
 
                     row_idx = dict(zip(range(sm_pms), sorted(row_cans)))
                     col_idx = dict(zip(range(sm_pns), sorted(col_cans)))
-                    org_rownds = [row_idx[id] for id in nds_gs[0]]
-                    org_colnds = [col_idx[id] for id in nds_gs[1]]
+                    org_rownds = [row_idx[id] for id in row_ids]
+                    org_colnds = [col_idx[id] for id in col_ids]
                     cans = [row_cans, col_cans]
                     orgnds = [org_rownds, org_colnds]
                     
