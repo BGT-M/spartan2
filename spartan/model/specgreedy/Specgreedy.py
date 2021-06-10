@@ -44,7 +44,7 @@ class Specgreedy(DMmodel):
 
             if (t >= T):
                 break
-
+            
             if delete_type == "edge":
                 ## only delete inner connections
                 (rs, cs) = Mcur.nonzero() # (u, v)
@@ -55,16 +55,17 @@ class Specgreedy(DMmodel):
                         Mcur[rs[i], cs[i]] = 0
             elif delete_type == "node":
                 # delete nodes
-                (rs, cs) = Mcur.nonzero() # (u, v)
-                rowSet = set(list_row)
-                colSet = set(list_col)
-                for i in range(len(rs)):
-                    if rs[i] in rowSet or cs[i] in colSet:
-                        Mcur[rs[i], cs[i]] = 0
+                Mcur = Mcur.tolil()
+                Mcur[list_row, :] = 0
+                Mcur[:, list_col] = 0
+                Mcur = Mcur.tocsr()
+
+
             else:
                 raise ValueError("Invalid argument delete_type. Please set 'edge' or 'node'")
-
-        
+            toc = time.time()
+            print("Removecurrentblock", toc-tic)
+            
 
     def run_undi(self, sm, weighted = True, topk = 5, scale = 1.0):
         # outfn = output_path

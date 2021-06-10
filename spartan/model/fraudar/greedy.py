@@ -219,7 +219,7 @@ def fastGreedyDecreasing(M, colWeights, maxsize=-1):
 
         if curAveScore > bestAveScore:
             is_update = False
-            if isinstance(maxsize, int):
+            if isinstance(maxsize, (int, float)):
                 if (maxsize==-1 or (maxsize >= len(rowSet) + len(colSet))):
                     is_update = True
             elif maxsize[0]>=len(rowSet) and maxsize[1]>=len(colSet):
