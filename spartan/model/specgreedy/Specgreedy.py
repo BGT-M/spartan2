@@ -8,6 +8,7 @@ import gc
 # third-part libs
 import numpy as np
 import scipy.sparse.linalg as linalg
+import scipy.sparse
 
 # project
 from spartan.model.fraudar.greedy import logWeightedAveDegree, sqrtWeightedAveDegree, aveDegree, fast_greedy_decreasing_monosym
@@ -45,6 +46,7 @@ class Specgreedy(DMmodel):
             if (t >= T):
                 break
             
+            tic = time.time()
             if delete_type == "edge":
                 ## only delete inner connections
                 (rs, cs) = Mcur.nonzero() # (u, v)
@@ -54,17 +56,21 @@ class Specgreedy(DMmodel):
                     if rs[i] in rowSet and cs[i] in colSet:
                         Mcur[rs[i], cs[i]] = 0
             elif delete_type == "node":
-                # delete nodes
-                Mcur = Mcur.tolil()
-                Mcur[list_row, :] = 0
-                Mcur[:, list_col] = 0
-                Mcur = Mcur.tocsr()
+                diag = scipy.sparse.eye(Mcur.shape[0]).tolil()
+                for r in list_row:
+                    diag[r, r] = 0
+                diag = diag.tocsr()
+                Mcur = diag.dot(Mcur)
 
-
+                diag = scipy.sparse.eye(Mcur.shape[1]).tolil()
+                for c in list_col:
+                    diag[c, c] = 0
+                diag = diag.tocsr()
+                Mcur = Mcur.dot(diag)
             else:
                 raise ValueError("Invalid argument delete_type. Please set 'edge' or 'node'")
             toc = time.time()
-            print("Removecurrentblock", toc-tic)
+            print("Remove current block:", toc-tic)
             
 
     def run_undi(self, sm, weighted = True, topk = 5, scale = 1.0):
