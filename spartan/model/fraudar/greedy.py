@@ -181,6 +181,8 @@ def fastGreedyDecreasing(M, colWeights, maxsize=-1):
     bestAveScore = curScore / (len(rowSet) + len(colSet))
     bestSets = (rowSet, colSet)
     print("finished setting up greedy")
+    updated = False
+    print("InitAveScore: %s with shape (%d, %d)" % (bestAveScore, len(rowSet), len(colSet)))
     rowDeltas = np.squeeze(M.sum(axis=1).A) # *decrease* in total weight when *removing* this row
     colDeltas = np.squeeze(M.sum(axis=0).A)
     print("finished setting deltas")
@@ -217,7 +219,7 @@ def fastGreedyDecreasing(M, colWeights, maxsize=-1):
         numDeleted += 1
         curAveScore = curScore / (len(colSet) + len(rowSet))
 
-        if curAveScore > bestAveScore:
+        if curAveScore > bestAveScore or (not updated):
             is_update = False
             if isinstance(maxsize, (int, float)):
                 if (maxsize==-1 or (maxsize >= len(rowSet) + len(colSet))):
@@ -226,6 +228,7 @@ def fastGreedyDecreasing(M, colWeights, maxsize=-1):
                 is_update = True
 
             if is_update:
+                updated = True
                 bestAveScore = curAveScore
                 bestNumDeleted = numDeleted
             

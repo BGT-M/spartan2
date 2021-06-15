@@ -70,7 +70,7 @@ class Specgreedy(DMmodel):
             else:
                 raise ValueError("Invalid argument delete_type. Please set 'edge' or 'node'")
             toc = time.time()
-            print("Remove current block:", toc-tic)
+            print("Remove current block: %ss" % (toc-tic))
             
 
     def run_undi(self, sm, weighted = True, topk = 5, scale = 1.0):
@@ -129,22 +129,23 @@ class Specgreedy(DMmodel):
                 sm_part = sm[row_cans, :][:, col_cans]
                 # print("{}, size: {}".format(kth, sm_part.shape))
                 row_ids, col_ids, avgsc_part = greedy_fun(sm_part)
-                print("k_cur:{}, size: {}, density: {}.  @ {}s\n".format(kth, len(row_ids),  avgsc_part / 2.0, time.time() - t1))
                 kth += 1
                 k += 1
                 gc.collect()
+
+                print("k_cur:{}, size: {}, density: {}.  @ {}s\n".format(kth, (len(row_ids), len(col_ids)),  avgsc_part, time.time() - t1))
                 if avgsc_part > opt_density:
                     opt_k, opt_density = kth, avgsc_part
                     sm_pms = max(len(row_cans), len(col_cans))
                     cans = row_cans
                     fin_pms = len(nds_res)
                     print("Update. svd init shape (candidates size): {}".format((sm_pms, sm_pms)))
-                    print("Update. size: {}, score: {}\n".format((fin_pms, fin_pms), avgsc_part / 2.0))
+                    print("Update. size: {}, score: {}\n".format((fin_pms, fin_pms), avgsc_part))
                     nd_idx = dict(zip(range(sm_pms), sorted(cans)))
                     orgnds = [nd_idx[id] for id in nds_res]
 
                 if 2.0*opt_density >= S[kth]: # kth < topk and
-                    print("Early Stopped. k_cur: {},  optimal density: {}, lambda_k: {}".format(kth-1, opt_density / 2.0, S[kth]))
+                    print("Early Stopped. k_cur: {},  optimal density: {}, lambda_k: {}".format(kth, opt_density, S[kth]))
                     isbreak = True
                     break
             if isbreak:
@@ -153,14 +154,14 @@ class Specgreedy(DMmodel):
 
 
         if orgnds is not None:
-            print("\noptimals: k:{}, size:{}, density:{}".format(opt_k, fin_pms, opt_density / 2.0))
+            print("\noptimals: k:{}, size:{}, density:{}".format(opt_k, fin_pms, opt_density))
             print("total time @ {}s".format(time.time() - t1))
-            return orgnds, orgnds, opt_density / 2.0
+            return orgnds, orgnds, opt_density
         else:
             print("No dense subgraphs found.")
             return [], [], 0
 
-    def run_bip(self, sm, weighted = True, topk = 5, alpha = 5.0, scale = 1.0, col_wt = "even"):
+    def run_bip(self, sm, weighted = True, topk = 5, alpha = 5.0, scale = 1.0, col_wt = "even", maxsize = -1):
         # outfn = output_path
         w_g = weighted
 
@@ -218,17 +219,19 @@ class Specgreedy(DMmodel):
                     k += 1
                     continue
                 sm_part = sm[row_cans, :][:, col_cans]
-                row_ids, col_ids, avgsc_gs = greedy_func(sm_part, alpha)
-                print("k_cur: {} size: {}, density: {}  @ {}s".format(kth, (len(row_ids), len(col_ids)), 
-                                                                    avgsc_gs / 2.0, time.time() - t1))
+                row_ids, col_ids, avgsc_gs = greedy_func(sm_part, maxsize)
+                
                 kth += 1
                 k += 1
+
+                print("k_cur: {} size: {}, density: {}  @ {}s".format(kth, (len(row_ids), len(col_ids)), 
+                                                                    avgsc_gs, time.time() - t1))
                 if avgsc_gs > opt_density:
-                    opt_k, opt_density = kth + 1, avgsc_gs
+                    opt_k, opt_density = kth, avgsc_gs
                     (sm_pms, sm_pns) = sm_part.shape
                     fin_pms, fin_pns = len(row_ids), len(col_ids)
                     print("Update. svd tops shape (candidates size): {}".format((sm_pms, sm_pns)))
-                    print("Update. size: {}, score: {}\n".format((fin_pms, fin_pns), avgsc_gs / 2.0))
+                    print("Update. size: {}, score: {}\n".format((fin_pms, fin_pns), avgsc_gs))
 
                     row_idx = dict(zip(range(sm_pms), sorted(row_cans)))
                     col_idx = dict(zip(range(sm_pns), sorted(col_cans)))
@@ -238,7 +241,7 @@ class Specgreedy(DMmodel):
                     orgnds = [org_rownds, org_colnds]
                     
                 if 2.0 * opt_density >= S[kth]: # kth < topk and
-                    print("Early Stopped. k_cur: {},  optimal density: {}, lambda_k: {}".format(kth-1, opt_density / 2.0, S[kth]))
+                    print("Early Stopped. k_cur: {},  optimal density: {}, lambda_k: {}".format(kth, opt_density, S[kth]))
                     isbreak = True
                     break
             if isbreak:
@@ -246,9 +249,9 @@ class Specgreedy(DMmodel):
             decom_n += 1
         
         if orgnds is not None:
-            print("\noptimal k: {}, density: {}".format(opt_k, opt_density / 2.0))    
+            print("\noptimal k: {}, density: {}".format(opt_k, opt_density))    
             print("total time @ {}s".format(time.time() - t1))
-            return orgnds[0], orgnds[1], opt_density / 2.0
+            return orgnds[0], orgnds[1], opt_density
         else:
             print("No dense subgraphs found.")
             return [], [], 0
