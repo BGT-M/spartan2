@@ -16,7 +16,7 @@ from operator import itemgetter
 # from sklearn.decomposition import TruncatedSVD
 from scipy import sparse
 from sklearn.utils import shuffle
-from spartan.util.collectionutil import MinTree
+from spartan.util.MinTree import MinTree
 import pickle as pickle
 # np.set_printoptions(threshold=numpy.nan)
 np.set_printoptions(linewidth=160)
