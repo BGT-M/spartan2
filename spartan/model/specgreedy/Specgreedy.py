@@ -71,6 +71,8 @@ class Specgreedy(DMmodel):
                 raise ValueError("Invalid argument delete_type. Please set 'edge' or 'node'")
             toc = time.time()
             print("Remove current block: %ss" % (toc-tic))
+
+        return res
             
 
     def run_undi(self, sm, weighted = True, topk = 5, scale = 1.0):
