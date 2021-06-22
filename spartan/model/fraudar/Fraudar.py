@@ -16,25 +16,20 @@ class Fraudar(DMmodel):
         res = []
         t = 0
         while (t < k):
-            set_row, set_col, score = logWeightedAveDegree(Mcur)
+            set_row, set_col, score = logWeightedAveDegree(Mcur, maxsize = maxsize)
             list_row, list_col = list(set_row), list(set_col)
             print("Fraudar iter %s finished." % t)
-            
-            if isinstance(maxsize, int):
-                if (maxsize==-1 or (maxsize>=len(list_row) and maxsize>=len(list_col))):
-                    t += 1
-                    res.append((list_row, list_col, score))
-            elif maxsize[0]>=len(list_row) and maxsize[1]>=len(list_col):
-                t += 1
-                res.append((list_row, list_col, score))
+            print("n_row", len(list_row), "n_col:", len(list_col))
+            print("score obtained is ", score)
 
             np.savetxt("%s_%s.rows" % (out_path + file_name, t), np.array(list_row).reshape(-1, 1), fmt='%d')
             np.savetxt("%s_%s.cols" % (out_path + file_name, t), np.array(list_col).reshape(-1, 1), fmt='%d')
-            print("score obtained is ", score)
+            
+            t += 1
 
             if (t >= k):
                 break
-
+            
             (rs, cs) = Mcur.nonzero() # (u, v)
             ## only delete inner connections
             rowSet = set(list_row)

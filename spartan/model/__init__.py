@@ -49,6 +49,8 @@ kGrass = partial(__call__, MODEL_PATH + ".kGS")
 IAT = partial(__call__, MODEL_PATH + ".iat")
 Fraudar = partial(__call__, MODEL_PATH + ".fraudar")
 CubeFlow = partial(__call__, MODEL_PATH + ".CubeFlow")
+Specgreedy = partial(__call__, MODEL_PATH + ".specgreedy")
+# TODO Specgreedy = partial(__call__, MODEL_PATH + ".specgreedy.Specgreedy.Specgreedy")
 
 
 __all__ = [
@@ -65,5 +67,6 @@ __all__ = [
     "kGrass",
     'IAT',
     'Fraudar',
-    'CubeFlow'
+    'CubeFlow',
+    'Specgreedy'
 ]
