@@ -54,7 +54,7 @@ def preprocess_data(stensorList:list, dim):
             if map_m not in mt_t_dict:
                 mt_t_dict[map_m] = mt % m_shape_a
             key = (a, map_m)
-            concise_a_mt_dict[key] += elem
+            concise_a_mt_dict[key] += elem # may produce error: unsupported operand type(s) for +=: 'int' and 'str'
         print('time:', time.time() - stt)
         for c, mt, elem in zip(c_mt_nnz[0], c_mt_nnz[1], c_mt_coo.data):
             if mt not in mt_dict:
