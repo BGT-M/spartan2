@@ -33,6 +33,10 @@ class File():
             _typex = 'int'
         elif typex == str:
             _typex = 'object'
+        elif typex == np.int64:
+            _typex = np.int64
+        elif typex == np.float64:
+            _typex = np.float64
         else:
             _typex = 'object'
         return _typex

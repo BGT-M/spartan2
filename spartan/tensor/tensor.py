@@ -44,7 +44,11 @@ class TensorData:
                 else:
                     colind = mappers[i].map(self.data.iloc[:, i])
                     attr.iloc[:, i] = colind
-        attr = attr.astype('int')
+        # the dtype bug may better fixed through pre-judge data range and set the dtype 
+        # astype here also cause the loadTensor(...,idx_types = ) meanless?
+        # finally change the spartan/util/ioutil.py  def transfer_type(typex): add the np.int64 and np.float64
+        #attr = attr.astype('int64') #astype to int when dimension：（a1,a2,a3） is large especially when a2*a3>INT_MAX,it will cause C int cannot to long 
+        #value = value.astype('float64') #fix the bug in cubeflow/util.py line 57
         return STensor((attr.to_numpy().T, value.to_numpy()))
         
 
