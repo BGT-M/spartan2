@@ -8,6 +8,10 @@ from ...tensor import Graph
 
 
 def mkdir_self(dir):
+    if dir.endswith('.txt'):
+        dir_list = dir.split('/')
+        dir = '/'.join(dir_list[:-1])
+        
     if not os.path.exists(dir):
         os.makedirs(dir)
         
@@ -201,7 +205,7 @@ def saveres2txt(res, outpath):
     mkdir_self(outpath)
     for i in range(len(res[0])):
         res[0][i] = list(res[0][i])
-    with open(outpath+"res.txt","a") as f:
+    with open(outpath, "a") as f:
         f.write('[')
         f.write('\n')
         for i in range(len(res[0])):
@@ -218,7 +222,7 @@ def saveres2txt(res, outpath):
 def loadtxt2res(outpath, dim):
     res = []
     tmp_res = []
-    with open(outpath+"res.txt","r") as f:
+    with open(outpath, "r") as f:
         contents =f.readlines()
         for line in contents:
             if line.startswith('['):
@@ -228,12 +232,12 @@ def loadtxt2res(outpath, dim):
                 res.append(tmp_res)
                 continue
             acc_list = line.strip().split("\t")
-            if len(tmp_res) < dim:
+            if len(tmp_res) < dim + 1:
                 acc_list = list(map(int, acc_list))
                 tmp_res.append(acc_list)
             else:
                 score = float(acc_list[0])
-                tmp_res.append(score)
+                tmp_res = [tmp_res, score]
     print('load res.txt success!')
     return res
         

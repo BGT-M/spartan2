@@ -5,7 +5,7 @@ from .._model import DMmodel
 from ...util.basicutil import param_default
 import copy
 from collections import defaultdict
-from .util import get_real_res, preprocess_data
+from .util import get_real_res, preprocess_data, loadtxt2res, saveres2txt
 import pdb
 
 class CubeFlow(DMmodel):
@@ -23,7 +23,7 @@ class CubeFlow(DMmodel):
         self.k = param_default(params, 'k', 1)
         self.dim = param_default(params, 'dim', 3)
         self.outpath = param_default(params, 'outpath', './output/CFD-3/')
-        self.graphlist, self.mt_dictList, self.m_mt_dict, self.m_mtSize_dict = preprocess_data(stensorList, self.dim)
+        self.graphlist, self.mt_dictList, self.m_mt_dict, self.m_mtSize_dict_ori = preprocess_data(stensorList, self.dim)
         self.graphnum = len(self.graphlist)
         
     def __str__(self):
@@ -32,7 +32,7 @@ class CubeFlow(DMmodel):
     def anomaly_detection(self):
         return self.run()
 
-    def run(self, del_type=0, maxsize=(-1,-1,-1)):
+    def run(self, del_type=0, maxsize=(-1,-1,-1), is_find_all_blocks=False):
         print("you are running with ", self.graphnum + 1, "partite graph")
         self.del_type = del_type
         self.nres = []
@@ -52,13 +52,28 @@ class CubeFlow(DMmodel):
                 self.has_limit = True
         else:
             print('No block size limit.')
+            
+        if self.has_limit:
+            self.m_set_ori = set(list(self.m_mt_dict.keys()))
+            print('m size:', len(self.m_set_ori))
         
         self.initData()
-        for i in range(self.k):
-            finalsets, score = self.fastGreedyDecreasing()
-            real_res = get_real_res([finalsets, score], self.dim, self.mt_dictList, self.outpath)
-            self.nres.append(real_res)
-            self.del_block(finalsets)
+        if not is_find_all_blocks:
+            for i in range(self.k):
+                finalsets, score = self.fastGreedyDecreasing()
+                real_res = get_real_res([finalsets, score], self.dim, self.mt_dictList, self.outpath)
+                self.nres.append(real_res)
+                self.del_block(finalsets)
+        else:
+            if self.has_limit:
+                while len(self.m_set_ori) > 0:
+                    finalsets, score = self.fastGreedyDecreasing()
+                    real_res = get_real_res([finalsets, score], self.dim, self.mt_dictList, self.outpath)
+                    self.nres.append(real_res)
+                    self.del_block(finalsets)
+            else:
+                print('ERROR: You cannot find all blocks without specifying the maximum size of the block!')
+                return 
         return self.nres
 
     def initData(self):
@@ -119,6 +134,8 @@ class CubeFlow(DMmodel):
         self.curScore1 = 0  # sum of f
         self.curScore2 = 0  # sum of (q-f)
         self.bestAveScore = 0
+        self.bestAveSocre1 = 0 # sum of f when algorithm gets best score
+        self.bestAveSocre2 = 0 # sum of (q-f) when algorithm gets best score
         self.bestNumDeleted = defaultdict(int)
         
         rowDeltas = np.squeeze(self.AM_mat.sum(axis=1).A)  # sum of A
@@ -151,17 +168,25 @@ class CubeFlow(DMmodel):
         self.sets.append(set(range(len(self.mid_min))))
         self.sets.append(set(range(self.CM_mat.shape[0])))
         s = sum([len(self.sets[i]) for i in range(len(self.sets))])
-        print('size: ', s)
+        print('s size: ', s)
         
         if self.has_limit:
-            self.m_set = set(list(self.m_mt_dict.keys()))
-            print('m size:', len(self.m_set))
+            self.m_mtSize_dict = copy.deepcopy(self.m_mtSize_dict_ori)
+            self.m_set = copy.deepcopy(self.m_set_ori)
         
-        curAveScore = ((1 - self.alpha) * self.curScore1 - self.alpha * self.curScore2) / s
-        print('initail score of g: ', curAveScore)
+        curAveScore = float('-inf')
+        if self.has_limit:
+            if self.checkset_size_max_limit():
+                curAveScore = ((1 - self.alpha) * self.curScore1 - self.alpha * self.curScore2) / s
+        else:
+            curAveScore = ((1 - self.alpha) * self.curScore1 - self.alpha * self.curScore2) / s
+            
+        print('initial score of g: ', curAveScore)
         self.bestAveScore = curAveScore
+        self.bestAveSocre1 = self.curScore1
+        self.bestAveSocre2 = self.curScore2
         
-    def updataConnNode(self, min_tree_i, idx):
+    def updateConnNode(self, min_tree_i, idx):
         if min_tree_i == 0:  # delete a node from u
             # update  the  weight of connected nodes
             for j in self.AM_mat.rows[idx]: 
@@ -219,7 +244,6 @@ class CubeFlow(DMmodel):
             if self.m_mtSize_dict[tmp_m] <= 0: # all mt have been removed
                 self.m_set -= {tmp_m}
     
-    
     def fastGreedyDecreasing(self):
         print('this is the cpu version of CubeFlow')  
         print('start  greedy')
@@ -230,10 +254,11 @@ class CubeFlow(DMmodel):
         for i in range(len(self.sets)):
             self.deleted[i] = []
         finalsets = copy.deepcopy(self.sets)
+        
         # repeat deleting until one node set is empty
         while self.checkset(): 
             min_tree_i, idx = self.findmin()                 
-            self.updataConnNode(min_tree_i, idx)
+            self.updateConnNode(min_tree_i, idx)
             s = sum([len(self.sets[i]) for i in range(len(self.sets))])
             curAveScore = ((1 - self.alpha) * self.curScore1 - self.alpha * self.curScore2) / s
                 
@@ -243,7 +268,8 @@ class CubeFlow(DMmodel):
                     for i in range(len(self.sets)):
                         self.bestNumDeleted[i] = self.numDeleted[i]
                     self.bestAveScore = curAveScore
-                    # pdb.set_trace()
+                    self.bestAveSocre1 = self.curScore1
+                    self.bestAveSocre2 = self.curScore2
             else:
                 if curAveScore >= self.bestAveScore:
                     for i in range(len(self.sets)):
@@ -253,13 +279,11 @@ class CubeFlow(DMmodel):
         
         print('best delete number : ', self.bestNumDeleted)
         print('nodes number remaining:  ', len(self.sets[0]), len(self.sets[1]), len(self.sets[2]))
-        print('best score of g(S): ', self.bestAveScore)
-        # pdb.set_trace()
+        print(f'best score of g(S): {self.bestAveScore}, f: {self.bestAveSocre1}, q-f: {self.bestAveSocre2}')
         
         for i in range(len(finalsets)):
             best_deleted = self.deleted[i][:self.bestNumDeleted[i]]
             finalsets[i] = finalsets[i] - set(best_deleted)
-            # pdb.set_trace()
         print('size of found subgraph:  ', len(finalsets[0]), len(finalsets[1]), len(finalsets[2]))
         return finalsets, self.bestAveScore
 
@@ -271,12 +295,25 @@ class CubeFlow(DMmodel):
                 if a in a_set and mt in mt_set:
                     self.AM_mat[a, mt] = 0
                     self.AM_tran_mat[mt, a] = 0
+                    ##################
+                    if self.has_limit:
+                        tmp_m = self.mt_dictList[0][mt]
+                        self.m_mtSize_dict_ori[tmp_m] -= 1
+                        if self.m_mtSize_dict_ori[tmp_m] <= 0:  # all mt have been removed
+                            self.m_set_ori -= {tmp_m}
                     
             c_mt_nnz = self.CM_mat.nonzero()
             for c, mt in zip(c_mt_nnz[0], c_mt_nnz[1]):
                 if c in c_set and mt in mt_set:
                     self.CM_mat[c, mt] = 0
                     self.CM_tran_mat[mt, c] = 0
+                    ###############
+                    if self.has_limit:
+                        tmp_m = self.mt_dictList[0][mt]
+                        self.m_mtSize_dict_ori[tmp_m] -= 1
+                        if self.m_mtSize_dict_ori[tmp_m] <= 0:  # all mt have been removed
+                            self.m_set_ori -= {tmp_m}
+                    
         elif self.del_type == 1: # del find points
             # map mt => m
             m_set = []
@@ -289,6 +326,8 @@ class CubeFlow(DMmodel):
             total_mt_set = []
             for m in m_set:
                 total_mt_set.extend(self.m_mt_dict[m])
+                if self.has_limit:
+                    self.m_set_ori -= {m}
             total_mt_set = set(total_mt_set)
             
             a_mt_nnz = self.AM_mat.nonzero()
@@ -304,3 +343,9 @@ class CubeFlow(DMmodel):
                     self.CM_tran_mat[mt, c] = 0   
         else:
             raise Exception('Unknown del_type! (del_type should be in [0, 1])')
+    
+    def loadtxt2res(self, *args, **kwargs):
+        return loadtxt2res(*args, **kwargs)
+    
+    def saveres2txt(self, *args, **kwargs):
+        return saveres2txt(*args, **kwargs)
