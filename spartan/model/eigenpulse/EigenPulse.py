@@ -1,11 +1,12 @@
-from numpy import random
-
 from .SinglePassPCA import generateGH_by_multiply, generateQB, computeSVD
 from .util import calDensity, findSuspWins, filterEigenvec, getKeys
-from spartan.tensor import TensorData, DTensor
+from spartan.backend.cpu_backend.tensor import DTensor
 from .._model import DMmodel
 from spartan.util.basicutil import StringMapper
 from spartan.util.drawutil import drawEigenPulse
+from spartan.tensor import TensorData
+
+from numpy import random
 
 
 class EigenPulse(DMmodel):
@@ -45,14 +46,14 @@ class EigenPulse(DMmodel):
                 u1 = u1.T
                 submat, rowids, colids = filterEigenvec(stensor, u1, v1)
                 submats.append((submat, rowids, colids))
-
+                
                 density = calDensity(submat)
                 print(f"density of dense submatrix in window {winidx} is {density}")
                 densities.append(density)
                 winidx += 1
             except:
                 break
-        
+        print('density of each window:', densities)
         susp_wins = findSuspWins(densities)
         print('suspicious windows:', susp_wins)
         res = []

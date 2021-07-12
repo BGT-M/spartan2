@@ -169,7 +169,7 @@ class TensorStream():
         lineid = 0
 
         while True:
-            line = self.f.readline()
+            line = self.f.readline().decode('utf-8')
             coords = line.strip().split(self.sep)
             tline = []
             try:
