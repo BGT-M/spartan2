@@ -56,7 +56,7 @@ pip install spartan2
 4.1 Clone the project from github
 
 ```bash
-git clone https://github.com/shenghua-liu/spartan2.git
+git clone <this repository link>/spartan2.git
 ```
 
 4.2 Install requirements.
