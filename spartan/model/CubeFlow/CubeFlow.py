@@ -92,6 +92,8 @@ class CubeFlow(DMmodel):
         if self.has_limit:
             self.m_set_ori = set(list(self.m_mt_dict.keys()))
             print('m size:', len(self.m_set_ori))
+        else:
+            self.m_set_ori = set()
         
         self.sets_ori = []
         if self.is_find_all_blocks:
