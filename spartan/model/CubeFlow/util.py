@@ -219,7 +219,7 @@ def saveres2txt(res, outpath):
         f.write('\n')
     print('save res.txt success!')
 
-def loadtxt2res(outpath, dim):
+def loadtxt2res(outpath, dim, data_type=int):
     res = []
     tmp_res = []
     with open(outpath, "r") as f:
@@ -233,7 +233,7 @@ def loadtxt2res(outpath, dim):
                 continue
             acc_list = line.strip().split("\t")
             if len(tmp_res) < dim + 1:
-                acc_list = list(map(int, acc_list))
+                acc_list = list(map(data_type, acc_list))
                 tmp_res.append(acc_list)
             else:
                 score = float(acc_list[0])
