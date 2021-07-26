@@ -9,3 +9,4 @@ scikit-image
 sparse>=0.9.1
 ipdb
 Cython
+joblib==0.17.0
