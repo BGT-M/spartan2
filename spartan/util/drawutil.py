@@ -509,3 +509,78 @@ def drawRectbin(xs, ys, outfig=None, xscale='log', yscale='log',
     if outfig is not None:
         fig.savefig(outfig)
     return fig, hist
+
+
+def plot_tri_partitate(quad_tuples, a_ids, m_ids, c_ids, highlight_ids = None):
+    '''
+    plot for tri-partitate graph.
+
+    Args:
+        highlight_ids: dict. key - value is like (color, ids)
+
+    Note: 
+        id of a, m and c must be unique.
+    '''
+    if isinstance(a_ids, set) or isinstance(m_ids, set) or isinstance(c_ids, set):
+        raise ValueError("ids of a, m and c must be a set.")
+
+
+    BLUE = '#A0CBE2'
+    INF = 999999999
+    G = nx.Graph()
+    dict_in = dict()
+    dict_out = dict()
+ 
+
+    # compute statistics value
+    for u, v, w, c in quad_tuples:
+        G.add_edge(u, v, weight = w, count = c)
+        dict_out[u] = dict_out.get(u, 0) + w
+        dict_in[v] = dict_in.get(v, 0) + w
+
+    # node colors
+    node_colors = [BLUE] * G.number_of_nodes()
+    if highlight_ids is not None:
+        import numpy as np
+        node_ids = np.array(list(G.nodes()), dtype=int)
+        ids_map = node_ids.argsort()
+        # print(node_ids)
+        # print(ids_map)
+        for color, ids in highlight_ids.items():
+            for idx in ids:
+                node_colors[ids_map[idx-1]] = color
+
+    # node positions
+    components = [list(G.subgraph(c).nodes()) for i, c in enumerate(nx.connected_components(G))]
+    node_list = [i for p in components for i in p]
+
+    idx1 = [a for a in node_list if a in a_ids]
+    idx2 = [m for m in node_list if m in m_ids]
+    idx3 = [c for c in node_list if c in c_ids]
+
+    pos = dict()
+    max_size = max(len(idx1), len(idx2), len(idx3))
+    pos.update((n, (0, i*3.0*max_size / len(idx1))) for i, n in enumerate(idx1))
+    pos.update((n, (1, i*3.0*max_size / len(idx2))) for i, n in enumerate(idx2))
+    pos.update((n, (2, i*3.0*max_size / len(idx3))) for i, n in enumerate(idx3))
+
+    options = {'node_color':node_colors, 'node_size':500, 'width':0.5, 'pos':pos, 'with_labels':True, 'edge_color':BLUE}
+    edge_labels = nx.get_edge_attributes(G, 'weight')
+    count = nx.get_edge_attributes(G, 'count')
+    for k, v in count.items():
+        edge_labels[k] = "%s, %s" % (edge_labels[k], v)
+    
+    # node labels
+    node_labels = dict((x, x) for x in G.nodes())
+    for m in idx2:
+        node_labels[m] = "%s\nin_%d_out_%d_q-f_%d" % (node_labels[m], dict_in[m], 
+                                dict_out[m], abs(dict_in[m]-dict_out[m]))
+    for a in idx1:
+        node_labels[a] = "%s\nout_%d" % (node_labels[a], dict_out[a])
+    for c in idx3:
+        node_labels[c] = "%s\nin_%d" % (node_labels[c], dict_in[c])
+
+    plt.figure(figsize=(10, 8))
+    nx.draw(G, labels = node_labels, **options)
+    nx.draw_networkx_edge_labels(G, pos, edge_labels)
+    plt.show()
