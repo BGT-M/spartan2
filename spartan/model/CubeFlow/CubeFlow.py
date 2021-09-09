@@ -5,7 +5,10 @@ from .._model import DMmodel
 from ...util.basicutil import param_default
 import copy
 from collections import defaultdict
-from .util import get_real_res, preprocess_data, loadtxt2res, saveres2txt
+from .util import get_real_res, preprocess_data, loadtxt2res, saveres2txt, get_zero_matrix
+import pdb
+
+import sparse as sp
 
 class CubeFlow(DMmodel):
     '''Anomaly detection base on contrastively dense subgraphs, considering
@@ -97,12 +100,13 @@ class CubeFlow(DMmodel):
         
         self.sets_ori = []
         if self.is_find_all_blocks:
+            midDeltas1, midDeltas2 = np.array(np.squeeze(self.AM_tran_mat.sum(axis=1).A)), \
+                                            np.array(np.squeeze(self.CM_tran_mat.sum(axis=1).A))
+            
             self.sets_ori.append(set(range(self.AM_mat.shape[0])))
-            self.sets_ori.append(self.m_set_ori)
+            self.sets_ori.append(set(range(max(len(midDeltas1), len(midDeltas2)))))
             self.sets_ori.append(set(range(self.CM_mat.shape[0])))
             print(len(self.sets_ori[0]), len(self.sets_ori[1]), len(self.sets_ori[2]))
-        else:
-            self.sets_ori = [set(), self.m_set_ori, set()]
 
     # find the smallest one in all set
     def findmin(self):
@@ -194,6 +198,7 @@ class CubeFlow(DMmodel):
             self.m_set = set(list(self.m_mt_dict.keys()))
         
         curAveScore = float('-inf') # 看一下是否更改把numDeleted的初始值
+        
         if self.has_limit:
             if self.checkset_size_max_limit():
                 curAveScore = ((1 - self.alpha) * self.curScore1 - self.alpha * self.curScore2) / s
@@ -282,14 +287,14 @@ class CubeFlow(DMmodel):
             curAveScore = ((1 - self.alpha) * self.curScore1 - self.alpha * self.curScore2) / s
                 
             if self.has_limit:
-                if curAveScore >= self.bestAveScore and self.checkset_size_max_limit():
+                if curAveScore >= self.bestAveScore and self.checkset_size_max_limit() and self.checkset(self.sets):
                     for i in range(len(self.sets)):
                         self.bestNumDeleted[i] = self.numDeleted[i]
                     self.bestAveScore = curAveScore
                     self.bestAveSocre1 = self.curScore1
                     self.bestAveSocre2 = self.curScore2
             else:
-                if curAveScore >= self.bestAveScore:
+                if curAveScore >= self.bestAveScore and self.checkset(self.sets):
                     for i in range(len(self.sets)):
                         self.bestNumDeleted[i] = self.numDeleted[i]
                     self.bestAveScore = curAveScore
@@ -309,6 +314,9 @@ class CubeFlow(DMmodel):
         if sum(self.bestNumDeleted.values()) == 0:  
             # 没有找到任何子图满足限制条件，返回原始子图。例如，限制了m的大小，算法把a集合删空了之后m大小依然大于限制。
             print('Do not find any sub-block that meets the settings.')
+            for i in range(len(finalsets)):
+                finalsets[i] = copy.deepcopy(self.sets_ori[i])
+                
             return finalsets, float('-inf')
         
         return finalsets, self.bestAveScore
@@ -327,7 +335,7 @@ class CubeFlow(DMmodel):
                         tmp_m = self.mt_dictList[0][mt]
                         self.m_mtSize_dict_delete[tmp_m] -= 1
                         if self.m_mtSize_dict_delete[tmp_m] <= 0:  # all mt have been removed
-                            self.sets_ori[1] -= {tmp_m}
+                            self.m_set_ori -= {tmp_m}
                     
             c_mt_nnz = self.CM_mat.nonzero()
             for c, mt in zip(c_mt_nnz[0], c_mt_nnz[1]):
@@ -339,7 +347,7 @@ class CubeFlow(DMmodel):
                         tmp_m = self.mt_dictList[0][mt]
                         self.m_mtSize_dict_delete[tmp_m] -= 1
                         if self.m_mtSize_dict_delete[tmp_m] <= 0:  # all mt have been removed
-                            self.sets_ori[1] -= {tmp_m}
+                            self.m_set_ori -= {tmp_m}
                     
         elif self.del_type == 1: # del find points
             # map mt => m
@@ -356,10 +364,11 @@ class CubeFlow(DMmodel):
             total_mt_set = set(total_mt_set)
             
             if self.has_limit:
-                self.sets_ori[1] -= total_mt_set
+                self.m_set_ori -= m_set
             
             if self.is_find_all_blocks:
                 self.sets_ori[0] -= a_set
+                self.sets_ori[1] -= total_mt_set
                 self.sets_ori[2] -= c_set
             
             a_mt_nnz = self.AM_mat.nonzero()
@@ -373,6 +382,40 @@ class CubeFlow(DMmodel):
                 if c in c_set or mt in total_mt_set:
                     self.CM_mat[c, mt] = 0
                     self.CM_tran_mat[mt, c] = 0   
+                    
+        elif self.del_type == 2:
+            m_set = []
+            for mt in mt_set:
+                m_set.append(self.mt_dictList[0][mt])
+            m_set = set(m_set)
+            print('find m len:', len(m_set))
+
+            # find all mt
+            total_mt_set = []
+            for m in m_set:
+                total_mt_set.extend(self.m_mt_dict[m])
+            total_mt_set = set(total_mt_set)
+
+            if self.has_limit:
+                self.m_set_ori -= m_set
+
+            if self.is_find_all_blocks:
+                self.sets_ori[0] -= a_set
+                self.sets_ori[1] -= total_mt_set
+                self.sets_ori[2] -= c_set
+                
+            a_zero_size, mt_zero_size = self.AM_mat.shape
+            c_zero_size, _ = self.CM_mat.shape
+            A_zero_mat = get_zero_matrix(a_zero_size, list(a_set))
+            MT_zero_mat = get_zero_matrix(mt_zero_size, list(total_mt_set))
+            C_zero_mat = get_zero_matrix(c_zero_size, list(c_set))
+            
+            self.AM_mat = A_zero_mat * self.AM_mat * MT_zero_mat
+            self.AM_tran_mat = MT_zero_mat * self.AM_tran_mat * A_zero_mat
+            
+            self.CM_mat = C_zero_mat * self.CM_mat * MT_zero_mat
+            self.CM_tran_mat = MT_zero_mat * self.CM_tran_mat * C_zero_mat
+            
         else:
             raise Exception('Unknown del_type! (del_type should be in [0, 1])')
 
