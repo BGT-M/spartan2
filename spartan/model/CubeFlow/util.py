@@ -241,7 +241,14 @@ def loadtxt2res(outpath, dim, data_type=int):
     print('load res.txt success!')
     return res
         
-        
+def get_zero_matrix(idx, size):
+    row = np.array(list(range(size)))
+    col = np.array(list(range(size)))
+    data = np.array([1]*size)
+    row = np.delete(row, idx)
+    col = np.delete(col, idx)
+    data = np.delete(data, idx)
+    return sp.COO((data, (row, col)), shape=(size, size))
     
     
     

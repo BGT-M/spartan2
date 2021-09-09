@@ -49,6 +49,7 @@ kGrass = partial(__call__, MODEL_PATH + ".kGS")
 IAT = partial(__call__, MODEL_PATH + ".iat")
 Fraudar = partial(__call__, MODEL_PATH + ".fraudar")
 CubeFlow = partial(__call__, MODEL_PATH + ".CubeFlow")
+CubeFlowPlus = partial(__call__, MODEL_PATH + ".CubeFlowPlus")
 
 
 __all__ = [
@@ -65,5 +66,6 @@ __all__ = [
     "kGrass",
     'IAT',
     'Fraudar',
-    'CubeFlow'
+    'CubeFlow',
+    'CubeFlowPlus'
 ]
