@@ -69,6 +69,6 @@ __all__ = [
     'IAT',
     'Fraudar',
     'CubeFlow',
-    'Specgreedy'
+    'Specgreedy',
     'CubeFlowPlus'
 ]
