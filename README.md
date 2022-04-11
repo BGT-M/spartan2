@@ -132,16 +132,27 @@ All contents are collected in another repository [spartan-tutorials](https://git
 
 </details>
 
+## Table
+|    Type     |    Abbr     |  Paper  |    Year     |     Ref     |
+| :--         | :--         | :--         | :--         | :--         |
+|Graph|HoloScope++|A Contrast Metric for Fraud Detection in Rich Graphs|2019| [1](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8494803) |
+|Graph|HoloScope|HoloScope: Topology-and-Spike Aware Fraud Detection|2017| [2](https://shenghua-liu.github.io/papers/cikm2017-holoscope.pdf) |
+|Graph|Eigenspokes|Eigenspokes: Surprising patterns and scalable community chipping in large graphs|2010|[3](https://www.cs.cmu.edu/~christos/PUBLICATIONS/pakdd10-eigenspokes.pdf)|
+|Graph|EagleMine|EagleMine: Vision-Guided Mining in Large Graphs|2018|[4](https://www.andrew.cmu.edu/user/lakoglu/odd/accepted_papers/ODD_v50_paper_25.pdf)|
+|Time Series|BEATLEX|BEATLEX: Summarizing and Forecasting Time Series with Patterns|2017|[5](https://shenghua-liu.github.io/papers/pkdd2017-beatlex.pdf)|
+|Graph|Fraudar|Fraudar: Bounding graph fraud in the face of camouflage|2016|[6](https://www.kdd.org/kdd2016/papers/files/rfp0110-hooiA.pdf)|
+|Time Series|BeatGAN|BeatGAN: Anomalous Rhythm Detection using Adversarially Generated Time Series|2019|[7](https://www.ijcai.org/Proceedings/2019/0616.pdf)|
+|Graph|DPGS|DPGS: Degree-Preserving Graph Summarization|2021|[8](https://shenghua-liu.github.io/papers/sdm2021-dpgs.pdf)|
 ## API docs
 
 For more details to use spartan2, please see the api docs [readthedocs](https://spartan2.readthedocs.io/en/latest/).
 
 ## references
 1. Shenghua Liu, Bryan Hooi, Christos Faloutsos, A Contrast Metric for Fraud Detection in Rich Graphs, IEEE Transactions on Knowledge and Data Engineering (TKDE), Vol 31, Issue 12, Dec. 1 2019, pp. 2235-2248.
-1. Shenghua Liu, Bryan Hooi, and Christos Faloutsos, "HoloScope: Topology-and-Spike Aware Fraud Detection," In Proc. of ACM International Conference on Information and Knowledge Management (CIKM), Singapore, 2017, pp.1539-1548.
-2. Prakash, B. Aditya, Ashwin Sridharan, Mukund Seshadri, Sridhar Machiraju, and Christos Faloutsos. "Eigenspokes: Surprising patterns and scalable community chipping in large graphs." In Pacific-Asia Conference on Knowledge Discovery and Data Mining, pp. 435-448. Springer, Berlin, Heidelberg, 2010.
-3. Wenjie Feng, Shenghua Liu, Christos Faloutsos, Bryan Hooi, Huawei Shen, Xueqi Cheng, EagleMine: Vision-Guided Mining in Large Graphs, ACM SIGKDD 2018, ODD Workshop on Outlier Detection De-constructed, August 20th, London UK.
-4. Bryan Hooi, Shenghua Liu, Asim Smailagic, and Christos Faloutsos, “BEATLEX: Summarizing and Forecasting Time Series with Patterns,” The European Conference on Machine Learning & Principles and Practice of Knowledge Discovery in Databases (ECML-PKDD), Skopje, Macedonia, 2017.
-5. Hooi, Bryan, Hyun Ah Song, Alex Beutel, Neil Shah, Kijung Shin, and Christos Faloutsos. "Fraudar: Bounding graph fraud in the face of camouflage." In Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, pp. 895-904. 2016.
-6. Zhou, Bin, Shenghua Liu, Bryan Hooi, Xueqi Cheng, and Jing Ye. "BeatGAN: Anomalous Rhythm Detection using Adversarially Generated Time Series." In IJCAI, pp. 4433-4439. 2019.
-7. Houquan Zhou, Shenghua Liu, Kyuhan Lee, Kijung Shin, Huawei Shen and Xueqi Cheng. "DPGS: Degree-Preserving Graph Summarization." In SDM, 2021.
+2. Shenghua Liu, Bryan Hooi, and Christos Faloutsos, "HoloScope: Topology-and-Spike Aware Fraud Detection," In Proc. of ACM International Conference on Information and Knowledge Management (CIKM), Singapore, 2017, pp.1539-1548.
+3. Prakash, B. Aditya, Ashwin Sridharan, Mukund Seshadri, Sridhar Machiraju, and Christos Faloutsos. "Eigenspokes: Surprising patterns and scalable community chipping in large graphs." In Pacific-Asia Conference on Knowledge Discovery and Data Mining, pp. 435-448. Springer, Berlin, Heidelberg, 2010.
+4. Wenjie Feng, Shenghua Liu, Christos Faloutsos, Bryan Hooi, Huawei Shen, Xueqi Cheng, EagleMine: Vision-Guided Mining in Large Graphs, ACM SIGKDD 2018, ODD Workshop on Outlier Detection De-constructed, August 20th, London UK.
+5. Bryan Hooi, Shenghua Liu, Asim Smailagic, and Christos Faloutsos, “BEATLEX: Summarizing and Forecasting Time Series with Patterns,” The European Conference on Machine Learning & Principles and Practice of Knowledge Discovery in Databases (ECML-PKDD), Skopje, Macedonia, 2017.
+6. Hooi, Bryan, Hyun Ah Song, Alex Beutel, Neil Shah, Kijung Shin, and Christos Faloutsos. "Fraudar: Bounding graph fraud in the face of camouflage." In Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, pp. 895-904. 2016.
+7. Zhou, Bin, Shenghua Liu, Bryan Hooi, Xueqi Cheng, and Jing Ye. "BeatGAN: Anomalous Rhythm Detection using Adversarially Generated Time Series." In IJCAI, pp. 4433-4439. 2019.
+8. Houquan Zhou, Shenghua Liu, Kyuhan Lee, Kijung Shin, Huawei Shen and Xueqi Cheng. "DPGS: Degree-Preserving Graph Summarization." In SDM, 2021.
