@@ -1,6 +1,15 @@
 
 # Welcome to spartan2
 
+![](https://img.shields.io/badge/language-python-yellow.svg)
+[![](https://img.shields.io/badge/pypi-0.1.3-brightgreen.svg)](https://pypi.org/project/spartan2/)
+![](https://img.shields.io/github/forks/BGT-M/spartan2.svg?color=blue)
+![](https://img.shields.io/github/stars/BGT-M/spartan2.svg?color=blue)
+[![](https://readthedocs.org/projects/spartan2/badge/?version=latest)](https://spartan2.readthedocs.io/en/latest/)
+[![](https://github.com/BGT-M/spartan2/actions/workflows/python-publish.yml/badge.svg)](https://github.com/BGT-M/spartan2/actions)
+[![](https://img.shields.io/github/license/BGT-M/spartan2.svg)](https://github.com/BGT-M/spartan2/blob/master/LICENSE)
+
+
 ## introduction
 
 **spartan2** is a collection of data mining algorithms on **big graphs** and
@@ -143,9 +152,7 @@ All contents are collected in another repository [spartan-tutorials](https://git
 |Graph|Fraudar|Fraudar: Bounding graph fraud in the face of camouflage|2016|[6](https://www.kdd.org/kdd2016/papers/files/rfp0110-hooiA.pdf)|
 |Time Series|BeatGAN|BeatGAN: Anomalous Rhythm Detection using Adversarially Generated Time Series|2019|[7](https://www.ijcai.org/Proceedings/2019/0616.pdf)|
 |Graph|DPGS|DPGS: Degree-Preserving Graph Summarization|2021|[8](https://shenghua-liu.github.io/papers/sdm2021-dpgs.pdf)|
-## API docs
 
-For more details to use spartan2, please see the api docs [readthedocs](https://spartan2.readthedocs.io/en/latest/).
 
 ## references
 1. Shenghua Liu, Bryan Hooi, Christos Faloutsos, A Contrast Metric for Fraud Detection in Rich Graphs, IEEE Transactions on Knowledge and Data Engineering (TKDE), Vol 31, Issue 12, Dec. 1 2019, pp. 2235-2248.
