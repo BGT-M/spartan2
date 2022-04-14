@@ -10,32 +10,34 @@
 [![](https://img.shields.io/github/license/BGT-M/spartan2.svg)](https://github.com/BGT-M/spartan2/blob/master/LICENSE)
 
 
-## introduction
+## Introduction
 
 **spartan2** is a collection of data mining algorithms on **big graphs** and
 **time series**, providing *three* basic tasks: ***anomaly detection***,
 ***forecast***, and ***summarization***. (see [readthedocs](https://spartan2.readthedocs.io/en/latest/), and [tutorials](https://github.com/BGT-M/spartan2-tutorials) )
 
 Graphs and time series are fundamental representations of many key applications
-in a wide range of users' online behaviors (e.g. social media, shopping, Apps),
-finance (e.g. stock tradings, bank transfers), IoT networks (e.g. sensor readings, smart power grid),
-and healthcare (e.g. electrocardiogram, photoplethysmogram, respiratory inductance plethysmography).
+in a wide range of 
+- **online user behaviors**, e.g. *following in social media*, *shopping*, and *downloading Apps*,
+- **finance**, e.g. *stock tradings, and bank transfers*, 
+- **sensor networks**, e.g. *sensor readings, and smart power grid*,
+and 
+- **health**, e.g. *electrocardiogram, photoplethysmogram, and respiratory inductance plethysmography*.
+
 In practice, we find that thinking graphs and time series as matrices or tensors
 can enable us to find *efficient (near linear)*, *interpretable*, yet *accurate* solutions in many applications.
-
 Therefore, our **goal** is developping a collectioin of algorithms on graphs and time series based
 on **tensors** (matrix is a 2-mode tensor).
 
 In real world, those tensors are *sparse*, and we
-are required to make use of the sparsity to develop efficient algorithms. That is why
-we name the backend package and a private UI interface as
+are required to make use of the sparsity to develop efficient algorithms. 
+That is why we name the package as
+**spartan**: **spar**se **t**ensor **an**alytics.
 
-**SparTAn**: **Spar**se **T**ensor **An**alytics.
-
-spartan2 is the backend name. The package named **spartan** can be imported and run independently as a *usual python package*.
+The package named **spartan** can be imported and run independently as a *usual python package*.
 Everything in package **spartan** is viewed as a tensor (sparse).
 
-## install requirements
+## Install requirements
 
 This project requires Python 3.7 and upper.
 We suggest recreating the experimental environment using Anaconda through the following steps.
