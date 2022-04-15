@@ -115,34 +115,6 @@ python -c 'import site; print(site.getsitepackages())'
 </details>
 
 
-5. start jupyter notebook, and try live tutorials for demos:
-<details><summary><strong>live-tutorials</strong></summary>
-
-**Table of Contents**
-
-All contents are collected in another repository [spartan-tutorials](https://github.com/BGT-M/spartan2-tutorials), you can clone that repository to get all the notebooks and example data to run on your own.
-
-**Part 1: Basic**
-* [Quick start](https://github.com/BGT-M/spartan2-tutorials/blob/master/quick_start.ipynb)
-* [Tensor usage](https://github.com/BGT-M/spartan2-tutorials/blob/master/tensor_usage.ipynb)
-
-**Part 2: Big Graphs**
-* [Graph start](https://github.com/BGT-M/spartan2-tutorials/blob/master/graph_start.ipynb)
-* [SpokEn](https://github.com/BGT-M/spartan2-tutorials/blob/master/SVD_demo.ipynb): an implementation of [EigenSpokes](http://www.cs.cmu.edu/~christos/PUBLICATIONS/pakdd10-eigenspokes.pdf) by SVD.
-* [Eaglemine](https://github.com/BGT-M/spartan2-tutorials/blob/master/EagleMine.ipynb)
-* [Fraudar](https://github.com/BGT-M/spartan2-tutorials/blob/master/Fraudar_demo.ipynb): a wrapper of [Fraudar](https://bhooi.github.io/projects/fraudar/index.html) algorithm.
-* [Holoscope](https://github.com/BGT-M/spartan2-tutorials/blob/master/Holoscope.ipynb): based on [HoloScope](https://shenghua-liu.github.io/papers/cikm2017-holoscope.pdf)
-* [EigenPulse](https://github.com/BGT-M/spartan2-tutorials/blob/master/EigenPulse.ipynb)
-* [DPGS](https://github.com/BGT-M/spartan2-tutorials/blob/master/DPGS.ipynb)
-
-**Part 3: Time Series**
-* [Time Series start](https://github.com/BGT-M/spartan2-tutorials/blob/master/timeseries_start.ipynb)
-* [Other operations](https://github.com/BGT-M/spartan2-tutorials/blob/master/Log2Timeseries.ipynb)
-* [Beatlex](https://github.com/BGT-M/spartan2-tutorials/blob/master/Beatlex.ipynb): based on [BeatLex](https://shenghua-liu.github.io/papers/pkdd2017-beatlex.pdf)
-* [BeatGAN](https://github.com/BGT-M/spartan2-tutorials/blob/master/BeatGAN.ipynb): based on [BeatGAN](https://www.ijcai.org/Proceedings/2019/0616.pdf)
-
-</details>
-
 ## Table
 |    Type     |    Abbr     |  Paper  |    Year     |     Ref     |
 | :--         | :--         | :--         | :--         | :--         |
