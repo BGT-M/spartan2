@@ -64,7 +64,7 @@ We suggest recreating the experimental environment using Anaconda through the fo
 - 4.1 Clone the project from github
 
 ```bash
-git clone <this repository link>/spartan2.git
+git clone git@github.com:BGT-M/spartan2.git
 ```
 
 - 4.2 Install requirements.
