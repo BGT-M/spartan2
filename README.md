@@ -46,31 +46,28 @@ We suggest recreating the experimental environment using Anaconda through the fo
 
 2. Create a new conda environment named "spartan"
 ```bash
-conda create -n spartan python=3.7
-conda activate spartan
+    conda create -n spartan python=3.7
+    conda activate spartan
 ```
 
 3. If you are a normal **USER**,
-<details><summary>download the package from pip</summary>
-
 ```bash
-pip install spartan2
+   # install spartan using pip
+   pip install spartan2
 ```
 
-</details>
 
-
-4. If you are a **DEVELOPER** and **contribute** to the project, or prefer to run directly on the code,
+4. If you want to **contribute**, or prefer to run directly on the code,
 <details>
     <summary>please do the following setup</summary>
 
-4.1 Clone the project from github
+- 4.1 Clone the project from github
 
 ```bash
 git clone <this repository link>/spartan2.git
 ```
 
-4.2 Install requirements.
+- 4.2 Install requirements.
 ```bash
 # [not recommended]# pip install --user --requirement requirements
 # using conda tool
@@ -84,12 +81,12 @@ conda install --force-reinstall -y --name spartan -c conda-forge --file requirem
 python setup.py install
 ```
 
-4.3 Install code in development mode
+- 4.3 Install code in development mode
 ```bash
 # in parent directory of spartan2
 pip install -e spartan2
 ```
-4.4 Since you install your package to a location other than the user site-packages directory, you will need to
+- 4.4 Since you install your package to a location other than the user site-packages directory, you will need to
 add environment variable PYTHONPATH in ~/.bashrc
 
 ```bash
@@ -115,11 +112,10 @@ python -c 'import site; print(site.getsitepackages())'
 </details>
 
 
-## Table
+## Table of modules
 |    Type     |    Abbr     |  Paper  |    Year     |     Ref     |
 | :--         | :--         | :--         | :--         | :--         |
-|Graph|HoloScope++|A Contrast Metric for Fraud Detection in Rich Graphs|2019| [1](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8494803) |
-|Graph|HoloScope|HoloScope: Topology-and-Spike Aware Fraud Detection|2017| [2](https://shenghua-liu.github.io/papers/cikm2017-holoscope.pdf) |
+|Graph|HoloScope|HoloScope: Topology-and-Spike Aware Fraud Detection<br>A Contrast Metric for Fraud Detection in Rich Graphs|2017<br>2019| [1](https://shenghua-liu.github.io/papers/cikm2017-holoscope.pdf)<br>[2](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8494803) |
 |Graph|Eigenspokes|Eigenspokes: Surprising patterns and scalable community chipping in large graphs|2010|[3](https://www.cs.cmu.edu/~christos/PUBLICATIONS/pakdd10-eigenspokes.pdf)|
 |Graph|EagleMine|EagleMine: Vision-Guided Mining in Large Graphs|2018|[4](https://www.andrew.cmu.edu/user/lakoglu/odd/accepted_papers/ODD_v50_paper_25.pdf)|
 |Time Series|BEATLEX|BEATLEX: Summarizing and Forecasting Time Series with Patterns|2017|[5](https://shenghua-liu.github.io/papers/pkdd2017-beatlex.pdf)|
