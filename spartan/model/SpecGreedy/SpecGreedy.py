@@ -1,8 +1,5 @@
 # sys
-import os
-import sys
 import time
-import argparse
 import gc
 
 # third-part libs
@@ -15,15 +12,15 @@ from spartan.model.fraudar.greedy import logWeightedAveDegree, sqrtWeightedAveDe
 from .._model import DMmodel
 
 
-class Specgreedy(DMmodel):
+class SpecGreedy(DMmodel):
     def __init__(self, data_mat):
         self.data = data_mat
 
-    def run(self, out_path = "./", file_name = "specgreedy", bipartite=False, T=5, delete_type="edge", **kwargs):
+    def run(self, out_path="./", file_name="specgreedy", bipartite=False, T=5, delete_type="edge", **kwargs):
         Mcur = self.data.to_scipy().tocsr()
         res = []
         t = 0
-        print("Specgreedy for find %d dense subgraphs." % T)
+        print("SpecGreedy for find %d dense subgraphs." % T)
         while (t < T):
             print("\nRunning for %d-th subgraph" % t)
             if bipartite:
@@ -37,7 +34,7 @@ class Specgreedy(DMmodel):
             print("score obtained is ", score)
 
             if (len(list_row) == 0 or len(list_col) == 0):
-                print("Finding subgraph failed. Specgreedy stopped.")
+                print("Finding subgraph failed. SpecGreedy stopped.")
                 break
 
             t += 1
@@ -45,11 +42,11 @@ class Specgreedy(DMmodel):
 
             if (t >= T):
                 break
-            
+
             tic = time.time()
             if delete_type == "edge":
-                ## only delete inner connections
-                (rs, cs) = Mcur.nonzero() # (u, v)
+                # only delete inner connections
+                (rs, cs) = Mcur.nonzero()  # (u, v)
                 rowSet = set(list_row)
                 colSet = set(list_col)
                 for i in range(len(rs)):
@@ -73,12 +70,11 @@ class Specgreedy(DMmodel):
             print("Remove current block: %ss" % (toc-tic))
 
         return res
-            
 
-    def run_undi(self, sm, weighted = True, topk = 5, scale = 1.0):
+    def run_undi(self, sm, weighted=True, topk=5, scale=1.0):
         # outfn = output_path
         w_g = weighted
-        
+
         # print("## Dataset: {}".format(infn[infn.rfind('/')+1:]))
         greedy_fun = fast_greedy_decreasing_monosym
 
@@ -88,7 +84,7 @@ class Specgreedy(DMmodel):
         sm -= sps.diags(sm.diagonal())
         es = sm.sum()
 
-        if (abs(sm-sm.T)>1e-10).nnz > 0:
+        if (abs(sm-sm.T) > 1e-10).nnz > 0:
             sm += sm.T
         if not w_g:
             print("max edge weight: {}".format(sm.max()))
@@ -97,7 +93,7 @@ class Specgreedy(DMmodel):
 
         print("load graph @ {}s".format(time.time() - t0))
         print("graph: #node: {}, #edge: {}, # es: {}".format((ms, ns), es, sm.sum()))
-        print("matrix max: {}, min: {}, shape: {}\n".format(sm.max(), sm.min(), (n ,n)))
+        print("matrix max: {}, min: {}, shape: {}\n".format(sm.max(), sm.min(), (n, n)))
         print("Finding subgraph with top k singular values:", topk)
 
         orgnds, cans = None, None
@@ -116,10 +112,12 @@ class Specgreedy(DMmodel):
             U, S, V = linalg.svds(sm.asfptype(), k=start + decom_n * step, which='LM', tol=1e-4)
             U, S, V = U[:, ::-1], S[::-1], V.T[:, ::-1]
             print("lambdas:", S)
-            kth  = k
+            kth = k
             while kth < start + decom_n * step - 1 and kth < topk:
-                if abs(max(U[:, kth])) < abs(min(U[:, kth])): U[:, kth] *= -1
-                if abs(max(V[:, kth])) < abs(min(V[:, kth])): V[:, kth] *= -1
+                if abs(max(U[:, kth])) < abs(min(U[:, kth])):
+                    U[:, kth] *= -1
+                if abs(max(V[:, kth])) < abs(min(V[:, kth])):
+                    V[:, kth] *= -1
                 row_cans = list(np.where(U[:, kth] >= 1.0 / np.sqrt(ms))[0])
                 # col_cans = list(np.where(V[:, kth] >= 1.0 / np.sqrt(ns))[0])
                 col_cans = row_cans
@@ -146,14 +144,13 @@ class Specgreedy(DMmodel):
                     nd_idx = dict(zip(range(sm_pms), sorted(cans)))
                     orgnds = [nd_idx[id] for id in nds_res]
 
-                if 2.0*opt_density >= S[kth]: # kth < topk and
+                if 2.0*opt_density >= S[kth]:  # kth < topk and
                     print("Early Stopped. k_cur: {},  optimal density: {}, lambda_k: {}".format(kth, opt_density, S[kth]))
                     isbreak = True
                     break
             if isbreak:
                 break
             decom_n += 1
-
 
         if orgnds is not None:
             print("\noptimals: k:{}, size:{}, density:{}".format(opt_k, fin_pms, opt_density))
@@ -163,7 +160,7 @@ class Specgreedy(DMmodel):
             print("No dense subgraphs found.")
             return [], [], 0
 
-    def run_bip(self, sm, weighted = True, topk = 5, alpha = 5.0, scale = 1.0, col_wt = "even", maxsize = -1):
+    def run_bip(self, sm, weighted=True, topk=5, alpha=5.0, scale=1.0, col_wt="even", maxsize=-1):
         # outfn = output_path
         w_g = weighted
 
@@ -201,13 +198,13 @@ class Specgreedy(DMmodel):
         isbreak = False
         orgnds = None
 
-        t1 = time.time()  
+        t1 = time.time()
         while k < topk:
             print("\nComputing top{} singular vectors and values for efficency".format(start + decom_n * step))
             U, S, V = linalg.svds(sm.asfptype(), k=start + decom_n * step, which='LM', tol=1e-4)
             U, S, V = U[:, ::-1], S[::-1], V.T[:, ::-1]
             print("lambdas:", S)
-            kth  = k
+            kth = k
             while kth < start + decom_n * step - 1 and kth < topk:
                 if abs(max(U[:, kth])) < abs(min(U[:, kth])):
                     U[:, kth] *= -1
@@ -222,12 +219,12 @@ class Specgreedy(DMmodel):
                     continue
                 sm_part = sm[row_cans, :][:, col_cans]
                 row_ids, col_ids, avgsc_gs = greedy_func(sm_part, maxsize)
-                
+
                 kth += 1
                 k += 1
 
-                print("k_cur: {} size: {}, density: {}  @ {}s".format(kth, (len(row_ids), len(col_ids)), 
-                                                                    avgsc_gs, time.time() - t1))
+                print("k_cur: {} size: {}, density: {}  @ {}s".format(kth, (len(row_ids), len(col_ids)),
+                                                                      avgsc_gs, time.time() - t1))
                 if avgsc_gs > opt_density:
                     opt_k, opt_density = kth, avgsc_gs
                     (sm_pms, sm_pns) = sm_part.shape
@@ -241,24 +238,23 @@ class Specgreedy(DMmodel):
                     org_colnds = [col_idx[id] for id in col_ids]
                     cans = [row_cans, col_cans]
                     orgnds = [org_rownds, org_colnds]
-                    
-                if 2.0 * opt_density >= S[kth]: # kth < topk and
+
+                if 2.0 * opt_density >= S[kth]:  # kth < topk and
                     print("Early Stopped. k_cur: {},  optimal density: {}, lambda_k: {}".format(kth, opt_density, S[kth]))
                     isbreak = True
                     break
             if isbreak:
                 break
             decom_n += 1
-        
+
         if orgnds is not None:
-            print("\noptimal k: {}, density: {}".format(opt_k, opt_density))    
+            print("\noptimal k: {}, density: {}".format(opt_k, opt_density))
             print("total time @ {}s".format(time.time() - t1))
             return orgnds[0], orgnds[1], opt_density
         else:
             print("No dense subgraphs found.")
             return [], [], 0
 
-    
     def anomaly_detection(self):
         return self.run()
 
