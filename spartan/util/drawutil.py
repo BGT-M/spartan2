@@ -50,7 +50,7 @@ def plot_graph(graph: Graph, layout=None, bipartite=False, labels=None,
     else:
         g = nx.from_scipy_sparse_matrix(graph.sm)
 
-    if layout is 'bipartite':
+    if layout == 'bipartite':
         pos = nx.bipartite_layout(g, nodes=range(nrow))
     else:
         pos = nx_layout[layout](g)
@@ -510,6 +510,19 @@ def drawRectbin(xs, ys, outfig=None, xscale='log', yscale='log',
         fig.savefig(outfig)
     return fig, hist
 
+# Plot item degree distribution (frequency / P(x>=d)) vs. degree
+def plot_dist(degree, value, xlabel, ylabel, color_marker='b.',
+                     title=None, outfn=None):
+    fig = plt.figure()
+    plt.loglog(degree, value, color_marker, markersize=2, markeredgecolor=None)
+    plt.xlabel(xlabel, linespacing=12, fontsize=18)
+    plt.ylabel(ylabel, linespacing=12, fontsize=18)
+    plt.tight_layout()
+    if title is not None: plt.title(title, fontsize=18, y=1.05)
+    if outfn is not None:
+        fig.savefig(outfn)
+        plt.close()
+    return fig
 
 def plot_tri_partitate(quad_tuples, a_ids, m_ids, c_ids, highlight_ids = None):
     '''

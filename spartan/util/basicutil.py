@@ -133,8 +133,11 @@ class StringMapper(_Mapper):
     mapping their ids into the sample space.
     '''
 
-    def __init__(self, strdict: dict = {}):
-        self.strdict = strdict
+    def __init__(self, strdict: dict = None):
+        if strdict is None:
+            self.strdict = {}
+        else:
+            self.strdict = strdict
         self.strids = []
         if len(self.strdict) >= 0:
             self._append_string_ids()
@@ -145,12 +148,14 @@ class StringMapper(_Mapper):
             self.strids.append(k)
 
     def map(self, attrs):
-        indices = {}
+        indices = []
         for s in attrs:
             if s not in self.strdict:
                 self.strdict[s] = len(self.strdict)
                 self.strids.append(s)  # add new ids
-            indices = self.strdict[s]
+
+            indices.append( self.strdict[s] )
+
 
         return indices
 

@@ -28,7 +28,13 @@ class Graph:
         self.modet = modet  # which mode is time dimension
         self.nprop = graph_tensor.ndim - 2  # num of edge properties
 
-        self.sm = graph_tensor.sum_to_scipy_sparse(modes=(0, 1))
+        #self.sm = graph_tensor.sum_to_scipy_sparse(modes=(0, 1))
+        if self.nprop == 0:
+            # plain graph
+            self.sm = graph_tensor
+        else:
+            # rich graph
+            self.sm = graph_tensor.sum_to_scipy_sparse(modes=(0, 1))
         if not weighted:
             self.sm = (self.sm > 0).astype(int)
         if not bipartite:
@@ -120,7 +126,24 @@ class Graph:
 
     def degrees(self):
         rowdegs, coldegs = self.sm.sum(axis=1), self.sm.sum(axis=0)
-        return rowdegs.A1, coldegs.A1
+        rowdegs, coldegs = list(rowdegs.A1), list(coldegs.A1)
+        return rowdegs, coldegs
+
+    def degree_dist(self, axis=1):
+        '''
+            axis: 1 for row degree dist, and 0 for col degree dist
+        '''
+        fod, uniqued = [], []
+
+        degs = self.sm.sum(axis)
+        degs = list(degs.A1)
+
+
+        for x in sorted(set(degs)):
+            uniqued.append(x)
+            fod.append(degs.count(x))
+
+        return uniqued, fod
 
     def get_edgelist_array(self):
         """

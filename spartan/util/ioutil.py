@@ -185,7 +185,7 @@ def _read_data(filename: str, idxtypes: list, **kwargs) -> object:
         _class = CSVFile
     elif _postfix == ".tensor":
         _class = TensorFile
-    elif _postfix in [".npy", ".npz"]:
+    elif _postfix in [".npy", ".npz", '.pickle']:
         _class = NPFile
     elif _postfix in [".gz", ".bz2", ".zip", ".xz"]:
         _class = CSVFile
@@ -270,6 +270,27 @@ def loadTensor(path: str,  col_idx: list = None, col_types: list = None, sep: st
     ------
         path:
             file-like object
+        **kwargs:
+            support pandas-like parameters, e.g.
+            - header: int or list of ints, default 'infer'
+                     Row number(s) to use as the column names
+            - comment: str, default None
+                    Indicates remainder of line should not be parsed. E.g.
+                    comment='#'
+            - usecols: list-like or callable, default None
+                    Return a subset of the columns. A list-like usecols
+                    parameter would be [0, 1, 2] or ['user', 'massage', 'ts'].
+            - dtype: Type name or dict of column -> type, default None
+                   Data type for data or columns.E.g. {'user':int,
+                   'massage':str, 'ts':int}
+            - nrow: int, default None
+                   Number of rows of file to read.
+            - keep_default_na: boolean, default True
+                  Whether or not to include the default NaN values when parsing
+                  the data. E.g. if keep_default_na=False, then empty string
+                  will keep when parsing; otherwise NaN is set.
+            - na_values: scalar, str, list-like, or dict, default None
+                  Additional strings to recognize as NA/NaN.
     '''
     if not "header" in kwargs.keys():
         kwargs["header"] = None
