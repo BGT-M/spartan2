@@ -25,7 +25,7 @@ class TensorData:
             val_tensor = DTensor(self.data.iloc[:, 1:])
         else:
             time_tensor = None
-            val_tensor = DTensor(self.data)
+            val_tensor = DTensor(self.data.copy())
         return time_tensor, val_tensor
 
     def toSTensor(self, hasvalue: bool = True, mappers: dict = {}):
@@ -34,23 +34,25 @@ class TensorData:
             attr = self.data.iloc[:, :-1]
         else:
             value = pd.Series([1] * len(self.data))
-            attr = self.data
+            attr = self.data.copy()
 
-        for i in attr.columns:
-            if i in mappers:
-                if isinstance(i, str):
-                    colind = mappers[i].map(self.data.loc[:,i])
-                    attr.loc[:,i] = colind
-                else:
-                    colind = mappers[i].map(self.data.iloc[:, i])
-                    attr.iloc[:, i] = colind
+        for i in mappers.keys():
+            if isinstance(i, str) and i in attr.columns:
+                colind = mappers[i].map(self.data.loc[:,i])
+                attr.loc[:,i] = colind
+            elif isinstance(i, int):
+                # may consider np.int64
+                colind = mappers[i].map(self.data.iloc[:, i])
+                attr.iloc[:, i] = colind
         # the dtype bug may better fixed through pre-judge data range and set the dtype 
         # astype here also cause the loadTensor(...,idx_types = ) meanless?
         # finally change the spartan/util/ioutil.py  def transfer_type(typex): add the np.int64 and np.float64
         #attr = attr.astype('int64') #astype to int when dimension：（a1,a2,a3） is large especially when a2*a3>INT_MAX,it will cause C int cannot to long 
         #value = value.astype('float64') #fix the bug in cubeflow/util.py line 57
+        self.attr = attr
+
         return STensor((attr.to_numpy().T, value.to_numpy()))
-        
+
 
     def do_map(self, hasvalue=True, mappers={}):
         if hasvalue:

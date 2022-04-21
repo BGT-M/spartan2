@@ -135,7 +135,7 @@ class Graph:
         '''
         fod, uniqued = [], []
 
-        degs = self.sm.sum(axis)
+        degs = self.sm.sum(axis).A1
         degs = list(degs)
 
         '''
