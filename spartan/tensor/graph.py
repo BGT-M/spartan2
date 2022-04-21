@@ -136,12 +136,15 @@ class Graph:
         fod, uniqued = [], []
 
         degs = self.sm.sum(axis)
-        degs = list(degs.A1)
+        degs = list(degs)
 
-
-        for x in sorted(set(degs)):
+        '''
+        for x in set(degs):
             uniqued.append(x)
             fod.append(degs.count(x))
+        '''
+        fod = np.bincount(degs)
+        uniqued = range(len(fod))
 
         return uniqued, fod
 

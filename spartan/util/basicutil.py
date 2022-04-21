@@ -177,7 +177,7 @@ class IntMapper(_Mapper):
         pass
 
     def map(self, attrs):
-        if self.minint is not None:
+        if self.minint is None:
             self.minint = min(attrs)
         indices = attrs-self.minint
         return indices
@@ -191,20 +191,27 @@ class DenseIntMapper(_Mapper):
     """Remapp irregular integers starting from zero
     """
 
-    def __init__(self):
-        self.id2int = dict()
-        self.int2id = dict()
-        self._idx = 0
+    def __init__(self, id2int=None, int2id=None):
+        if id2int == None:
+            self.id2int = dict()
+        else:
+            self.id2int = id2int
+        if int2id == None:
+            self.int2id = dict()
+        else:
+            self.int2id = int2id
 
     def map(self, attrs):
         rets = [None] * len(attrs)
         for i, attr in enumerate(attrs):
             if not (attr in self.int2id):
-                self.int2id[attr] = self._idx
-                self.id2int[self._idx] = attr
-                self._idx += 1
-            rets[i] = self.int2id[attr]
+                self.id2int[attr] = len(self.int2id)
+                self.int2id[len(self.int2id)] = attr
+
+            rets[i] = self.id2int[attr]
+
         return rets
 
     def revert(self, indices):
-        return [self.id2int[idx] for idx in indices]
+        return [ self.int2id[i] for i in indices ]
+
