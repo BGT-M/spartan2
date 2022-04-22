@@ -9,41 +9,26 @@ class EigenSpokes(DMmodel):
     def __init__(self, data_mat):
         self.data = data_mat
 
-    def run(self, k = 10):
+    def run(self, k = 0, is_directed = False):
         sparse_matrix = self.data.to_scipy()
         sparse_matrix = sparse_matrix.asfptype()
-        RU, RS, RVt = slin.svds(sparse_matrix, k)
+        RU, RS, RVt = slin.svds(sparse_matrix, k+3)
         RV = np.transpose(RVt)
         U, S, V = np.flip(RU, axis=1), np.flip(RS), np.flip(RV, axis=1)
 
-        n_row = U.shape[0]
-        n_col = V.shape[0]
+        m = U.shape[0]
+        n = V.shape[0]
 
-        x_lower_bound = -1 / np.sqrt(n_col + 1)
-        y_lower_bound = -1 / np.sqrt(n_col + 1)
-        x_upper_bound = 1 / np.sqrt(n_col + 1)
-        y_upper_bound = 1 / np.sqrt(n_col + 1)
+        x = U[k] * -1 if np.abs(np.min(U[k])) > np.abs(np.max(U[k])) else U[k]
+        y = V[k] * -1 if np.abs(np.min(V[k])) > np.abs(np.max(V[k])) else V[k]
 
-        real_index1 = S.shape[0] - 1
-        real_index2 = S.shape[0] - 2
-
-        x = U[:, real_index1]
-        y = U[:, real_index2]
-    
-
-        list_x_lower_outliers = [index for index in range(len(x)) if x[index] > x_lower_bound]
-        list_y_lower_outliers = [index for index in range(len(y)) if y[index] > y_lower_bound]
-        list_x_upper_outliers = [index for index in range(len(x)) if x[index] < x_upper_bound]
-        list_y_upper_outliers = [index for index in range(len(y)) if y[index] < y_upper_bound]
-
-        outliers_index = list(set(list_x_lower_outliers) & set(list_y_lower_outliers) &
-                              set(list_x_upper_outliers) & set(list_y_upper_outliers))
-        inliers_index = list(set(range(len(x))).difference(outliers_index))
-
-        outliers_index, inliers_index = inliers_index, outliers_index
-        print("Outliters:")
-        print(outliers_index)
-        return outliers_index
+        x_outliers = [index for index in range(len(x)) if x[index] > 1 / np.sqrt(m)]
+        y_outliers = [index for index in range(len(y)) if y[index] > 1 / np.sqrt(n)]
+ 
+        if is_directed:
+            return (x_outliers, y_outliers)
+        else:
+            return x_outliers
     
     
     def anomaly_detection(self):
