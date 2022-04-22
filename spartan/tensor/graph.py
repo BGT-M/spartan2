@@ -28,13 +28,9 @@ class Graph:
         self.modet = modet  # which mode is time dimension
         self.nprop = graph_tensor.ndim - 2  # num of edge properties
 
-        #self.sm = graph_tensor.sum_to_scipy_sparse(modes=(0, 1))
-        if self.nprop == 0:
-            # plain graph
-            self.sm = graph_tensor
-        else:
-            # rich graph
-            self.sm = graph_tensor.sum_to_scipy_sparse(modes=(0, 1))
+        # both plain graph and rich graph; data type of self.sm is scipy.sparse.coo.coo_matrix
+        self.sm = graph_tensor.sum_to_scipy_sparse(modes=(0, 1))
+
         if not weighted:
             self.sm = (self.sm > 0).astype(int)
         if not bipartite:

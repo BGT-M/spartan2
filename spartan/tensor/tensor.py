@@ -120,7 +120,7 @@ class TensorData:
             self.labels.remove(self.labels[time_col])
         else:
             return _ans
-    
+
     def to_aggts(self, data, time_col: int = 0, group_col: int or list = 1, inplace: bool = False):
         aggts = {} # final dict list for aggregating time series.
         for row in data:
@@ -219,3 +219,4 @@ class TensorStream():
                 colind = self.mappers[i].map(tensorlist.iloc[:, i])
                 tensorlist.iloc[:, i] = colind
         return tensorlist
+

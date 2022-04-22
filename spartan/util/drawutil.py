@@ -582,7 +582,7 @@ def plot_tri_partitate(quad_tuples, a_ids, m_ids, c_ids, highlight_ids = None):
     count = nx.get_edge_attributes(G, 'count')
     for k, v in count.items():
         edge_labels[k] = "%s, %s" % (edge_labels[k], v)
-    
+
     # node labels
     node_labels = dict((x, x) for x in G.nodes())
     for m in idx2:
