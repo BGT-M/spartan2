@@ -74,7 +74,7 @@ class IAT(Generalmodel):
         for k, lst in self.aggiat.items():
             for i in range(len(lst) - 1):
                 pair = (lst[i], lst[i+1])
-                if pair not in self.iatcount:
+                if pair not in self.iatpaircount:
                     self.iatpaircount[pair] = 0
                 self.iatpaircount[pair] += 1
 
@@ -86,24 +86,61 @@ class IAT(Generalmodel):
                 usrlist = self.iatpair_user[pair]
                 usrset.update(usrlist)
         return list(usrset)
-    
+                        
     def get_user_dict(self, iatpairs):
         '''get users dict that have pairs in iatpairs ordered by decreasing frequency
-        Parameters:
-        --------
-        :param iatpairs: dict
-            iat pair returned by find_peak_rect function in RectHistogram class
-        '''
+            Parameters:
+            --------
+            :param iatpairs: dict
+                iat pair returned by find_peak_rect function in RectHistogram class
+         '''
+        from collections import Counter
+        count_list = {}
         for pair in iatpairs:
-            if pair in self.iatpair_user:
-                usrlist = self.iatpair_user[pair]
-                for usr in usrlist:
-                    if usr in self.usrdict:
-                        self.usrdict[usr] += 1
-                    else:
-                        self.usrdict[usr] = 1
-        self.usrdict = sorted(self.usrdict.items(), key=lambda item:item[1], reverse=True)
+            if pair in count_list:
+                pair_counts = count_list[pair]
+            else:
+                if pair in self.iatpair_user:
+                    pair_counts = Counter(self.iatpair_user[pair])
+                    count_list[pair] = pair_counts
+                else:
+                    pair_counts = None
+                    
+            for usr in pair_counts:
+                if usr in self.usrdict:
+                    self.usrdict[usr] += pair_counts[usr]
+                else:
+                    self.usrdict[usr] = pair_counts[usr]
+        
+    def find_iqr_bound(self, x, k=1.5):
+        x = np.array(x)
+        q75, q25 = np.percentile(x, [75, 25])
+        iqr = q75 - q25
+        bound = np.ceil(q75 + k * iqr)
+        return bound
     
+    def find_3sigma_bound(self, x):
+        x = np.array(x)
+        right = x.mean() + 3 * x.std()
+        return right
+    
+    def find_suspicious_users(self, type_='iqr'):
+        if type_ == 'iqr':
+            print('use iqr bound')
+            bound = self.find_iqr_bound(list(self.usrdict.values()))
+        elif type_ == '3sigma':
+            print('use 3sigma bound')
+            bound = self.find_3sigma_bound(list(self.usrdict.values()))
+        else:
+            print(f'cannot find type_:{type_}, type_ should be in ["iqr", "3sigma"]')
+            return 
+        usrlist = []
+        for usr, count in self.usrdict.items():
+            if count > bound:
+                usrlist.append(usr)
+        return usrlist
+            
+
     def find_topk_user(self, k=-1):
         '''find Top-K users that have pairs in iatpairs ordered by decreasing frequency
         Parameters:
@@ -112,7 +149,8 @@ class IAT(Generalmodel):
             default: -1 , means return all user
             else return Top-k user
         '''
-        usrlist = [usrcountpair[0] for usrcountpair in self.usrdict[:k]] 
+        usrdict = sorted(self.usrdict.items(), key=lambda item: item[1], reverse=True)
+        usrlist = [usrcountpair[0] for usrcountpair in usrdict[:k]] 
         return usrlist
         
     def drawIatPdf(self, usrlist: list, outfig=None):
