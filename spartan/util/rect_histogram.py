@@ -194,4 +194,5 @@ class RectHistogram:
         ycoords = set(np.argwhere(ys >= binyst).T[0]) & set(np.argwhere(ys <= binyend).T[0])
         pairids = list(xcoords & ycoords)
         coordpairs = list(zip(xs[pairids], ys[pairids]))
+        coordpairs = list(set(coordpairs))
         return coordpairs
