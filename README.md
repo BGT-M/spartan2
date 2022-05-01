@@ -75,10 +75,10 @@ We suggest recreating the experimental environment using Anaconda through the fo
 
         *or use the following way*
 
-            ```bash
-            # this may not work in ubuntu 18.04
-            python setup.py install
-            ```
+        ```bash
+        # this may not work in ubuntu 18.04
+        python setup.py install
+        ```
 
     - 4.3 Install code in development mode
         ```bash
