@@ -42,5 +42,5 @@ def getKeys(vs, dict):
             items.append(k[0])
             times.append(k[1])
     return items, times
-        
+
 

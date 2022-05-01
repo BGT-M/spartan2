@@ -275,7 +275,7 @@ class EagleMine( DMmodel ):
         self.eaglemodel.save(outfn_eaglemine)
         if outfn_leveltree:
             self.eaglemodel.leveltree.save_leveltree(outfn_leveltree, verbose=False)
-        
+
         nlabs = len(np.unique(list(self.hcel2label.values())))
         if outfn_node2label is not None:
             nnds = len(self.node2hcel)
@@ -286,7 +286,7 @@ class EagleMine( DMmodel ):
                     nodelab = self.hcel2label.get(hcel, -1)
                     ofp_node2lab.writelines("{}{}{}\n".format(nodeidx, delimiter, nodelab))
                 ofp_node2lab.close()
-                
+
         if outfn_hcel2label is not None:
             nhcels = len(self.hcelsusp_wt)
             with open(outfn_hcel2label, 'w') as ofp_hcel2lab:

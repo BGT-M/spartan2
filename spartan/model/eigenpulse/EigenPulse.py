@@ -35,9 +35,9 @@ class EigenPulse(DMmodel):
 
                 td = TensorData(tensorlist)
                 stensor = td.toSTensor(self.stream_tensor.hasvalue, self.mappers)
- 
+
                 n = stensor.shape[1]
-                
+
                 Omg = DTensor.from_numpy(x=random.randn(n, self.l))
                 G, H = generateGH_by_multiply(stensor, Omg)
                 Q, B = generateQB(G, H, Omg, self.l, self.b)
@@ -52,7 +52,7 @@ class EigenPulse(DMmodel):
                 winidx += 1
             except:
                 break
-        
+
         susp_wins = findSuspWins(densities)
         print('suspicious windows:', susp_wins)
         res = []
@@ -67,3 +67,4 @@ class EigenPulse(DMmodel):
             print('time list of dense block:', block[3])
             print('density of dense block:', block[4])
         return res, densities
+
