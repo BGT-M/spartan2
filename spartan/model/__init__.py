@@ -50,6 +50,7 @@ Fraudar = partial(__call__, MODEL_PATH + ".fraudar")
 CubeFlow = partial(__call__, MODEL_PATH + ".CubeFlow")
 SpecGreedy = partial(__call__, MODEL_PATH + ".SpecGreedy")
 CubeFlowPlus = partial(__call__, MODEL_PATH + ".CubeFlowPlus")
+MonLAD = partial(__call__, MODEL_PATH + ".MonLAD")
 
 
 __all__ = [
@@ -68,5 +69,6 @@ __all__ = [
     'Fraudar',
     'CubeFlow',
     'SpecGreedy',
-    'CubeFlowPlus'
+    'CubeFlowPlus',
+    'MonLAD'
 ]
