@@ -17,12 +17,21 @@ class MonLAD(DMmodel):
         self.deltaUp = param_dict['deltaUp']
         self.deltaDown = param_dict['deltaDown']
         self.epsilon = param_dict['epsilon']
+        if param_dict.get('source_type'):
+            source_type = param_dict['source_type']
+        else:
+            source_type = 'VYDAJ'
+        if param_dict.get('des_type'):
+            des_type = param_dict['des_type']
+        else:
+            des_type = 'PRIJEM'
+
         self.count_df = None
 
         if self.has_edge:
             self.core = ZeroOutCore(self.deltaUp, self.deltaDown, self.epsilon)
         else:
-            self.core = ZeroOutCoreCFD(self.deltaUp, self.deltaDown, self.epsilon)
+            self.core = ZeroOutCoreCFD(self.deltaUp, self.deltaDown, self.epsilon, source_type, des_type)
 
     def anomaly_detection(self, detect_part=[1, 2, 3, 4], alpha=0.98, k=1.5, p=0.99, outpath=None):
         if self.count_df is None:

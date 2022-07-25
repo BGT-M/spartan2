@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 class ZeroOutCoreCFD:
-    def __init__(self, deltaUp: int, deltaDown: int, epsilon: int):
+    def __init__(self, deltaUp: int, deltaDown: int, epsilon: int, source_type='VYDAJ', des_type = 'PRIJEM'):
         self.timestamp = 0
         self.deltaUp = deltaUp
         self.deltaDown = deltaDown
@@ -14,6 +14,8 @@ class ZeroOutCoreCFD:
         self.countDesDict = defaultdict(int)
         self.maxDict = {}
         self.minDict = {}
+        self.source_type = source_type
+        self.des_type = des_type
 
     def add_count(self, account, weight, sign) -> bool:
         if sign == 0: # destination acct
@@ -49,10 +51,10 @@ class ZeroOutCoreCFD:
         return False
 
     def __call__(self, account:int, transaction_type: str, weight: int):
-        if transaction_type == 	'PRIJEM': #'PRIJEM' stands for Credit -- destination acct
+        if transaction_type == 	self.des_type: #'PRIJEM' stands for Credit -- destination acct
             if self.add_count(account, weight, 0):
                 raise Exception('Error!')
-        elif transaction_type == 'VYDAJ': # 'VYDAJ' stands for Debit (withdrawal) -- source acct
+        elif transaction_type == self.source_type: # 'VYDAJ' stands for Debit (withdrawal) -- source acct
             if self.add_count(account, weight, 1):
                 self.countDict[account] += 1
                 self.countInDict[account] += self.countTempInDict[account]
