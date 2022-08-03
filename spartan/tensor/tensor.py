@@ -12,6 +12,7 @@ from . import STensor, DTensor
 import pandas as pd
 import numpy as np
 from joblib import Parallel, delayed
+import pdb
 
 
 class TensorData:
@@ -153,11 +154,11 @@ class TensorStream():
                 raise Exception(f"Error: input same size of col_types and col_idx")
         self.sep = sep
         self.mappers = mappers
-        self.mappers = mappers
         self.hasvalue = hasvalue
 
         self.lastwindow = []  # data of last window (lines)
         self.laststrides = []  # indices of strides of last window
+        self.firstrow = [] # the first row of new timestamp
 
     def _get_file_end_pos(self):
         cur_pos = self.f.tell()
@@ -166,16 +167,22 @@ class TensorStream():
         self.f.seek(cur_pos, 0)
         return end_pos
 
-    def fetch_slide_window(self, window: int = 10, stride: int = 5, ts_colidx: int = 0):
+    def fetch_slide_window(self, window: int = 10, stride: int = 5, ts_colidx: int = 0, decode=True):
         end_pos = self._get_file_end_pos()
         if self.f.tell() == end_pos:
             raise Exception('all data has been processed')
 
-        tensorlist = []
+        if len(self.firstrow) > 0:
+            tensorlist = [self.firstrow]
+        else:
+            tensorlist = []
         lineid = 0
 
         while True:
-            line = self.f.readline().decode('utf-8')
+            if decode:
+                line = self.f.readline().decode('utf-8')
+            else:
+                line = self.f.readline()
             coords = line.strip().split(self.sep)
             tline = []
             try:
@@ -196,6 +203,7 @@ class TensorStream():
                         self.laststrides.append(lineid)
                         if ts - start_ts >= window:
                             self.lastwindow = tensorlist
+                            self.firstrow = tline
                             break
                     else:
                         win_start_lineid = self.laststrides.pop(0)
@@ -206,8 +214,10 @@ class TensorStream():
                         curwindow.extend(tensorlist)
                         self.lastwindow = curwindow
                         self.laststrides.append(len(curwindow))
+                        self.firstrow = tline
                         break
                 if self.f.tell() == end_pos:
+                    tensorlist.append(tline)
                     break
             tensorlist.append(tline)
             lineid += 1
